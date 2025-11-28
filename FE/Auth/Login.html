@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập hệ thống iPOOR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --bg-light-blue: #F0F9FF;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border-color: #cbd5e1;
+            --white: #ffffff;
+            --secondary-blue: #3b82f6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--white); }
+
+        .auth-container {
+            position: relative; width: 100%; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        .bg-decoration {
+            position: absolute; top: 0; left: 0; width: 35%; height: 100%;
+            background-color: var(--bg-light-blue); z-index: 0;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+        }
+
+        .auth-card {
+            position: relative; z-index: 1; background: var(--white);
+            width: 100%; max-width: 420px; padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05),
+                        0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            min-height: 380px;
+        }
+
+        .card-header { margin-bottom: 32px; }
+        .logo-placeholder { display: flex; align-items: center; margin-bottom: 16px; }
+        .logo-icon {
+            font-weight: 800; font-size: 24px; color: var(--primary-navy);
+            letter-spacing: -1px;
+        }
+        .card-title {
+            font-size: 22px; font-weight: 600; color: var(--primary-navy);
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; font-size: 14px; font-weight: 500;
+            color: var(--text-dark); margin-bottom: 8px;
+        }
+        .form-group input {
+            width: 100%; padding: 12px 16px; font-size: 14px;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .form-group input:focus {
+            border-color: var(--primary-navy);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        .form-options {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 24px;
+        }
+        .form-options a {
+            font-size: 14px; color: var(--secondary-blue);
+            text-decoration: none; font-weight: 500;
+        }
+        .form-options a:hover { text-decoration: underline; }
+        .checkbox-label {
+            display: flex; align-items: center;
+            font-size: 14px; color: var(--text-dark); cursor: pointer;
+        }
+        .checkbox-label input {
+            margin-right: 8px; width: 16px; height: 16px;
+            accent-color: var(--primary-navy);
+        }
+
+        .btn-primary {
+            width: 100%; padding: 12px;
+            background-color: var(--primary-navy);
+            color: var(--white); border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .card-footer {
+            margin-top: 24px; text-align: center;
+            border-top: 1px solid #f1f5f9; padding-top: 16px;
+        }
+        .card-footer p {
+            font-size: 14px; color: var(--text-gray); margin-bottom: 8px;
+        }
+        .card-footer a {
+            color: var(--secondary-blue); text-decoration: none;
+            font-weight: 500; cursor: pointer;
+        }
+        .card-footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 600px) {
+            .bg-decoration { display: none; }
+            .auth-card { box-shadow: none; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="bg-decoration"></div>
+
+    <div class="auth-card">
+        <div class="card-header">
+            <div class="logo-placeholder">
+                <!-- Sau này thay bằng logo thật -->
+                <span class="logo-icon">iP</span>
+            </div>
+            <h2 class="card-title">Đăng nhập hệ thống iPOOR</h2>
+        </div>
+
+        <form action="#" method="POST">
+            <div class="form-group">
+                <label for="login-username">Tên đăng nhập/Email</label>
+                <input type="text" id="login-username"
+                       placeholder="Nhập tên đăng nhập hoặc email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="login-password">Mật khẩu</label>
+                <input type="password" id="login-password"
+                       placeholder="Nhập mật khẩu" required>
+            </div>
+
+            <div class="form-options">
+                <label class="checkbox-label">
+                    <input type="checkbox">
+                    <span>Ghi nhớ đăng nhập</span>
+                </label>
+                <a href="ForgotPassword.html">Quên mật khẩu?</a>
+            </div>
+
+            <button type="submit" class="btn-primary">Đăng nhập</button>
+        </form>
+
+        <div class="card-footer">
+            <p>Bạn chưa có tài khoản?
+                <a href="signup.html">Đăng ký ngay</a>
+            </p>
+            <p>Bạn gặp vấn đề? <a href="#">Liên hệ quản trị hệ thống</a>.</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
