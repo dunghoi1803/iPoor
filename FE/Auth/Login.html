@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập hệ thống iPOOR</title>
+    <link rel="icon" type="image/png" href="../Image/icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -44,8 +45,12 @@
         .card-header { margin-bottom: 32px; }
         .logo-placeholder { display: flex; align-items: center; margin-bottom: 16px; }
         .logo-icon {
-            font-weight: 800; font-size: 24px; color: var(--primary-navy);
-            letter-spacing: -1px;
+            display: none;
+        }
+        .logo-img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
         }
         .card-title {
             font-size: 22px; font-weight: 600; color: var(--primary-navy);
@@ -120,13 +125,12 @@
     <div class="auth-card">
         <div class="card-header">
             <div class="logo-placeholder">
-                <!-- Sau này thay bằng logo thật -->
-                <span class="logo-icon">iP</span>
+                <img src="../Image/icon.png" alt="iPOOR" class="logo-img">
             </div>
             <h2 class="card-title">Đăng nhập hệ thống iPOOR</h2>
         </div>
 
-        <form action="#" method="POST">
+        <form action="../HomePage/HomePage.html" method="POST">
             <div class="form-group">
                 <label for="login-username">Tên đăng nhập/Email</label>
                 <input type="text" id="login-username"

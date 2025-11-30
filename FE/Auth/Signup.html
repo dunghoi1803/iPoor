@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng ký tài khoản iPOOR</title>
+    <link rel="icon" type="image/png" href="../Image/icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -43,9 +44,11 @@
 
         .card-header { margin-bottom: 24px; }
         .logo-placeholder { display: flex; align-items: center; margin-bottom: 8px; }
-        .logo-icon {
-            font-weight: 800; font-size: 24px; color: var(--primary-navy);
-            letter-spacing: -1px;
+        .logo-icon { display: none; }
+        .logo-img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
         }
         .card-title {
             font-size: 22px; font-weight: 600; color: var(--primary-navy);
@@ -198,8 +201,7 @@
     <div class="auth-card">
         <div class="card-header">
             <div class="logo-placeholder">
-                <!-- Sau này thay bằng logo thật -->
-                <span class="logo-icon">iP</span>
+                <img src="../Image/icon.png" alt="iPOOR" class="logo-img">
             </div>
             <h2 class="card-title">Đăng ký tài khoản iPOOR</h2>
             <p class="card-subtitle">
