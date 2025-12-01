@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPOOR | Chỉnh sửa hộ</title>
+    <link rel="icon" type="image/png" href="../Image/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy-900: #0f172a;
+            --navy-800: #162544;
+            --navy-700: #1f2f54;
+            --blue-500: #3b82f6;
+            --blue-100: #e1ecff;
+            --gray-50: #f5f7fa;
+            --gray-100: #e5e7eb;
+            --gray-200: #e2e8f0;
+            --gray-400: #94a3b8;
+            --gray-500: #6b7280;
+            --white: #ffffff;
+            --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --red-500: #dc2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Manrope', system-ui, -apple-system, sans-serif; background: var(--gray-50); color: var(--navy-900); }
+
+        .app-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+        .sidebar { background: var(--navy-900); color: var(--white); display: flex; flex-direction: column; padding: 20px 18px; }
+        .brand { display: flex; align-items: center; gap: 12px; padding: 10px 12px 20px; }
+        .brand-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--white); display: grid; place-items: center; }
+        .brand-logo { width: 30px; height: 30px; object-fit: contain; }
+        .brand-name { font-size: 18px; font-weight: 700; letter-spacing: 0.4px; }
+        nav { margin-top: 8px; display: grid; gap: 6px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: var(--white); text-decoration: none; transition: background 0.2s, transform 0.1s; }
+        .nav-item:hover { background: var(--navy-800); transform: translateX(2px); }
+        .nav-item.active { background: var(--navy-700); border-left: 3px solid var(--blue-500); }
+        .nav-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
+
+        .main-area { display: flex; flex-direction: column; min-height: 100vh; }
+        .topbar { background: var(--white); height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-shadow: 0 1px 0 rgba(148, 163, 184, 0.35); position: relative; }
+        .breadcrumb { color: var(--gray-500); font-weight: 600; letter-spacing: 0.2px; }
+        .breadcrumb strong { color: var(--navy-900); }
+        .user-meta { display: flex; align-items: center; gap: 12px; position: relative; }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--blue-500); color: var(--white); display: grid; place-items: center; font-weight: 700; }
+        .user-info { display: flex; flex-direction: column; align-items: flex-end; }
+        .user-name { font-weight: 700; }
+        .user-role { color: var(--gray-500); font-size: 13px; }
+        .dropdown { border: 1px solid var(--gray-100); border-radius: 10px; padding: 8px 12px; background: var(--white); display: flex; gap: 8px; align-items: center; cursor: pointer; transition: box-shadow 0.15s; }
+        .dropdown:hover { box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12); }
+        .dropdown-menu { position: absolute; right: 0; top: 60px; background: var(--white); border: 1px solid var(--gray-100); border-radius: 12px; box-shadow: 0 14px 28px rgba(15,23,42,0.15); display: none; min-width: 180px; overflow: hidden; }
+        .dropdown-menu.open { display: block; }
+        .dropdown-item { width: 100%; text-align: left; padding: 10px 14px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: var(--navy-900); transition: background 0.15s; }
+        .dropdown-item:hover { background: #f8fafc; }
+
+        .content { flex: 1; padding: 24px; background: var(--gray-50); display: grid; gap: 16px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.2px; }
+
+        .card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px; box-shadow: var(--card-shadow); padding: 16px; display: grid; gap: 12px; }
+        .card-title { font-weight: 800; font-size: 16px; }
+        .grid-2col { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 16px; }
+        .field { display: grid; gap: 4px; }
+        .label { color: var(--gray-500); font-weight: 700; font-size: 13px; }
+
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: 10px; font-weight: 600; color: var(--navy-900); background: var(--white); }
+        .form-control:focus { outline: 2px solid var(--blue-100); }
+        .error { color: var(--red-500); font-size: 12px; font-weight: 700; }
+        .action-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+        .btn-primary { background: var(--navy-900); color: var(--white); border: none; border-radius: 10px; padding: 12px 16px; font-weight: 800; cursor: pointer; }
+        .btn-primary:hover { background: var(--navy-800); }
+        .btn-secondary { background: var(--white); color: var(--navy-900); border: 1px solid var(--gray-200); border-radius: 10px; padding: 12px 16px; font-weight: 700; cursor: pointer; }
+        .btn-secondary:hover { background: #f8fafc; }
+
+        .autocomplete { position: relative; }
+        .suggestions {
+            position: absolute; top: calc(100% + 4px); left: 0; width: 100%;
+            background: var(--white); border: 1px solid var(--gray-100); border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(15,23,42,0.12);
+            max-height: 220px; overflow-y: auto; display: none; z-index: 10;
+        }
+        .suggestions.open { display: block; }
+        .suggestion-item { padding: 10px 12px; cursor: pointer; font-weight: 600; color: var(--navy-900); }
+        .suggestion-item:hover { background: #f8fafc; }
+        .suggestion-empty { padding: 10px 12px; color: var(--gray-500); font-weight: 700; }
+        .suggestion-meta { padding: 8px 12px; color: var(--gray-500); font-size: 12px; font-weight: 700; border-top: 1px solid var(--gray-100); background: #f8fafc; }
+
+        @media (max-width: 960px) {
+            .app-shell { grid-template-columns: 72px 1fr; }
+            .brand-name { display: none; }
+            .nav-item span { display: none; }
+        }
+        @media (max-width: 680px) {
+            .app-shell { grid-template-columns: 1fr; }
+            .sidebar { flex-direction: row; overflow-x: auto; height: 72px; }
+            nav { grid-auto-flow: column; grid-auto-columns: max-content; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark"><img src="../Image/icon.png" alt="iPOOR" class="brand-logo"></div>
+            <div class="brand-name">iPOOR</div>
+        </div>
+        <nav>
+            <a class="nav-item" href="./HomePage.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
+                <span>Bảng điều khiển</span>
+            </a>
+            <a class="nav-item active" href="./HouseholdList.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
+                <span>Quản lý hộ nghèo</span>
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
+                <span>Thu thập & cập nhật dữ liệu</span>
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+                <span>Chính sách & báo cáo</span>
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
+                <span>Bản đồ nghèo (GIS)</span>
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span>Nhật ký hoạt động</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="breadcrumb"><strong>Trang chủ</strong> / Quản lý hộ nghèo / Chỉnh sửa</div>
+            <div class="user-meta">
+                <div class="user-info">
+                    <span class="user-name">Nguyễn Văn A</span>
+                    <span class="user-role">Cán bộ tỉnh</span>
+                </div>
+                <div class="avatar">NA</div>
+                <button class="dropdown" id="accountDropdown">Tài khoản ▾</button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <button class="dropdown-item" data-action="change-password">Đổi mật khẩu</button>
+                    <button class="dropdown-item" data-action="logout">Đăng xuất</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Chỉnh sửa hộ nghèo – Nguyễn Thị Hoa</div>
+                    <div class="breadcrumb" style="margin-top:6px;"><strong>Trang chủ</strong> / Quản lý hộ nghèo / Chỉnh sửa</div>
+                </div>
+            </div>
+
+            <section class="card">
+                <div class="card-title">Thông tin chung</div>
+                <div class="grid-2col">
+                    <div class="field"><label class="label" for="fullName">Họ và tên</label><input class="form-control" id="fullName" placeholder="Nhập họ và tên" value="Nguyễn Thị Hoa"><div class="error" data-error="fullName"></div></div>
+                    <div class="field"><label class="label" for="dob">Ngày sinh</label><input class="form-control" id="dob" type="date" value="1985-03-12"><div class="error" data-error="dob"></div></div>
+                    <div class="field"><label class="label" for="gender">Giới tính</label><select class="form-control" id="gender"><option value="">Chọn</option><option value="Nam">Nam</option><option value="Nữ" selected>Nữ</option></select><div class="error" data-error="gender"></div></div>
+                    <div class="field"><label class="label" for="ethnic">Dân tộc</label><select class="form-control" id="ethnic"><option value="">Chọn dân tộc</option></select><div class="error" data-error="ethnic"></div></div>
+                    <div class="field"><label class="label" for="idCard">CCCD</label><input class="form-control" id="idCard" placeholder="12 số CCCD" value="031234567890" maxlength="12"><div class="error" data-error="idCard"></div></div>
+                    <div class="field"><label class="label" for="members">Số thành viên</label><input class="form-control" id="members" type="number" min="1" value="5"><div class="error" data-error="members"></div></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-title">Thông tin nghèo đa chiều</div>
+                <div class="grid-2col">
+                    <div class="field"><label class="label" for="statusField">Trạng thái</label><select class="form-control" id="statusField"><option value="">Chọn trạng thái</option><option value="Nghèo" selected>Nghèo</option><option value="Cận nghèo">Cận nghèo</option><option value="Thoát nghèo">Thoát nghèo</option><option value="Nguy cơ tái nghèo">Nguy cơ tái nghèo</option></select><div class="error" data-error="statusField"></div></div>
+                    <div class="field"><label class="label" for="scoreB1">Điểm B1</label><input class="form-control" id="scoreB1" type="number" min="1" value="68"><div class="error" data-error="scoreB1"></div></div>
+                    <div class="field"><label class="label" for="scoreB2">Điểm B2</label><input class="form-control" id="scoreB2" type="number" min="1" value="74"><div class="error" data-error="scoreB2"></div></div>
+                    <div class="field"><label class="label" for="note">Mô tả ngắn</label><input class="form-control" id="note" placeholder="Ghi chú về tình trạng đa chiều" value="Thu nhập dưới chuẩn, thiếu điều kiện tiếp cận giáo dục và y tế."><div class="error" data-error="note"></div></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-title">Địa bàn & rà soát</div>
+                <div class="grid-2col">
+                    <div class="field"><label class="label" for="provinceField">Tỉnh/TP</label>
+                        <div class="autocomplete">
+                            <input class="form-control" id="provinceField" placeholder="Nhập tỉnh/thành phố" autocomplete="off" value="TP. Hà Nội">
+                            <div class="suggestions" id="provinceSuggestions"></div>
+                        </div>
+                        <div class="error" data-error="provinceField"></div>
+                    </div>
+                    <div class="field"><label class="label" for="communeField">Phường/Xã</label>
+                        <div class="autocomplete">
+                            <input class="form-control" id="communeField" placeholder="Chọn phường/xã" autocomplete="off" value="Phường A">
+                            <div class="suggestions" id="communeSuggestions"></div>
+                        </div>
+                        <div class="error" data-error="communeField"></div>
+                    </div>
+                    <div class="field"><label class="label" for="areaField">Khu vực</label>
+                        <select class="form-control" id="areaField">
+                            <option value="">Chọn khu vực</option>
+                            <option value="Thành thị" selected>Thành thị</option>
+                            <option value="Nông thôn">Nông thôn</option>
+                        </select>
+                        <div class="error" data-error="areaField"></div>
+                    </div>
+                    <div class="field"><label class="label" for="village">Thôn/Xóm</label><input class="form-control" id="village" placeholder="Nhập thôn/xóm" value="Tổ 5"><div class="error" data-error="village"></div></div>
+                    <div class="field"><label class="label" for="officer">Cán bộ rà soát</label><input class="form-control" id="officer" placeholder="Tên cán bộ" value="Trần Văn Minh"><div class="error" data-error="officer"></div></div>
+                    <div class="field"><label class="label" for="reviewDate">Ngày rà soát</label><input class="form-control" id="reviewDate" type="date" value="2023-08-12"><div class="error" data-error="reviewDate"></div></div>
+                    <div class="field"><label class="label" for="remark">Ghi chú</label><input class="form-control" id="remark" placeholder="Ghi chú thêm" value="Đã khảo sát thực địa, cần hỗ trợ học phí."><div class="error" data-error="remark"></div></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-title">Tài liệu đính kèm</div>
+                <div class="attachments">
+                    <div class="attach-card">
+                        <div class="label">Ảnh CCCD</div>
+                        <input class="form-control" type="file" accept="image/*">
+                        <div class="error" data-error="cccdFile"></div>
+                    </div>
+                    <div class="attach-card">
+                        <div class="label">File scan</div>
+                        <input class="form-control" type="file" accept=".pdf,.jpg,.png">
+                        <div class="error" data-error="scanFile"></div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="action-row">
+                <button class="btn-secondary" id="cancelEdit">Hủy bỏ</button>
+                <button class="btn-primary" id="saveForm">Lưu</button>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="../data/communes.js"></script>
+<script src="../data/ethnicities.js"></script>
+<script>
+    const dropdownBtn = document.getElementById('accountDropdown');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    const cancelBtn = document.getElementById('cancelEdit');
+    const saveBtn = document.getElementById('saveForm');
+    const ethnicSelect = document.getElementById('ethnic');
+    const provinceInput = document.getElementById('provinceField');
+    const provinceSuggestions = document.getElementById('provinceSuggestions');
+    const communeInput = document.getElementById('communeField');
+    const communeSuggestions = document.getElementById('communeSuggestions');
+    const MAX_COMMUNE_RESULTS = 20;
+    const COMMUNES_DATA = window.COMMUNES_DATA || {};
+    const ETHNICITIES = Array.isArray(window.ETHNICITIES) ? window.ETHNICITIES : [];
+    const provinces = [
+        'TP. Hà Nội', 'TP. Huế', 'TP. Hải Phòng', 'TP. Đà Nẵng', 'TP. Hồ Chí Minh', 'TP. Cần Thơ',
+        'An Giang', 'Bắc Ninh', 'Cà Mau', 'Cao Bằng', 'Đắk Lắk', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp',
+        'Gia Lai', 'Hà Tĩnh', 'Hưng Yên', 'Khánh Hòa', 'Lai Châu', 'Lâm Đồng', 'Lạng Sơn', 'Lào Cai',
+        'Nghệ An', 'Ninh Bình', 'Phú Thọ', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sơn La', 'Tây Ninh',
+        'Thái Nguyên', 'Thanh Hóa', 'Tuyên Quang', 'Vĩnh Long'
+    ];
+
+    function closeMenu() { dropdownMenu.classList.remove('open'); }
+    dropdownBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('open'); });
+    dropdownMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.target.dataset.action === 'logout') window.location.href = '../Auth/Login.html';
+        if (e.target.dataset.action === 'change-password') window.location.href = '../Auth/ForgotPassword.html';
+        closeMenu();
+    });
+    document.addEventListener('click', closeMenu);
+
+    function clearErrors() { document.querySelectorAll('.error').forEach(e => e.textContent = ''); }
+
+    function validateForm() {
+        let ok = true;
+        clearErrors();
+        const required = [
+            { id: 'fullName', msg: 'Bắt buộc nhập họ tên' },
+            { id: 'dob', msg: 'Chọn ngày sinh' },
+            { id: 'gender', msg: 'Chọn giới tính' },
+            { id: 'ethnic', msg: 'Chọn dân tộc' },
+            { id: 'provinceField', msg: 'Chọn tỉnh/thành' },
+            { id: 'idCard', msg: 'Nhập 12 số CCCD', pattern: /^\d{12}$/ },
+            { id: 'members', msg: 'Nhập số thành viên >=1', pattern: /^[1-9]\d*$/ },
+            { id: 'statusField', msg: 'Chọn trạng thái hộ' },
+            { id: 'scoreB1', msg: '> 0', pattern: /^[1-9]\d*$/ },
+            { id: 'scoreB2', msg: '> 0', pattern: /^[1-9]\d*$/ },
+            { id: 'communeField', msg: 'Nhập phường/xã' },
+            { id: 'areaField', msg: 'Chọn khu vực' },
+            { id: 'officer', msg: 'Nhập cán bộ rà soát' },
+            { id: 'reviewDate', msg: 'Chọn ngày rà soát' }
+        ];
+        required.forEach(f => {
+            const el = document.getElementById(f.id);
+            const val = el.value.trim();
+            if (!val || (f.pattern && !f.pattern.test(val))) {
+                const err = document.querySelector(`[data-error="${f.id}"]`);
+                err.textContent = f.msg;
+                ok = false;
+            }
+        });
+        return ok;
+    }
+
+    cancelBtn.addEventListener('click', (e) => { e.preventDefault(); window.location.href = './HouseholdList.html'; });
+    saveBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (validateForm()) {
+            alert('Lưu thành công (demo).');
+            window.location.href = './HouseholdList.html';
+        }
+    });
+
+    // Populate ethnicities
+    if (ETHNICITIES.length) {
+        ETHNICITIES.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            ethnicSelect.appendChild(opt);
+        });
+        ethnicSelect.value = 'Kinh';
+    } else {
+        console.warn('Chưa có dữ liệu dân tộc, kiểm tra file ethnicities.js');
+    }
+
+    function normalize(text) {
+        return text.toLowerCase().replace(/[^a-z0-9\u00C0-\u1EF9]/g, '');
+    }
+
+    // Province autocomplete
+    const PROVINCE_DELAY = 200;
+    let provinceTimer;
+    function renderProvinceSuggestions(keyword) {
+        const term = keyword.trim().toLowerCase();
+        const matches = term ? provinces.filter(p => p.toLowerCase().includes(term)) : provinces;
+        provinceSuggestions.innerHTML = '';
+        if (!matches.length) {
+            const empty = document.createElement('div');
+            empty.className = 'suggestion-empty';
+            empty.textContent = 'Không có kết quả';
+            provinceSuggestions.appendChild(empty);
+            return;
+        }
+        matches.forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = name;
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                provinceInput.value = name;
+                provinceSuggestions.classList.remove('open');
+                communeInput.value = '';
+                communeSuggestions.classList.remove('open');
+            });
+            provinceSuggestions.appendChild(item);
+        });
+        provinceSuggestions.dataset.activeIndex = matches.length ? '0' : '-1';
+        updateProvinceHighlight();
+    }
+    function updateProvinceHighlight() {
+        const items = [...provinceSuggestions.querySelectorAll('.suggestion-item')];
+        const activeIndex = Number(provinceSuggestions.dataset.activeIndex || -1);
+        items.forEach((el, idx) => { el.style.background = idx === activeIndex ? '#eef2ff' : ''; });
+        if (activeIndex >= 0 && items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
+    }
+    function moveProvinceHighlight(delta) {
+        const items = [...provinceSuggestions.querySelectorAll('.suggestion-item')];
+        if (!items.length) return;
+        let idx = Number(provinceSuggestions.dataset.activeIndex || -1);
+        idx = isNaN(idx) ? -1 : idx;
+        idx = Math.max(0, Math.min(items.length - 1, idx + delta));
+        provinceSuggestions.dataset.activeIndex = String(idx);
+        updateProvinceHighlight();
+    }
+    provinceInput.addEventListener('input', () => {
+        clearTimeout(provinceTimer);
+        provinceTimer = setTimeout(() => {
+            renderProvinceSuggestions(provinceInput.value);
+            provinceSuggestions.classList.add('open');
+        }, PROVINCE_DELAY);
+    });
+    provinceInput.addEventListener('focus', () => { renderProvinceSuggestions(provinceInput.value); provinceSuggestions.classList.add('open'); });
+    provinceInput.addEventListener('blur', () => provinceSuggestions.classList.remove('open'));
+    provinceInput.addEventListener('keydown', (e) => {
+        const items = [...provinceSuggestions.querySelectorAll('.suggestion-item')];
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (!provinceSuggestions.classList.contains('open')) { renderProvinceSuggestions(provinceInput.value); provinceSuggestions.classList.add('open'); } else moveProvinceHighlight(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); moveProvinceHighlight(-1); }
+        else if (e.key === 'Enter') {
+            const idx = Number(provinceSuggestions.dataset.activeIndex || -1);
+            if (idx >= 0 && items[idx]) {
+                provinceInput.value = items[idx].textContent;
+                provinceSuggestions.classList.remove('open');
+                communeInput.value = '';
+                communeSuggestions.classList.remove('open');
+                e.preventDefault();
+            }
+        }
+    });
+
+    // Commune autocomplete
+    const COMMUNE_DELAY = 200;
+    let communeTimer;
+    function getCommunesForProvince(provinceName) {
+        if (!provinceName) return [];
+        if (COMMUNES_DATA && Array.isArray(COMMUNES_DATA[provinceName])) return COMMUNES_DATA[provinceName];
+        const normalizedInput = normalize(provinceName);
+        const foundKey = Object.keys(COMMUNES_DATA || {}).find(
+            key => normalize(key) === normalizedInput || normalize(key).includes(normalizedInput) || normalizedInput.includes(normalize(key))
+        );
+        return foundKey && Array.isArray(COMMUNES_DATA[foundKey]) ? COMMUNES_DATA[foundKey] : [];
+    }
+    function renderCommuneSuggestions(keyword) {
+        const provinceName = provinceInput.value.trim();
+        const list = getCommunesForProvince(provinceName);
+        communeSuggestions.innerHTML = '';
+        if (!list.length) {
+            const empty = document.createElement('div');
+            empty.className = 'suggestion-empty';
+            empty.textContent = provinceName ? 'Không có dữ liệu' : 'Chưa chọn tỉnh';
+            communeSuggestions.appendChild(empty);
+            return;
+        }
+        const term = keyword.trim().toLowerCase();
+        const matches = term ? list.filter(n => n.toLowerCase().includes(term)) : list;
+        const limited = matches.slice(0, MAX_COMMUNE_RESULTS);
+        if (!matches.length) {
+            const empty = document.createElement('div');
+            empty.className = 'suggestion-empty';
+            empty.textContent = 'Không có kết quả';
+            communeSuggestions.appendChild(empty);
+            return;
+        }
+        limited.forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = name;
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                communeInput.value = name;
+                communeSuggestions.classList.remove('open');
+            });
+            communeSuggestions.appendChild(item);
+        });
+        if (matches.length > MAX_COMMUNE_RESULTS) {
+            const meta = document.createElement('div');
+            meta.className = 'suggestion-meta';
+            meta.textContent = `Hiển thị ${MAX_COMMUNE_RESULTS}/${matches.length} kết quả. Tiếp tục gõ để thu hẹp.`;
+            communeSuggestions.appendChild(meta);
+        }
+        communeSuggestions.dataset.activeIndex = limited.length ? '0' : '-1';
+        updateCommuneHighlight();
+    }
+    function updateCommuneHighlight() {
+        const items = [...communeSuggestions.querySelectorAll('.suggestion-item')];
+        const activeIndex = Number(communeSuggestions.dataset.activeIndex || -1);
+        items.forEach((el, idx) => { el.style.background = idx === activeIndex ? '#eef2ff' : ''; });
+        if (activeIndex >= 0 && items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
+    }
+    function moveCommuneHighlight(delta) {
+        const items = [...communeSuggestions.querySelectorAll('.suggestion-item')];
+        if (!items.length) return;
+        let idx = Number(communeSuggestions.dataset.activeIndex || -1);
+        idx = isNaN(idx) ? -1 : idx;
+        idx = Math.max(0, Math.min(items.length - 1, idx + delta));
+        communeSuggestions.dataset.activeIndex = String(idx);
+        updateCommuneHighlight();
+    }
+    communeInput.addEventListener('input', () => {
+        clearTimeout(communeTimer);
+        communeTimer = setTimeout(() => {
+            renderCommuneSuggestions(communeInput.value);
+            communeSuggestions.classList.add('open');
+        }, COMMUNE_DELAY);
+    });
+    communeInput.addEventListener('focus', () => { renderCommuneSuggestions(communeInput.value); communeSuggestions.classList.add('open'); });
+    communeInput.addEventListener('blur', () => communeSuggestions.classList.remove('open'));
+    communeInput.addEventListener('keydown', (e) => {
+        const items = [...communeSuggestions.querySelectorAll('.suggestion-item')];
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (!communeSuggestions.classList.contains('open')) { renderCommuneSuggestions(communeInput.value); communeSuggestions.classList.add('open'); } else moveCommuneHighlight(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); moveCommuneHighlight(-1); }
+        else if (e.key === 'Enter') {
+            const idx = Number(communeSuggestions.dataset.activeIndex || -1);
+            if (idx >= 0 && items[idx]) {
+                communeInput.value = items[idx].textContent;
+                communeSuggestions.classList.remove('open');
+                e.preventDefault();
+            }
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!provinceInput.contains(e.target) && !provinceSuggestions.contains(e.target)) provinceSuggestions.classList.remove('open');
+        if (!communeInput.contains(e.target) && !communeSuggestions.contains(e.target)) communeSuggestions.classList.remove('open');
+    });
+</script>
+</body>
+</html>

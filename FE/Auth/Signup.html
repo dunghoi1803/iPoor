@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký tài khoản iPOOR</title>
+    <link rel="icon" type="image/png" href="../Image/icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --bg-light-blue: #F0F9FF;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border-color: #cbd5e1;
+            --white: #ffffff;
+            --secondary-blue: #3b82f6;
+            --error-red: #DC2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--white); }
+
+        .auth-container {
+            position: relative; width: 100%; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; padding: 24px 12px;
+        }
+
+        .bg-decoration {
+            position: absolute; top: 0; left: 0; width: 35%; height: 100%;
+            background-color: var(--bg-light-blue); z-index: 0;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+        }
+
+        .auth-card {
+            position: relative; z-index: 1; background: var(--white);
+            width: 100%; max-width: 720px; padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05),
+                        0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        .card-header { margin-bottom: 24px; }
+        .logo-placeholder { display: flex; align-items: center; margin-bottom: 8px; }
+        .logo-icon { display: none; }
+        .logo-img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        .card-title {
+            font-size: 22px; font-weight: 600; color: var(--primary-navy);
+            margin-bottom: 4px;
+        }
+        .card-subtitle {
+            font-size: 14px; color: var(--text-gray);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px 20px;
+            margin-top: 16px;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: 1 / -1; }
+
+        .form-group label {
+            font-size: 14px; font-weight: 500;
+            color: var(--text-dark); margin-bottom: 8px;
+        }
+        .form-group label span.required {
+            color: var(--error-red); margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%; padding: 10px 12px; font-size: 14px;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary-navy);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        .helper-text {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .file-input-wrapper {
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            background-color: #f8fafc;
+        }
+        .file-input-wrapper span {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+        .file-input-wrapper button {
+            background-color: var(--primary-navy);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .file-input-wrapper button:hover {
+            background-color: var(--primary-hover);
+        }
+        .form-group input[type="file"] {
+            display: none;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+        .checkbox-row input[type="checkbox"] {
+            margin-top: 3px;
+            width: 16px; height: 16px;
+            accent-color: var(--primary-navy);
+        }
+
+        .form-actions {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-primary {
+            padding: 12px 20px;
+            background-color: var(--primary-navy);
+            color: var(--white); border: none; border-radius: 8px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-secondary {
+            padding: 12px 20px;
+            background-color: var(--white);
+            color: var(--primary-navy);
+            border: 1px solid var(--primary-navy);
+            border-radius: 8px;
+            font-size: 15px; font-weight: 500; cursor: pointer;
+            transition: background-color 0.15s, color 0.15s;
+        }
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+
+        .card-footer {
+            margin-top: 16px; text-align: center;
+            border-top: 1px solid #f1f5f9; padding-top: 12px;
+        }
+        .card-footer p {
+            font-size: 14px; color: var(--text-gray); margin-bottom: 6px;
+        }
+        .card-footer a {
+            color: var(--secondary-blue); text-decoration: none;
+            font-weight: 500; cursor: pointer;
+        }
+        .card-footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .bg-decoration { display: none; }
+            .auth-card { box-shadow: none; padding: 24px; }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-container { padding: 16px 8px; }
+            .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="bg-decoration"></div>
+
+    <div class="auth-card">
+        <div class="card-header">
+            <div class="logo-placeholder">
+                <img src="../Image/icon.png" alt="iPOOR" class="logo-img">
+            </div>
+            <h2 class="card-title">Đăng ký tài khoản iPOOR</h2>
+            <p class="card-subtitle">
+                Dành cho cán bộ các xã, huyện, tỉnh, sở, bộ và đơn vị liên quan đến công tác giảm nghèo.
+            </p>
+        </div>
+
+        <form action="#" method="POST" enctype="multipart/form-data">
+            <div class="form-grid">
+                <!-- Thông tin cá nhân -->
+                <div class="form-group full-width">
+                    <label for="full-name">Họ và tên đầy đủ <span class="required">*</span></label>
+                    <input type="text" id="full-name" name="full_name"
+                           placeholder="Nhập họ và tên theo CCCD" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="email">Email công vụ <span class="required">*</span></label>
+                    <input type="email" id="email" name="email"
+                           placeholder="ví dụ: ten.nguoidung@tencoquan.gov.vn" required>
+                    <span class="helper-text">
+                        Ưu tiên sử dụng email cơ quan để được phê duyệt nhanh hơn.
+                    </span>
+                </div>
+
+                <!-- Thông tin tài khoản -->
+                <div class="form-group">
+                    <label for="password">Mật khẩu <span class="required">*</span></label>
+                    <input type="password" id="password" name="password"
+                           placeholder="Tạo mật khẩu" required>
+                    <span class="helper-text">
+                        Tối thiểu 8 ký tự, bao gồm chữ và số.
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Xác nhận mật khẩu <span class="required">*</span></label>
+                    <input type="password" id="confirm-password" name="confirm_password"
+                           placeholder="Nhập lại mật khẩu" required>
+                </div>
+
+                <!-- Thông tin đơn vị công tác -->
+                <div class="form-group">
+                    <label for="org-level">Cấp đơn vị công tác <span class="required">*</span></label>
+                    <select id="org-level" name="org_level" required>
+                        <option value="">-- Chọn cấp đơn vị --</option>
+                        <option value="xa">Xã/Phường/Thị trấn</option>
+                        <option value="huyen">Phòng/Ban cấp Huyện</option>
+                        <option value="tinh">Sở/Ban/Ngành cấp Tỉnh</option>
+                        <option value="tw">Cơ quan/Bộ ngành Trung ương</option>
+                        <option value="khac">Chi cục/Cục/Đơn vị khác</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="org-name">Tên đơn vị cụ thể <span class="required">*</span></label>
+                    <input type="text" id="org-name" name="org_name"
+                           placeholder="Ví dụ: UBND xã X, Phòng LĐTBXH huyện Y..." required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="position">Chức vụ/Chức danh công tác</label>
+                    <input type="text" id="position" name="position"
+                           placeholder="Ví dụ: Chuyên viên, Cán bộ LĐTBXH xã...">
+                </div>
+
+                <!-- Thông tin định danh -->
+                <div class="form-group">
+                    <label for="cccd">Số CCCD <span class="required">*</span></label>
+                    <input type="text" id="cccd" name="cccd"
+                           placeholder="Nhập đủ 12 số CCCD" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="cccd-image">Ảnh CCCD gắn chip (PNG) <span class="required">*</span></label>
+                    <label class="file-input-wrapper" for="cccd-image">
+                        <span id="file-name">Kéo thả hoặc chọn file ảnh mặt trước CCCD (.png)</span>
+                        <button type="button" type="button">Chọn tệp</button>
+                    </label>
+                    <input type="file" id="cccd-image" name="cccd_image"
+                           accept="image/png" required>
+                    <span class="helper-text">
+                        Định dạng .png, dung lượng tối đa 5MB.
+                    </span>
+                </div>
+
+                <!-- Điều khoản -->
+                <div class="form-group full-width">
+                    <label>Cam kết <span class="required">*</span></label>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="agreement" name="agreement" required>
+                        <label for="agreement">
+                            Tôi cam kết thông tin cung cấp là chính xác và chịu trách nhiệm về việc
+                            sử dụng tài khoản trên hệ thống iPOOR.
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Gửi yêu cầu đăng ký</button>
+                <a href="login.html">
+                    <button type="button" class="btn-secondary">Quay lại trang đăng nhập</button>
+                </a>
+            </div>
+        </form>
+
+        <div class="card-footer">
+            <p>Đã có tài khoản? <a href="login.html">Đăng nhập</a></p>
+            <p>Bạn gặp vấn đề? <a href="#">Liên hệ quản trị hệ thống</a>.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Hiển thị tên file khi người dùng chọn ảnh CCCD
+    const fileInput = document.getElementById('cccd-image');
+    const fileNameSpan = document.getElementById('file-name');
+
+    fileInput.addEventListener('change', function () {
+        if (this.files && this.files.length > 0) {
+            fileNameSpan.textContent = this.files[0].name;
+        } else {
+            fileNameSpan.textContent = 'Kéo thả hoặc chọn file ảnh mặt trước CCCD (.png)';
+        }
+    });
+</script>
+
+</body>
+</html>
