@@ -1,0 +1,87 @@
+{
+  "output": "FE/data/processed/group6_values.csv",
+  "section_headers": [
+    "khu vực",
+    "vùng",
+    "nhóm thu nhập",
+    "địa phương"
+  ],
+  "sheets": [
+    {
+      "name": "6.1",
+      "layout": "year_metric_matrix",
+      "year_row": 3,
+      "metric_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1],
+      "metric_aliases": {
+        "chung": "overall",
+        "nhà kiên cố": "permanent_house",
+        "nhà bán kiên cố": "semi_permanent_house",
+        "nhà thiếu kiên cố": "less_permanent_house",
+        "nhà đơn sơ": "temporary_house"
+      }
+    },
+    {
+      "name": "6.1.M",
+      "layout": "year_metric_matrix",
+      "year_row": 3,
+      "metric_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1],
+      "metric_aliases": {
+        "chung": "overall",
+        "nhà kiên cố": "permanent_house",
+        "nhà bán kiên cố": "semi_permanent_house",
+        "nhà thiếu kiên cố": "less_permanent_house",
+        "nhà đơn sơ": "temporary_house"
+      }
+    },
+    {
+      "name": "6.2",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "avg_house_area"
+    },
+    {
+      "name": "6.2.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "avg_house_area"
+    },
+    {
+      "name": "6.3",
+      "layout": "year_metric_matrix",
+      "year_row": 4,
+      "metric_row": 5,
+      "data_start_row": 6,
+      "label_cols": [1],
+      "metric_aliases": {
+        "chung": "overall",
+        "nhà kiên cố": "permanent_house",
+        "nhà bán kiên cố": "semi_permanent_house",
+        "nhà thiếu kiên cố": "less_permanent_house",
+        "nhà đơn sơ": "temporary_house"
+      }
+    },
+    {
+      "name": "6.3.M",
+      "layout": "year_metric_matrix",
+      "year_row": 4,
+      "metric_row": 5,
+      "data_start_row": 6,
+      "label_cols": [1],
+      "metric_aliases": {
+        "chung": "overall",
+        "nhà kiên cố": "permanent_house",
+        "nhà bán kiên cố": "semi_permanent_house",
+        "nhà thiếu kiên cố": "less_permanent_house",
+        "nhà đơn sơ": "temporary_house"
+      }
+    }
+  ]
+}

@@ -106,28 +106,32 @@
             <div class="brand-mark"><img src="../Image/icon.png" alt="iPOOR" class="brand-logo"></div>
             <div class="brand-name">iPOOR</div>
         </div>
-        <nav>
-            <a class="nav-item" href="./HomePage.html">
+                <nav>
+            <a class="nav-item" href="../LandingPage/index.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
-                <span>Bảng điều khiển</span>
+                <span>Trang giới thiệu</span>
+            </a>
+            <a class="nav-item" href="./HomePage.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/></svg></span>
+                <span>Dashboard</span>
             </a>
             <a class="nav-item active" href="./HouseholdList.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
                 <span>Quản lý hộ nghèo</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./DataCollection.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
                 <span>Thu thập & cập nhật dữ liệu</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./PolicyList.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
                 <span>Chính sách & báo cáo</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./GISMap.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
                 <span>Bản đồ nghèo (GIS)</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./ActivityLogs.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                 <span>Nhật ký hoạt động</span>
             </a>
@@ -154,22 +158,22 @@
         <main class="content">
             <div class="page-header">
                 <div>
-                    <div class="page-title">Hồ sơ hộ nghèo – Nguyễn Thị Hoa</div>
+                    <div class="page-title" id="pageTitle">Hồ sơ hộ nghèo</div>
                     <div class="breadcrumb" style="margin-top:6px;"><strong>Trang chủ</strong> / Quản lý hộ nghèo / Hồ sơ</div>
                 </div>
-                <a class="btn-edit" href="./HouseholdEdit.html">Chỉnh sửa</a>
+                <a class="btn-edit" id="editLink" href="./HouseholdEdit.html">Chỉnh sửa</a>
             </div>
 
             <!-- Thông tin chung -->
             <section class="card">
                 <div class="card-title">Thông tin chung</div>
                 <div class="view-section grid-2col">
-                    <div class="field"><span class="label">Họ và tên</span><span class="value">Nguyễn Thị Hoa</span></div>
-                    <div class="field"><span class="label">Ngày sinh</span><span class="value">12/03/1985</span></div>
-                    <div class="field"><span class="label">Giới tính</span><span class="value">Nữ</span></div>
-                    <div class="field"><span class="label">Dân tộc</span><span class="value">Kinh</span></div>
-                    <div class="field"><span class="label">CCCD</span><span class="value">031234567890</span></div>
-                    <div class="field"><span class="label">Số thành viên</span><span class="value">5</span></div>
+                    <div class="field"><span class="label">Họ và tên</span><span class="value" id="fullName">-</span></div>
+                    <div class="field"><span class="label">Ngày sinh</span><span class="value" id="dob">-</span></div>
+                    <div class="field"><span class="label">Giới tính</span><span class="value" id="gender">-</span></div>
+                    <div class="field"><span class="label">Dân tộc</span><span class="value" id="ethnic">-</span></div>
+                    <div class="field"><span class="label">CCCD</span><span class="value" id="idCard">-</span></div>
+                    <div class="field"><span class="label">Số thành viên</span><span class="value" id="members">-</span></div>
                 </div>
             </section>
 
@@ -177,10 +181,10 @@
             <section class="card">
                 <div class="card-title">Thông tin nghèo đa chiều</div>
                 <div class="view-section grid-2col">
-                    <div class="field"><span class="label">Trạng thái</span><span class="value"><span class="badge badge-ngheo">Nghèo</span></span></div>
-                    <div class="field"><span class="label">Điểm B1</span><span class="score-box">68 / 100</span></div>
-                    <div class="field"><span class="label">Điểm B2</span><span class="score-box">74 / 100</span></div>
-                    <div class="field"><span class="label">Mô tả</span><span class="value">Thu nhập dưới chuẩn, thiếu điều kiện tiếp cận giáo dục và y tế.</span></div>
+                    <div class="field"><span class="label">Trạng thái</span><span class="value" id="statusBadge">-</span></div>
+                    <div class="field"><span class="label">Điểm B1</span><span class="score-box" id="scoreB1">-</span></div>
+                    <div class="field"><span class="label">Điểm B2</span><span class="score-box" id="scoreB2">-</span></div>
+                    <div class="field"><span class="label">Mô tả</span><span class="value" id="note">-</span></div>
                 </div>
             </section>
 
@@ -188,25 +192,23 @@
             <section class="card">
                 <div class="card-title">Địa bàn & rà soát</div>
                 <div class="view-section grid-2col">
-                    <div class="field"><span class="label">Phường/Xã</span><span class="value">Phường A</span></div>
-                    <div class="field"><span class="label">Thôn/Xóm</span><span class="value">Tổ 5</span></div>
-                    <div class="field"><span class="label">Cán bộ rà soát</span><span class="value">Trần Văn Minh</span></div>
-                    <div class="field"><span class="label">Ngày rà soát</span><span class="value">12/08/2023</span></div>
-                    <div class="field"><span class="label">Ghi chú</span><span class="value">Đã khảo sát thực địa, cần hỗ trợ học phí.</span></div>
+                    <div class="field"><span class="label">Tỉnh/TP</span><span class="value" id="province">-</span></div>
+                    <div class="field"><span class="label">Phường/Xã</span><span class="value" id="commune">-</span></div>
+                    <div class="field"><span class="label">Khu vực</span><span class="value" id="area">-</span></div>
+                    <div class="field"><span class="label">Thôn/Xóm</span><span class="value" id="village">-</span></div>
+                    <div class="field"><span class="label">Cán bộ rà soát</span><span class="value" id="officer">-</span></div>
+                    <div class="field"><span class="label">Ngày rà soát</span><span class="value" id="reviewDate">-</span></div>
+                    <div class="field"><span class="label">Ghi chú</span><span class="value" id="remark">-</span></div>
                 </div>
             </section>
 
             <!-- Tài liệu đính kèm -->
             <section class="card">
                 <div class="card-title">Tài liệu đính kèm</div>
-                <div class="attachments view-section">
+                <div class="attachments view-section" id="attachments">
                     <div class="attach-card">
-                        <div class="label">Ảnh CCCD</div>
-                        <div class="attach-preview">[Ảnh CCCD]</div>
-                    </div>
-                    <div class="attach-card">
-                        <div class="label">File scan</div>
-                        <a class="attach-link" href="#">Xem file scan</a>
+                        <div class="label">File PDF tổng hợp</div>
+                        <a class="attach-link" id="attachmentLink" href="#" target="_blank" rel="noopener">Tải tài liệu</a>
                     </div>
                 </div>
             </section>
@@ -225,6 +227,151 @@
         closeMenu();
     });
     document.addEventListener('click', closeMenu);
+
+    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const TOKEN_STORAGE_KEY = 'ipoor_access_token';
+    const HOUSEHOLD_SELECTED_KEY = 'ipoor_household_selected_id';
+    const HOUSEHOLD_CACHE_KEY = 'ipoor_household_cache';
+
+    const pageTitle = document.getElementById('pageTitle');
+    const editLink = document.getElementById('editLink');
+    const fullName = document.getElementById('fullName');
+    const dob = document.getElementById('dob');
+    const gender = document.getElementById('gender');
+    const ethnic = document.getElementById('ethnic');
+    const idCard = document.getElementById('idCard');
+    const members = document.getElementById('members');
+    const statusBadge = document.getElementById('statusBadge');
+    const scoreB1 = document.getElementById('scoreB1');
+    const scoreB2 = document.getElementById('scoreB2');
+    const note = document.getElementById('note');
+    const province = document.getElementById('province');
+    const commune = document.getElementById('commune');
+    const area = document.getElementById('area');
+    const village = document.getElementById('village');
+    const officer = document.getElementById('officer');
+    const reviewDate = document.getElementById('reviewDate');
+    const remark = document.getElementById('remark');
+    const attachmentLink = document.getElementById('attachmentLink');
+    const attachments = document.getElementById('attachments');
+
+    const STATUS_LABELS = {
+        poor: { text: 'Nghèo', cls: 'badge-ngheo' },
+        near_poor: { text: 'Cận nghèo', cls: 'badge-can' },
+        escaped_poverty: { text: 'Thoát nghèo', cls: 'badge-thoat' },
+        at_risk: { text: 'Nguy cơ tái nghèo', cls: 'badge-nguyco' },
+    };
+
+    function getToken() {
+        return localStorage.getItem(TOKEN_STORAGE_KEY) || sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    }
+
+    function normalizeAttachmentUrl(value) {
+        if (!value) return '';
+        if (value.startsWith('http://') || value.startsWith('https://')) return value;
+        if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
+        return value;
+    }
+
+    function formatDate(value) {
+        if (!value) return '-';
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('vi-VN');
+    }
+
+    function renderStatus(value) {
+        if (!value) return '-';
+        const mapped = STATUS_LABELS[value];
+        if (!mapped) return value;
+        return `<span class="badge ${mapped.cls}">${mapped.text}</span>`;
+    }
+
+    function renderHousehold(data) {
+        pageTitle.textContent = `Hồ sơ hộ nghèo – ${data.head_name || 'Không rõ'}`;
+        fullName.textContent = data.head_name || '-';
+        dob.textContent = formatDate(data.birth_date);
+        gender.textContent = data.gender || '-';
+        ethnic.textContent = data.ethnicity || '-';
+        idCard.textContent = data.id_card || data.household_code || '-';
+        members.textContent = data.members_count ?? '-';
+        statusBadge.innerHTML = renderStatus(data.poverty_status);
+        scoreB1.textContent = data.score_b1 != null ? `${data.score_b1} / 100` : '-';
+        scoreB2.textContent = data.score_b2 != null ? `${data.score_b2} / 100` : '-';
+        note.textContent = data.note || '-';
+        province.textContent = data.province || '-';
+        commune.textContent = data.commune || '-';
+        area.textContent = data.area || data.district || '-';
+        village.textContent = data.village || data.address_line || '-';
+        officer.textContent = data.officer || '-';
+        reviewDate.textContent = formatDate(data.last_surveyed_at);
+        remark.textContent = data.remark || '-';
+
+        const attachmentUrl = normalizeAttachmentUrl(data.attachment_url || '');
+        if (attachmentUrl) {
+            attachmentLink.href = attachmentUrl;
+            attachmentLink.style.display = '';
+        } else {
+            attachmentLink.style.display = 'none';
+            attachments.innerHTML = '<div class="attach-card"><div class="label">File PDF tổng hợp</div><div class="attach-preview">Chưa có tài liệu</div></div>';
+        }
+    }
+
+    function getCachedHousehold(id) {
+        const raw = sessionStorage.getItem(HOUSEHOLD_CACHE_KEY);
+        if (!raw) return null;
+        try {
+            const cache = JSON.parse(raw);
+            return cache[id] || null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    async function loadDetail() {
+        const token = getToken();
+        if (!token) {
+            window.location.href = '../Auth/Login.html';
+            return;
+        }
+        const id = new URLSearchParams(window.location.search).get('id') || sessionStorage.getItem(HOUSEHOLD_SELECTED_KEY);
+        if (!id) {
+            pageTitle.textContent = 'Không tìm thấy hộ';
+            return;
+        }
+        editLink.href = `./HouseholdEdit.html?id=${id}`;
+
+        const cached = getCachedHousehold(id);
+        if (cached) {
+            renderHousehold(cached);
+        }
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/households/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+                sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                window.location.href = '../Auth/Login.html';
+                return;
+            }
+            if (res.status === 404) {
+                pageTitle.textContent = 'Không tìm thấy hộ';
+                return;
+            }
+            if (!res.ok) throw new Error('Không tải được hồ sơ hộ');
+            const data = await res.json();
+            renderHousehold(data);
+        } catch (error) {
+            pageTitle.textContent = error.message;
+        }
+    }
+
+    loadDetail();
 </script>
 </body>
 </html>
+
+
+
+

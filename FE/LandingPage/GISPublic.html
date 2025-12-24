@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPOOR | Bản đồ nghèo đa chiều</title>
+    <link rel="icon" type="image/png" href="../Image/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/vendor/leaflet.css">
+    <style>
+        :root {
+            --navy-900: #0f172a;
+            --navy-800: #162544;
+            --navy-700: #1f2f54;
+            --blue-500: #3b82f6;
+            --blue-300: #60a5fa;
+            --gray-50: #f5f7fa;
+            --gray-100: #e5e7eb;
+            --gray-200: #e2e8f0;
+            --gray-400: #94a3b8;
+            --gray-500: #6b7280;
+            --white: #ffffff;
+            --card-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+            --danger: #dc2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Manrope', system-ui, -apple-system, sans-serif; background: var(--gray-50); color: var(--navy-900); }
+        a { color: inherit; text-decoration: none; }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--white);
+            box-shadow: 0 1px 10px rgba(15, 23, 42, 0.08);
+        }
+        .nav { max-width: 1400px; margin: 0 auto; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+        .brand img { width: 32px; height: 32px; object-fit: contain; }
+        .brand small { display: none; }
+        .menu { display: flex; align-items: center; gap: 18px; font-weight: 700; }
+        .menu a { color: var(--navy-900); position: relative; }
+        .menu a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -6px;
+            width: 0;
+            height: 3px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #2563eb, #22c55e);
+            transition: width 0.2s ease;
+        }
+        .menu a:hover { color: var(--blue-500); }
+        .menu a:hover::after { width: 100%; }
+        .btn-login {
+            background: linear-gradient(90deg, #0f172a, #1f2f54);
+            color: var(--white);
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 800;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
+        }
+        .btn-login:visited, .btn-login:active { color: var(--white); }
+        .btn-login:hover { background: linear-gradient(90deg, #1f2f54, #0f172a); }
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--gray-100);
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--navy-900);
+            margin: 4px 0;
+        }
+
+        .app-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+
+        main { background: linear-gradient(135deg, #f8fbff 0%, #f4f5fb 100%); padding: 24px 28px; }
+        .content-wrap { max-width: 1400px; margin: 0 auto; width: 100%; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+        .page-header h1 { font-size: 26px; }
+        .page-header p { color: var(--gray-500); }
+
+        .card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 16px; box-shadow: var(--card-shadow); padding: 16px; }
+        .filter { display: grid; gap: 14px; }
+        .filter-row { display: grid; gap: 6px; }
+        .filter-column { display: grid; gap: 12px; }
+        .filter-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(180px, 1fr)); }
+        .filter-field { display: grid; gap: 6px; }
+        .field-label { font-size: 12px; font-weight: 700; color: var(--gray-500); letter-spacing: 0.2px; }
+        .suggestion-wrapper { position: relative; }
+        .suggestions {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 6px);
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+            max-height: 160px;
+            overflow-y: auto;
+            display: none;
+            z-index: 40;
+        }
+        .suggestions.show { display: block; }
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .suggestion-item:hover { background: #f8fafc; }
+        select,
+        input { width: 100%; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--gray-200); font-weight: 600; color: var(--navy-900); background: var(--white); }
+        .helper { font-size: 12px; color: var(--gray-500); margin-top: 6px; }
+        .btn-primary { padding: 12px 16px; border-radius: 12px; background: linear-gradient(90deg, var(--blue-500), var(--blue-300)); color: var(--white); border: none; font-weight: 700; cursor: pointer; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25); }
+        .btn-primary:hover { transform: translateY(-1px); }
+
+        .map-section { display: grid; grid-template-columns: minmax(360px, 720px) 300px; gap: 16px; margin-top: 16px; align-items: start; justify-content: center; }
+        .map-card { position: relative; aspect-ratio: 1 / 1; overflow: hidden; width: 100%; max-height: 70vh; }
+        #map { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .legend-scale { display: grid; gap: 8px; }
+        .legend-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+        .legend-color { width: 20px; height: 12px; border-radius: 6px; }
+
+        .legend-card { display: grid; gap: 12px; }
+        .legend-title { font-weight: 700; }
+        .status { padding: 12px 14px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--gray-100); color: var(--gray-500); font-weight: 700; }
+        .status.error { background: #fef2f2; border-color: #fecdd3; color: #b91c1c; }
+        .leaflet-control-attribution {
+            font-size: 1px;
+            opacity: 1.0;
+        }
+        .leaflet-container,
+        .leaflet-container:focus,
+        .leaflet-interactive:focus { outline: none; }
+
+        @media (max-width: 1100px) {
+            .map-section { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 820px) {
+            .menu {
+                position: absolute;
+                top: 64px;
+                right: 18px;
+                background: var(--white);
+                border: 1px solid var(--gray-100);
+                border-radius: 12px;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+                padding: 12px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                display: none;
+            }
+            .menu.open { display: flex; }
+            .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="nav">
+        <a class="brand" href="./index.html">
+            <img src="../Image/icon.png" alt="iPOOR">
+            <div>
+                <div>iPOOR</div>
+                <small>Bản đồ nghèo đa chiều</small>
+            </div>
+        </a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Mở menu điều hướng">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="menu" id="menuPanel">
+            <a href="./NewsPublic.html">Tin tức & Chính sách</a>
+            <a href="./index.html#reports">Báo cáo</a>
+            <a href="./index.html#about">Về iPOOR</a>
+            <a href="./GISPublic.html">Bản đồ nghèo</a>
+            <a class="btn-login" href="../Auth/Login.html">Đăng nhập cán bộ</a>
+        </div>
+    </div>
+</header>
+
+<div class="app-shell">
+    <main>
+        <div class="content-wrap">
+            <div class="page-header">
+                <div>
+                    <h1>Bản đồ nghèo đa chiều (GIS)</h1>
+                    <p>Hiển thị các chỉ số nghèo đa chiều theo năm và địa giới hành chính.</p>
+                </div>
+            </div>
+
+            <div class="card filter">
+                <div class="filter-row">
+                    <label class="field-label" for="indicator-input">Chỉ số</label>
+                    <div class="suggestion-wrapper">
+                        <input id="indicator-input" placeholder="Nhập mã hoặc tên chỉ số">
+                        <div id="indicator-suggestions" class="suggestions"></div>
+                    </div>
+                    <div class="helper">Gõ để tìm nhanh theo chỉ số (ví dụ: Diện tích nhà ở bình quân đầu người phân theo thành thị)</div>
+                </div>
+                <div class="filter-column">
+                    <div class="filter-grid">
+                        <div class="filter-field">
+                            <label class="field-label" for="year-select">Năm</label>
+                            <select id="year-select"></select>
+                        </div>
+                        <div class="filter-field">
+                            <label class="field-label" for="metric-select">Đơn vị đo</label>
+                            <select id="metric-select">
+                                <option value="">Tất cả chỉ số</option>
+                            </select>
+                        </div>
+                        <div class="filter-field">
+                            <label class="field-label" for="geo-select">Phiên bản địa giới</label>
+                            <select id="geo-select"></select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" id="update-map" type="button">Cập nhật bản đồ</button>
+                </div>
+            </div>
+
+            <div class="map-section">
+                <div class="card map-card">
+                    <div id="map"></div>
+                </div>
+                <div class="card legend-card">
+                    <div class="legend-title">Chú giải</div>
+                    <div id="legend" class="legend-scale"></div>
+                    <div class="status" id="status-box">Đang hiển thị dữ liệu mới nhất.</div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="../assets/vendor/leaflet.js"></script>
+<script src="../assets/vendor/Leaflet.VectorGrid.bundled.js"></script>
+<script>
+    const menuToggle = document.getElementById('menuToggle');
+    const menuPanel = document.getElementById('menuPanel');
+    if (menuToggle && menuPanel) {
+        menuToggle.addEventListener('click', () => {
+            menuPanel.classList.toggle('open');
+        });
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuToggle.contains(event.target)) {
+                menuPanel.classList.remove('open');
+            }
+        });
+    }
+
+    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const INDICATOR_ENDPOINT = `${API_BASE_URL}/gis/indicators`;
+    const METRIC_ENDPOINT = `${API_BASE_URL}/gis/indicators`;
+    const VALUES_ENDPOINT = `${API_BASE_URL}/gis/values`;
+    const statusBox = document.getElementById('status-box');
+    const updateBtn = document.getElementById('update-map');
+    const indicatorInput = document.getElementById('indicator-input');
+    const indicatorSuggestions = document.getElementById('indicator-suggestions');
+    const yearSelect = document.getElementById('year-select');
+    const metricSelect = document.getElementById('metric-select');
+    const geoSelect = document.getElementById('geo-select');
+    const legend = document.getElementById('legend');
+
+    const VN_BOUNDS = L.latLngBounds(
+        [8.0, 102.0],
+        [24.5, 110.5],
+    );
+    const map = L.map('map', {
+        zoomSnap: 0.5,
+        minZoom: 5,
+        maxZoom: 9,
+        maxBounds: VN_BOUNDS,
+        maxBoundsViscosity: 1.0,
+        updateWhenIdle: true,
+        keepBuffer: 2,
+    }).setView([16.5, 106.0], 5.4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 9,
+        minZoom: 5,
+        updateWhenIdle: true,
+        keepBuffer: 2,
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    }).addTo(map);
+    map.fitBounds(VN_BOUNDS, { padding: [12, 12] });
+    map.setMinZoom(map.getZoom());
+
+    let vectorLayer = null;
+    let indicatorsCache = [];
+    let groupedIndicators = [];
+    let activeFeatureId = null;
+    let infoPopup = null;
+
+    function setStatus(message, isError = false) {
+        statusBox.textContent = message;
+        statusBox.classList.toggle('error', isError);
+    }
+
+    const metricLabelMap = {
+        avg_house_area: 'Diện tích nhà ở bình quân',
+        count_households: 'Số hộ',
+        employment_thousand: 'Số người có việc làm (nghìn)',
+        income_1000_vnd: 'Thu nhập bình quân (nghìn đồng)',
+        informal_employment_rate_percent: 'Tỷ lệ việc làm phi chính thức (%)',
+        labor_force_thousand: 'Lực lượng lao động (nghìn người)',
+        less_permanent_house: 'Nhà thiếu kiên cố',
+        overall: 'Chung',
+        permanent_house: 'Nhà kiên cố',
+        poverty_rate_percent: 'Tỷ lệ hộ nghèo (%)',
+        rate_percent: 'Tỷ lệ (%)',
+        semi_permanent_house: 'Nhà bán kiên cố',
+        temporary_house: 'Nhà đơn sơ',
+        trained_labor_rate_percent: 'Tỷ lệ lao động qua đào tạo (%)',
+    };
+
+    function getMetricLabel(metric) {
+        return metricLabelMap[metric] || metric;
+    }
+
+    function renderLegend(buckets) {
+        legend.innerHTML = '';
+        buckets.forEach(bucket => {
+            const row = document.createElement('div');
+            row.className = 'legend-item';
+            const swatch = document.createElement('div');
+            swatch.className = 'legend-color';
+            swatch.style.background = bucket.color;
+            const label = document.createElement('span');
+            label.textContent = bucket.label;
+            row.appendChild(swatch);
+            row.appendChild(label);
+            legend.appendChild(row);
+        });
+    }
+
+    function buildQuantileBuckets(values) {
+        if (!values.length) return [];
+        const sorted = [...values].sort((a, b) => a - b);
+        const colors = ['#22c55e', '#f59e0b', '#f97316', '#ef4444', '#991b1b'];
+        const percentiles = [0.2, 0.4, 0.6, 0.8, 1];
+        const buckets = [];
+        let prev = sorted[0];
+        percentiles.forEach((p, index) => {
+            const pos = Math.min(sorted.length - 1, Math.ceil(p * sorted.length) - 1);
+            const current = sorted[pos];
+            buckets.push({
+                color: colors[index],
+                min: prev,
+                max: current,
+                label: `${prev.toFixed(2)} - ${current.toFixed(2)}`,
+            });
+            prev = current;
+        });
+        return buckets;
+    }
+
+    function getBucketColor(value, buckets) {
+        if (value === null || value === undefined) return '#e2e8f0';
+        for (const bucket of buckets) {
+            if (value >= bucket.min && value <= bucket.max) {
+                return bucket.color;
+            }
+        }
+        return buckets.length ? buckets[buckets.length - 1].color : '#e2e8f0';
+    }
+
+    function getGeoCodeFromProperties(properties) {
+        if (!properties) return '';
+        return (
+            properties.ma_tinh ??
+            properties.MA_TINH ??
+            properties.maTinh ??
+            properties.code ??
+            ''
+        );
+    }
+
+    function resolveValueByCode(valuesByCode, rawCode) {
+        if (rawCode === null || rawCode === undefined) return undefined;
+        const raw = String(rawCode).trim();
+        if (!raw) return undefined;
+        if (Object.prototype.hasOwnProperty.call(valuesByCode, raw)) {
+            return valuesByCode[raw];
+        }
+        const trimmed = raw.replace(/^0+/, '');
+        if (trimmed && Object.prototype.hasOwnProperty.call(valuesByCode, trimmed)) {
+            return valuesByCode[trimmed];
+        }
+        const numeric = Number(raw);
+        if (!Number.isNaN(numeric)) {
+            const padded = String(Math.trunc(numeric)).padStart(2, '0');
+            if (Object.prototype.hasOwnProperty.call(valuesByCode, padded)) {
+                return valuesByCode[padded];
+            }
+        }
+        return undefined;
+    }
+
+    function updateMetricOptions(metrics) {
+        metricSelect.innerHTML = '';
+        const anyOption = document.createElement('option');
+        anyOption.value = '';
+        anyOption.textContent = 'Tất cả chỉ số';
+        metricSelect.appendChild(anyOption);
+        if (!metrics || !metrics.length) return;
+        metrics.forEach(metric => {
+            const option = document.createElement('option');
+            option.value = metric;
+            option.textContent = getMetricLabel(metric);
+            metricSelect.appendChild(option);
+        });
+    }
+
+    function updateYearOptions(years) {
+        yearSelect.innerHTML = '';
+        if (!years || !years.length) return;
+        years.forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = `Năm ${year}`;
+            yearSelect.appendChild(option);
+        });
+    }
+
+    function updateGeoOptions(selectedIndicator) {
+        geoSelect.innerHTML = '';
+        if (!selectedIndicator) return;
+        selectedIndicator.geo_versions.forEach(version => {
+            const option = document.createElement('option');
+            option.value = version;
+            option.textContent = version === 'new_34' ? '34 tỉnh (mới)' : '63 tỉnh (cũ)';
+            geoSelect.appendChild(option);
+        });
+    }
+
+    async function loadIndicatorDefaults(indicatorCode) {
+        const res = await fetch(`${METRIC_ENDPOINT}/${indicatorCode}/metrics`);
+        if (!res.ok) {
+            throw new Error('Không tải được metric');
+        }
+        return res.json();
+    }
+
+    function resolveIndicatorCode(inputValue) {
+        const raw = inputValue.trim();
+        if (!raw) return '';
+        const codeCandidate = raw.split(' - ')[0].trim();
+        const direct = groupedIndicators.find(item => item.indicator_code === codeCandidate);
+        if (direct) return direct.indicator_code;
+        const rawLower = raw.toLowerCase();
+        const fallback = groupedIndicators.find(item => {
+            const title = (item.display_title || item.indicator_title || '').toLowerCase();
+            return title && title.includes(rawLower);
+        });
+        return fallback ? fallback.indicator_code : '';
+    }
+
+    function formatIndicatorTitle(title) {
+        if (!title) return '';
+        return title.replace(/^\s*\d+(?:\.\d+)*\s*[-.]*\s*/g, '').trim();
+    }
+
+    function buildIndicatorLabel(entry) {
+        const title = entry.display_title || entry.indicator_title || entry.indicator_code;
+        return `${entry.indicator_code} - ${title}`;
+    }
+
+    function normalizeIndicatorCode(code) {
+        return code.replace(/\.M$/i, '');
+    }
+
+    function buildGroupedIndicators(rawIndicators) {
+        const grouped = new Map();
+        rawIndicators.forEach(item => {
+            const baseCode = normalizeIndicatorCode(item.indicator_code);
+            const displayTitle = formatIndicatorTitle(item.indicator_title || '');
+            const entry = grouped.get(baseCode) || {
+                indicator_code: baseCode,
+                indicator_title: item.indicator_title || '',
+                display_title: displayTitle,
+                code_old: null,
+                code_new: null,
+                geo_versions: new Set(),
+            };
+            if (!entry.display_title && displayTitle) {
+                entry.display_title = displayTitle;
+            }
+            if (item.indicator_code.endsWith('.M')) {
+                entry.code_new = item.indicator_code;
+            } else {
+                entry.code_old = item.indicator_code;
+            }
+            (item.geo_versions || []).forEach(version => entry.geo_versions.add(version));
+            grouped.set(baseCode, entry);
+        });
+        return Array.from(grouped.values()).map(item => ({
+            indicator_code: item.indicator_code,
+            indicator_title: item.indicator_title,
+            display_title: item.display_title,
+            code_old: item.code_old,
+            code_new: item.code_new,
+            geo_versions: Array.from(item.geo_versions).sort(),
+        }));
+    }
+
+    function getSelectedIndicatorEntry() {
+        const baseCode = resolveIndicatorCode(indicatorInput.value);
+        return groupedIndicators.find(item => item.indicator_code === baseCode) || null;
+    }
+
+    function getEffectiveIndicatorCode(entry, geoVersion) {
+        if (!entry) return '';
+        if (geoVersion === 'new_34' && entry.code_new) return entry.code_new;
+        if (entry.code_old) return entry.code_old;
+        return entry.code_new || '';
+    }
+
+    async function refreshIndicatorOptions() {
+        const entry = getSelectedIndicatorEntry();
+        updateGeoOptions(entry);
+        if (!entry) return;
+        if (!geoSelect.value && entry.geo_versions.length) {
+            geoSelect.value = entry.geo_versions[0];
+        }
+        await refreshMetricYearOptions();
+    }
+
+    async function refreshMetricYearOptions() {
+        const entry = getSelectedIndicatorEntry();
+        if (!entry) return;
+        const geoVersion = geoSelect.value || entry.geo_versions[0];
+        const effectiveCode = getEffectiveIndicatorCode(entry, geoVersion);
+        if (!effectiveCode) return;
+        const defaults = await loadIndicatorDefaults(effectiveCode);
+        updateMetricOptions(defaults.metrics || []);
+        updateYearOptions(defaults.years || []);
+        if (defaults.default_metric) {
+            metricSelect.value = defaults.default_metric;
+        }
+        if (defaults.years && defaults.years.length) {
+            yearSelect.value = defaults.years[defaults.years.length - 1];
+        }
+        if (defaults.geo_versions && defaults.geo_versions.length) {
+            geoSelect.value = geoVersion || defaults.geo_versions[0];
+        }
+    }
+
+    function renderIndicatorSuggestions(filterValue) {
+        const query = filterValue.trim().toLowerCase();
+        indicatorSuggestions.innerHTML = '';
+        const matches = groupedIndicators.filter(item => {
+            const label = buildIndicatorLabel(item).toLowerCase();
+            return !query || label.includes(query);
+        });
+        matches.slice(0, 20).forEach(item => {
+            const option = document.createElement('div');
+            option.className = 'suggestion-item';
+            option.textContent = buildIndicatorLabel(item);
+            option.addEventListener('mousedown', event => {
+                event.preventDefault();
+                indicatorInput.value = buildIndicatorLabel(item);
+                indicatorSuggestions.classList.remove('show');
+                indicatorInput.dispatchEvent(new Event('change'));
+            });
+            indicatorSuggestions.appendChild(option);
+        });
+        indicatorSuggestions.classList.toggle('show', matches.length > 0);
+    }
+
+    async function loadIndicators() {
+        try {
+            const res = await fetch(INDICATOR_ENDPOINT);
+            if (!res.ok) throw new Error('Không tải được danh sách chỉ số');
+            indicatorsCache = await res.json();
+            groupedIndicators = buildGroupedIndicators(indicatorsCache);
+            const selected = groupedIndicators[0];
+            indicatorInput.value = buildIndicatorLabel(selected);
+            await refreshIndicatorOptions();
+            await updateMap();
+        } catch (error) {
+            setStatus(error.message || 'Không tải được chỉ số', true);
+        }
+    }
+
+    function buildVectorLayer(geoVersion, buckets, valuesByCode) {
+        const tileUrl = `../assets/tiles/${geoVersion}/{z}/{x}/{y}.pbf`;
+        let didLogStyle = false;
+        const styleFeature = properties => {
+            const geoCode = getGeoCodeFromProperties(properties);
+            const value = resolveValueByCode(valuesByCode, geoCode);
+            if (window.__debugTile && !didLogStyle) {
+                didLogStyle = true;
+                console.log('Vector tile style sample:', { geoCode, value, properties });
+            }
+            if (value === undefined) {
+                return {
+                    fill: true,
+                    color: '#1f2937',
+                    weight: 1,
+                    fillColor: '#dbe4f1',
+                    fillOpacity: 0.45,
+                };
+            }
+            return {
+                fill: true,
+                color: '#1f2937',
+                weight: 1,
+                fillColor: getBucketColor(value, buckets),
+                fillOpacity: 0.75,
+            };
+        };
+
+        const layer = L.vectorGrid.protobuf(tileUrl, {
+            vectorTileLayerStyles: {
+                provinces: styleFeature,
+            },
+            interactive: true,
+            bounds: VN_BOUNDS,
+            noWrap: true,
+            maxNativeZoom: 12,
+            getFeatureId: feature => String(feature.properties.ma_tinh || ''),
+        });
+
+        layer.on('tileload', event => {
+            if (window.__debugTile) {
+                console.log('Vector tile loaded:', event.coords);
+            }
+        });
+        layer.on('tileerror', event => {
+            if (window.__debugTile) {
+                console.log('Vector tile error:', event.coords, event.error);
+            }
+        });
+
+        layer.on('click', event => {
+            const props = event.layer?.properties || {};
+            if (window.__debugTile) {
+                console.log('Vector tile properties:', props);
+            }
+            const geoCode = getGeoCodeFromProperties(props);
+            const name = props.ten_tinh || 'Không rõ';
+            const value = resolveValueByCode(valuesByCode, geoCode);
+            const label = value !== undefined ? value.toFixed(2) : 'Không có dữ liệu';
+
+            if (activeFeatureId) {
+                layer.resetFeatureStyle(activeFeatureId);
+            }
+            if (geoCode) {
+                activeFeatureId = geoCode;
+                layer.setFeatureStyle(geoCode, {
+                    fill: true,
+                    color: '#2563eb',
+                    weight: 2,
+                    fillColor: getBucketColor(value, buckets),
+                    fillOpacity: 0.95,
+                });
+            }
+
+            if (!infoPopup) {
+                infoPopup = L.popup({
+                    closeButton: false,
+                    autoPan: false,
+                });
+            }
+            infoPopup
+                .setLatLng(event.latlng)
+                .setContent(`${name}: ${label}`)
+                .openOn(map);
+        });
+
+        return layer;
+    }
+
+    async function updateMap() {
+        const entry = getSelectedIndicatorEntry();
+        const geoVersion = geoSelect.value;
+        const indicator = getEffectiveIndicatorCode(entry, geoVersion);
+        const year = yearSelect.value;
+        const metric = metricSelect.value;
+        if (!indicator || !year || !geoVersion) {
+            setStatus('Thiếu bộ lọc dữ liệu', true);
+            return;
+        }
+        setStatus('Đang tải dữ liệu bản đồ...');
+        updateBtn.disabled = true;
+        try {
+            const url = new URL(VALUES_ENDPOINT);
+            url.searchParams.set('indicator', indicator);
+            url.searchParams.set('year', year);
+            url.searchParams.set('geo_version', geoVersion);
+            if (metric) {
+                url.searchParams.set('metric', metric);
+            }
+            const res = await fetch(url.toString());
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.detail || 'Không tải được dữ liệu');
+            }
+            const payload = await res.json();
+            const rawValues = payload.values || {};
+            const valuesByCode = {};
+            Object.entries(rawValues).forEach(([key, value]) => {
+                const numeric = Number(value);
+                if (!Number.isNaN(numeric)) {
+                    valuesByCode[key] = numeric;
+                }
+            });
+            const values = Object.values(valuesByCode);
+            const buckets = buildQuantileBuckets(values);
+            renderLegend(buckets);
+
+            if (vectorLayer) {
+                vectorLayer.remove();
+            }
+            vectorLayer = buildVectorLayer(geoVersion, buckets, valuesByCode);
+            vectorLayer.addTo(map);
+            setStatus('Đang hiển thị dữ liệu mới nhất.');
+        } catch (error) {
+            setStatus(error.message || 'Không tải được dữ liệu', true);
+        } finally {
+            updateBtn.disabled = false;
+        }
+    }
+
+    indicatorInput.addEventListener('change', async () => {
+        try {
+            await refreshIndicatorOptions();
+        } catch (error) {
+            setStatus(error.message || 'Không tải được metric', true);
+        }
+    });
+    indicatorInput.addEventListener('input', () => {
+        renderIndicatorSuggestions(indicatorInput.value);
+    });
+    indicatorInput.addEventListener('focus', () => {
+        renderIndicatorSuggestions(indicatorInput.value);
+    });
+    indicatorInput.addEventListener('blur', () => {
+        setTimeout(() => indicatorSuggestions.classList.remove('show'), 120);
+    });
+    geoSelect.addEventListener('change', async () => {
+        try {
+            await refreshMetricYearOptions();
+        } catch (error) {
+            setStatus(error.message || 'Không tải được metric', true);
+        }
+    });
+    updateBtn.addEventListener('click', updateMap);
+    loadIndicators();
+</script>
+</body>
+</html>

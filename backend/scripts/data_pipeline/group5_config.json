@@ -1,0 +1,89 @@
+{
+  "output": "FE/data/processed/group5_values.csv",
+  "section_headers": [
+    "giới tính",
+    "khu vực",
+    "vùng",
+    "nhóm thu nhập",
+    "dân tộc"
+  ],
+  "sheets": [
+    {
+      "name": "5.1",
+      "layout": "year_metric_matrix",
+      "year_row": 4,
+      "metric_row": 6,
+      "metric_row_fallback": 5,
+      "data_start_row": 7,
+      "label_cols": [1],
+      "metric_aliases": {
+        "chung": "overall",
+        "sổ/thẻ cho trẻ em dưới 6 tuổi": "card_under_6",
+        "thẻ bhyt người nghèo/ cận nghèo": "card_poor_near_poor",
+        "sổ/thẻ/ giấy khám chữa bệnh miễn phí": "card_free_care",
+        "thẻ bhyt diện chính sách": "card_policy",
+        "thẻ bhyt bắt buộc nhà nước khác": "card_state_mandatory",
+        "thẻ bhyt bắt buộc ngoài nhà nước khác": "card_non_state_mandatory",
+        "thẻ bhyt học sinh tự nguyện": "card_student_voluntary",
+        "thẻ bhyt tự nguyện khác": "card_other_voluntary",
+        "khác": "card_other"
+      }
+    },
+    {
+      "name": "5.2",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "5.3",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "5.3.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "5.4",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "5.4.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "5.5",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "5.5.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    }
+  ]
+}

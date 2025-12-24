@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: ipoor_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - ipoor_net
+
+  db:
+    image: mysql:8.0
+    container_name: ipoor_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-change-me}
+      MYSQL_DATABASE: ${DB_NAME:-ipoor}
+      TZ: UTC
+    ports:
+      - "3306:3306"
+    command: [
+      "mysqld",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+    volumes:
+      - ipoor_db_data:/var/lib/mysql
+    networks:
+      - ipoor_net
+
+networks:
+  ipoor_net:
+    driver: bridge
+
+volumes:
+  ipoor_db_data:
+    driver: local

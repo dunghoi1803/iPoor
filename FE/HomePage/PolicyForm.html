@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPOOR | Biên tập bài viết</title>
+    <link rel="icon" type="image/png" href="../Image/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy-900: #0f172a;
+            --navy-800: #162544;
+            --navy-700: #1f2f54;
+            --blue-500: #3b82f6;
+            --blue-300: #60a5fa;
+            --blue-100: #e1ecff;
+            --gray-50: #f5f7fa;
+            --gray-100: #e5e7eb;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #6b7280;
+            --white: #ffffff;
+            --card-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --danger: #dc2626;
+            --success: #16a34a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Manrope', system-ui, -apple-system, sans-serif; background: var(--gray-50); color: var(--navy-900); }
+
+        .app-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+        .sidebar { background: var(--navy-900); color: var(--white); display: flex; flex-direction: column; padding: 20px 18px; }
+        .brand { display: flex; align-items: center; gap: 12px; padding: 10px 12px 20px; }
+        .brand-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--white); display: grid; place-items: center; }
+        .brand-logo { width: 30px; height: 30px; object-fit: contain; }
+        .brand-name { font-size: 18px; font-weight: 700; letter-spacing: 0.4px; }
+
+        nav { margin-top: 8px; display: grid; gap: 6px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: var(--white); text-decoration: none; transition: background 0.2s, transform 0.1s; }
+        .nav-item:hover { background: var(--navy-800); transform: translateX(2px); }
+        .nav-item.active { background: var(--navy-700); border-left: 3px solid var(--blue-500); }
+        .nav-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
+
+        main { background: linear-gradient(135deg, #f8fbff 0%, #f4f5fb 100%); padding: 24px 28px 34px; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+        .page-header h1 { font-size: 26px; }
+        .page-header p { color: var(--gray-500); }
+
+        .card { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius-lg); box-shadow: var(--card-shadow); padding: 18px 18px 20px; display: grid; gap: 14px; }
+        .card-title { font-size: 18px; font-weight: 700; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+        .form-group { display: grid; gap: 6px; }
+        label { font-weight: 700; color: var(--navy-900); }
+        input, select, textarea { width: 100%; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--gray-200); font-weight: 600; color: var(--navy-900); background: var(--white); }
+        textarea { min-height: 110px; resize: vertical; }
+        .helper { color: var(--gray-500); font-size: 13px; }
+        .error { color: var(--danger); font-size: 13px; }
+        .invalid { border-color: var(--danger); }
+
+        .tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px solid var(--gray-200); border-radius: 12px; background: var(--white); }
+        .tag-chip { display: inline-flex; align-items: center; gap: 6px; background: #e0f2fe; color: #075985; border-radius: 999px; padding: 6px 10px; font-weight: 700; }
+        .tag-chip button { border: none; background: transparent; cursor: pointer; color: inherit; font-weight: 700; }
+        .tag-input input { flex: 1; min-width: 160px; border: none; padding: 6px 4px; outline: none; font-weight: 600; }
+
+        .editor-card { min-height: 480px; }
+        .editor-controls { display: grid; gap: 10px; }
+        .editor-controls .form-group { max-width: 320px; }
+        .ribbon { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; background: #f8fafc; border: 1px solid var(--gray-200); border-radius: 12px; align-items: center; }
+        .ribbon-group { display: flex; gap: 8px; align-items: center; padding-right: 12px; border-right: 1px solid var(--gray-200); }
+        .ribbon-group:last-child { border-right: none; padding-right: 0; }
+        .ribbon-btn { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--gray-200); background: var(--white); cursor: pointer; font-weight: 700; color: var(--navy-900); }
+        .ribbon-btn:hover { border-color: var(--blue-300); color: var(--blue-500); }
+        .ribbon-select { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--gray-200); background: var(--white); font-weight: 700; color: var(--navy-900); }
+        .ribbon-label { font-size: 12px; font-weight: 700; color: var(--gray-500); margin-right: 2px; }
+        .ruler { position: relative; height: 18px; border-radius: 10px; background: repeating-linear-gradient(90deg, #e2e8f0 0 1px, transparent 1px 12px); border: 1px solid var(--gray-200); }
+        .ruler::before, .ruler::after { content: ""; position: absolute; top: -4px; width: 2px; height: 26px; background: var(--blue-500); }
+        .ruler::before { left: 18px; }
+        .ruler::after { right: 18px; }
+        .editorjs { border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 14px; min-height: 420px; background: var(--white); }
+        .editorjs .ce-block__content, .editorjs .ce-toolbar__content { max-width: 100%; }
+        .editorjs .ce-paragraph { line-height: 1.7; color: var(--navy-900); font-weight: 600; }
+        .editorjs .ce-header { font-weight: 800; }
+        .editorjs ul, .editorjs ol { margin-left: 20px; padding-left: 18px; }
+        .editorjs .cdx-nested-list { list-style-position: inside; }
+        .editorjs .cdx-nested-list__item { list-style: inherit !important; }
+        .editorjs .list-dash, .editorjs .list-plus { list-style: none !important; padding-left: 0; }
+        .editorjs .list-dash .cdx-nested-list__item-content::before { content: "– "; color: var(--navy-900); font-weight: 700; }
+        .editorjs .list-plus .cdx-nested-list__item-content::before { content: "+ "; color: var(--navy-900); font-weight: 700; }
+        .editorjs .list-circle { list-style-type: circle !important; }
+        .editorjs .list-alpha { list-style-type: lower-alpha !important; }
+        .editorjs .list-roman { list-style-type: lower-roman !important; }
+        .editorjs .list-decimal { list-style-type: decimal !important; }
+
+        .dropzone { border: 2px dashed var(--gray-300); border-radius: var(--radius-md); padding: 24px; text-align: center; background: #f8fafc; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+        .dropzone:hover { border-color: var(--blue-500); background: #eef2ff; }
+        .dropzone input { display: none; }
+        .dropzone h4 { margin-bottom: 6px; }
+        .dropzone p { color: var(--gray-500); }
+
+        .file-list { display: grid; gap: 10px; margin-top: 10px; }
+        .file-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 1px solid var(--gray-200); border-radius: 12px; background: var(--white); }
+        .file-meta { display: flex; align-items: center; gap: 10px; color: var(--navy-900); font-weight: 700; }
+        .file-meta small { color: var(--gray-500); font-weight: 600; }
+        .icon-pdf { width: 28px; height: 28px; border-radius: 8px; background: #fff1e6; display: grid; place-items: center; color: #ea580c; font-weight: 800; }
+        .icon-trash { background: transparent; border: 1px solid var(--gray-200); border-radius: 10px; padding: 8px 10px; cursor: pointer; font-weight: 700; color: var(--danger); }
+
+        .toggle-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .checkbox { display: flex; align-items: center; gap: 10px; }
+        .checkbox input { width: 18px; height: 18px; }
+
+        .footer-actions { margin-top: 22px; display: flex; justify-content: flex-end; gap: 12px; }
+        .btn-primary { padding: 12px 16px; border-radius: 12px; background: var(--navy-900); color: var(--white); border: none; font-weight: 700; cursor: pointer; box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25); }
+        .btn-secondary { padding: 12px 16px; border-radius: 12px; background: var(--white); color: var(--navy-900); border: 1px solid var(--blue-500); font-weight: 700; cursor: pointer; }
+        .btn-ghost { padding: 12px 14px; border-radius: 12px; background: var(--white); color: var(--gray-500); border: 1px solid var(--gray-200); font-weight: 700; cursor: pointer; }
+
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 14px 18px; background: var(--success); color: var(--white); border-radius: 12px; box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4); display: none; font-weight: 700; }
+
+        @media (max-width: 1024px) {
+            .app-shell { grid-template-columns: 1fr; }
+            .sidebar { flex-direction: row; overflow-x: auto; height: 72px; }
+            nav { grid-auto-flow: column; grid-auto-columns: max-content; align-items: center; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .page-header h1 { font-size: 22px; }
+            .footer-actions { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark"><img class="brand-logo" src="../Image/icon.png" alt="Logo"></div>
+            <div class="brand-name">iPOOR</div>
+        </div>
+                <nav>
+            <a class="nav-item" href="../LandingPage/index.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
+                <span>Trang giới thiệu</span>
+            </a>
+            <a class="nav-item" href="./HomePage.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/></svg></span>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item" href="./HouseholdList.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
+                <span>Quản lý hộ nghèo</span>
+            </a>
+            <a class="nav-item" href="./DataCollection.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
+                <span>Thu thập & cập nhật dữ liệu</span>
+            </a>
+            <a class="nav-item active" href="./PolicyList.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+                <span>Chính sách & báo cáo</span>
+            </a>
+            <a class="nav-item" href="./GISMap.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
+                <span>Bản đồ nghèo (GIS)</span>
+            </a>
+            <a class="nav-item" href="./ActivityLogs.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span>Nhật ký hoạt động</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="page-header">
+            <div>
+                <h1 id="page-title">Thêm bài viết mới</h1>
+                <p id="page-desc">Nhập nội dung, đính kèm tài liệu và phân quyền hiển thị cho bài viết.</p>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <select id="draft-select" class="btn-ghost" style="min-width:240px;">
+                    <option value="">Chọn bản nháp</option>
+                </select>
+                <button class="btn-secondary" id="load-draft-btn" type="button">Mở nháp</button>
+                <button class="btn-ghost" id="delete-draft-btn" type="button">Xóa nháp</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Thông tin bài viết</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="title">Tiêu đề bài viết</label>
+                    <input id="title" type="text" placeholder="Nhập tiêu đề bài viết...">
+                    <div class="error" id="error-title"></div>
+                </div>
+                <div class="form-group">
+                    <label for="category">Loại bài viết</label>
+                    <select id="category">
+                        <option value="">Chọn loại bài viết</option>
+                        <option value="decree">Chính sách</option>
+                        <option value="circular">Thông tư</option>
+                        <option value="report">Báo cáo</option>
+                        <option value="guideline">Hướng dẫn</option>
+                    </select>
+                    <div class="error" id="error-category"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="summary">Mô tả ngắn</label>
+                <textarea id="summary" maxlength="300" placeholder="Viết mô tả tóm tắt nội dung (tối đa 300 ký tự)..."></textarea>
+                <div class="helper"><span id="summary-count">0</span>/300 ký tự</div>
+            </div>
+            <div class="form-group">
+                <label>Thẻ (Tags)</label>
+                <div class="tag-input" id="tag-input">
+                    <input id="tag-field" type="text" placeholder="Nhập thẻ và nhấn Enter">
+                </div>
+                <div class="helper">Tùy chọn. Nhập để tạo thẻ, nhấn dấu x để xoá.</div>
+            </div>
+        </div>
+
+        <div class="card editor-card">
+            <div class="card-title">Nội dung bài viết</div>
+            <div class="editor-controls">
+                <div class="ribbon">
+                    <div class="ribbon-group">
+                        <button class="ribbon-btn" type="button" data-inline="bold"><strong>B</strong></button>
+                        <button class="ribbon-btn" type="button" data-inline="italic"><em>I</em></button>
+                    </div>
+                    <div class="ribbon-group">
+                        <span class="ribbon-label">Đoạn</span>
+                        <button class="ribbon-btn" type="button" data-block="paragraph">&lt;p&gt;</button>
+                        <select id="heading-style" class="ribbon-select">
+                            <option value="">Heading</option>
+                            <option value="1">H1</option>
+                            <option value="2">H2</option>
+                            <option value="3">H3</option>
+                        </select>
+                    </div>
+                    <div class="ribbon-group">
+                        <select id="unordered-list-style" class="ribbon-select">
+                            <option value="">•</option>
+                            <option value="disc">•</option>
+                            <option value="dash">–</option>
+                            <option value="plus">+</option>
+                            <option value="circle">○</option>
+                        </select>
+                        <select id="ordered-list-style" class="ribbon-select">
+                            <option value="">1.</option>
+                            <option value="decimal">1.</option>
+                            <option value="lower-alpha">a.</option>
+                            <option value="lower-roman">i.</option>
+                        </select>
+                    </div>
+                    <div class="ribbon-group">
+                        <button class="ribbon-btn" type="button" data-block="quote">Trích dẫn</button>
+                        <button class="ribbon-btn" type="button" data-block="image">Ảnh</button>
+                        <button class="ribbon-btn" type="button" data-block="table">Bảng</button>
+                        <button class="ribbon-btn" type="button" data-block="delimiter">Đường kẻ</button>
+                    </div>
+                </div>
+                <div class="ruler" aria-hidden="true"></div>
+                <div class="helper">Thước căn lề là gợi ý trực quan, không kéo chỉnh được.</div>
+            </div>
+            <div id="editorjs" class="editorjs"></div>
+            <div class="error" id="error-content"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Tệp đính kèm (PDF)</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="doc-type">Document type</label>
+                    <input id="doc-type" type="text" placeholder="e.g. appendix, report, form">
+                </div>
+                <div class="form-group">
+                    <label for="doc-version">Document version</label>
+                    <input id="doc-version" type="text" placeholder="v01">
+                </div>
+            </div>
+            <label class="dropzone" id="dropzone">
+            <input id="file-input" type="file" accept="application/pdf,image/png,image/jpeg" multiple>
+                <div>
+                    <h4>Kéo thả file PDF vào đây hoặc bấm để chọn tệp</h4>
+                    <p>Chỉ nhận .pdf, dung lượng tối đa 20MB mỗi file.</p>
+                </div>
+            </label>
+            <div class="file-list" id="file-list"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Thông tin hiển thị &amp; phân quyền</div>
+            <div class="toggle-row">
+                <label class="checkbox">
+                    <input type="checkbox" id="is-public">
+                    <span>Hiển thị công khai cho người dân</span>
+                </label>
+                <div class="form-group">
+                    <label for="publisher">Cơ quan ban hành</label>
+                    <input id="publisher" type="text" placeholder="Nhập cơ quan ban hành...">
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-actions">
+            <button class="btn-primary" id="submit-btn" type="button">Đăng bài</button>
+            <button class="btn-secondary" id="draft-btn" type="button">Lưu nháp</button>
+            <button class="btn-ghost" id="cancel-btn" type="button">Hủy</button>
+        </div>
+    </main>
+</div>
+
+<div class="toast" id="toast">Đã lưu bài viết thành công</div>
+
+<script src="../assets/editorjs/editorjs.js"></script>
+<script src="../assets/editorjs/header.js"></script>
+<script src="../assets/editorjs/nested-list.js"></script>
+<script src="../assets/editorjs/quote.js"></script>
+<script src="../assets/editorjs/image.js"></script>
+<script src="../assets/editorjs/table.js"></script>
+<script src="../assets/editorjs/delimiter.js"></script>
+<script>
+    (() => {
+    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const TOKEN_STORAGE_KEY = 'ipoor_access_token';
+    const POLICY_SELECTED_KEY = 'ipoor_policy_selected_id';
+    const LOGIN_URL = '../Auth/Login.html';
+    const POLICY_LIST_URL = './PolicyList.html';
+    const FILE_LIMIT_BYTES = 20 * 1024 * 1024;
+    const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
+    const UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload`;
+    const EDITOR_UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload-article`;
+    const POLICIES_ENDPOINT = `${API_BASE_URL}/policies`;
+    const DRAFTS_ENDPOINT = `${API_BASE_URL}/policies/drafts`;
+    const DRAFTS_CURRENT_ENDPOINT = `${API_BASE_URL}/policies/drafts/current`;
+    const DRAFT_UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload-draft`;
+    const DROPZONE_HOVER_BORDER = 'var(--blue-500)';
+    const DROPZONE_DEFAULT_BORDER = 'var(--gray-300)';
+    const HTTP_STATUS_UNAUTHORIZED = 401;
+    const SAVE_REDIRECT_DELAY_MS = 700;
+    const SUMMARY_MAX_LENGTH = 300;
+    const EDIT_MODE = 'edit';
+    const DEFAULT_DOC_TYPE = 'attachment';
+    const DEFAULT_DOC_VERSION = 'v01';
+    const PUBLISHER_STORAGE_KEY = 'ipoor_policy_publisher';
+    const CATEGORY_MAP = {
+        policy: 'decree',
+        guide: 'guideline',
+        other: 'report',
+        news: 'report',
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode') === EDIT_MODE ? EDIT_MODE : 'create';
+    const editingId = mode === EDIT_MODE
+        ? (params.get('id') || sessionStorage.getItem(POLICY_SELECTED_KEY))
+        : null;
+    const isEditing = Boolean(editingId);
+    const pageTitle = document.getElementById('page-title');
+    const submitBtn = document.getElementById('submit-btn');
+    const draftBtn = document.getElementById('draft-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const loadDraftBtn = document.getElementById('load-draft-btn');
+    const deleteDraftBtn = document.getElementById('delete-draft-btn');
+    const draftSelect = document.getElementById('draft-select');
+    const titleInput = document.getElementById('title');
+    const categoryInput = document.getElementById('category');
+    const summaryInput = document.getElementById('summary');
+    const summaryCount = document.getElementById('summary-count');
+    const editorHolder = document.getElementById('editorjs');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const toast = document.getElementById('toast');
+    const errorTitle = document.getElementById('error-title');
+    const errorCategory = document.getElementById('error-category');
+    const errorContent = document.getElementById('error-content');
+    const tagField = document.getElementById('tag-field');
+    const tagInput = document.getElementById('tag-input');
+    const isPublicInput = document.getElementById('is-public');
+    const publisherInput = document.getElementById('publisher');
+    const docTypeInput = document.getElementById('doc-type');
+    const docVersionInput = document.getElementById('doc-version');
+    const headingSelect = document.getElementById('heading-style');
+    const unorderedListSelect = document.getElementById('unordered-list-style');
+    const orderedListSelect = document.getElementById('ordered-list-style');
+    const ribbon = document.querySelector('.ribbon');
+
+    const attachments = [];
+    const tags = [];
+    const listStyleByBlockId = new Map();
+    const pendingImageFiles = new Map();
+    let editor = null;
+    let existingAttachmentUrl = '';
+
+    function bytesToSize(bytes) {
+        const mb = bytes / (1024 * 1024);
+        return `${mb.toFixed(1)} MB`;
+    }
+
+    function stripHtml(value) {
+        const el = document.createElement('div');
+        el.innerHTML = value || '';
+        return (el.textContent || '').trim();
+    }
+
+    function blocksToPlainText(blocks) {
+        if (!Array.isArray(blocks)) return '';
+        return blocks.map((block) => {
+            if (!block || !block.data) return '';
+            if (block.type === 'paragraph' || block.type === 'header') {
+                return stripHtml(block.data.text || '');
+            }
+            if (block.type === 'quote') {
+                const quote = stripHtml(block.data.text || '');
+                const caption = stripHtml(block.data.caption || '');
+                return [quote, caption].filter(Boolean).join(' - ');
+            }
+            if (block.type === 'list' || block.type === 'nestedList') {
+                const items = block.data.items || [];
+                return items.map((item) => {
+                    if (typeof item === 'string') return stripHtml(item);
+                    return stripHtml(item.content || '');
+                }).join('\n');
+            }
+            return '';
+        }).filter(Boolean).join('\n\n');
+    }
+
+    function isDataUrl(value) {
+        return typeof value === 'string' && value.startsWith('data:');
+    }
+
+    function isBlobUrl(value) {
+        return typeof value === 'string' && value.startsWith('blob:');
+    }
+
+    function fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Không đọc được file ảnh'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function urlToBlob(url) {
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error('Không tải được ảnh tạm thời');
+        }
+        return await res.blob();
+    }
+
+    async function uploadEditorImage(file) {
+        const token = getToken();
+        if (!token) {
+            redirectToLogin();
+            return '';
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch(EDITOR_UPLOAD_ENDPOINT, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+        });
+        if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            redirectToLogin();
+            return '';
+        }
+        if (!res.ok) {
+            throw new Error('Upload ảnh không thành công');
+        }
+        const payload = await res.json();
+        const rawUrl = payload?.file?.url || '';
+        if (rawUrl.startsWith('/')) return `${API_BASE_URL}${rawUrl}`;
+        return rawUrl;
+    }
+
+    async function uploadDraftFile(file, purpose) {
+        const token = getToken();
+        if (!token) {
+            redirectToLogin();
+            return '';
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('purpose', purpose);
+        const res = await fetch(DRAFT_UPLOAD_ENDPOINT, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+        });
+        if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            redirectToLogin();
+            return '';
+        }
+        if (!res.ok) {
+            throw new Error('Upload tệp nháp không thành công');
+        }
+        const payload = await res.json();
+        if (payload?.file?.url) return payload.file.url;
+        return payload?.url || '';
+    }
+
+    async function replaceImageUrlsForDraft(editorData) {
+        if (!editorData || !Array.isArray(editorData.blocks)) return editorData;
+        const blocks = await Promise.all(editorData.blocks.map(async (block) => {
+            if (!block || block.type !== 'image' || !block.data?.file?.url) return block;
+            const url = block.data.file.url;
+            if (!isBlobUrl(url) && !isDataUrl(url)) return block;
+            let file = pendingImageFiles.get(url);
+            if (!file) {
+                const blob = await urlToBlob(url);
+                const name = `draft-image.${(blob.type || 'image/png').split('/').pop()}`;
+                file = new File([blob], name, { type: blob.type || 'image/png' });
+            }
+            const draftUrl = await uploadDraftFile(file, 'image');
+            if (!draftUrl) return block;
+            if (isBlobUrl(url)) {
+                URL.revokeObjectURL(url);
+                pendingImageFiles.delete(url);
+            }
+            return {
+                ...block,
+                data: {
+                    ...block.data,
+                    file: {
+                        ...(block.data.file || {}),
+                        url: draftUrl,
+                    },
+                },
+            };
+        }));
+        return { ...editorData, blocks };
+    }
+
+    async function replaceImageUrlsForPublish(editorData) {
+        if (!editorData || !Array.isArray(editorData.blocks)) return editorData;
+        const blocks = await Promise.all(editorData.blocks.map(async (block, index) => {
+            if (!block || block.type !== 'image' || !block.data?.file?.url) return block;
+            const url = block.data.file.url;
+            const isDraftUrl = typeof url === 'string' && url.includes('/files/drafts/');
+            if (!(isBlobUrl(url) || isDataUrl(url) || isDraftUrl)) return block;
+            let file = pendingImageFiles.get(url);
+            if (!file) {
+                const blob = await urlToBlob(url);
+                const name = `image-${index + 1}.${(blob.type || 'image/png').split('/').pop()}`;
+                file = new File([blob], name, { type: blob.type || 'image/png' });
+            }
+            const uploadedUrl = await uploadEditorImage(file);
+            if (!uploadedUrl) return block;
+            if (isBlobUrl(url)) {
+                URL.revokeObjectURL(url);
+                pendingImageFiles.delete(url);
+            }
+            return {
+                ...block,
+                data: {
+                    ...block.data,
+                    file: {
+                        ...(block.data.file || {}),
+                        url: uploadedUrl,
+                    },
+                },
+            };
+        }));
+        return { ...editorData, blocks };
+    }
+
+    function hasMeaningfulBlocks(blocks) {
+        if (!Array.isArray(blocks) || blocks.length === 0) return false;
+        return blocks.some((block) => {
+            if (!block || !block.data) return false;
+            if (block.type === 'paragraph' || block.type === 'header') {
+                return stripHtml(block.data.text || '').length > 0;
+            }
+            if (block.type === 'quote') {
+                return stripHtml(block.data.text || '').length > 0;
+            }
+            if (block.type === 'list' || block.type === 'nestedList') {
+                return Array.isArray(block.data.items) && block.data.items.length > 0;
+            }
+            if (block.type === 'image') {
+                return Boolean(block.data.file && block.data.file.url);
+            }
+            return false;
+        });
+    }
+
+    function getToken() {
+        return localStorage.getItem(TOKEN_STORAGE_KEY) || sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    }
+
+    function redirectToLogin() {
+        window.location.href = LOGIN_URL;
+    }
+
+    function defaultListStyle(listStyle, listType) {
+        if (listStyle) return listStyle;
+        return listType === 'ordered' ? 'decimal' : 'disc';
+    }
+
+    function applyListStyleToBlock(block, style) {
+        if (!block || !block.holder) return;
+        block.holder.dataset.listStyle = style;
+        const listElement = block.holder.querySelector('ul, ol');
+        if (!listElement) return;
+        listElement.classList.remove('list-dash', 'list-plus', 'list-circle', 'list-alpha', 'list-roman', 'list-decimal');
+        listElement.style.listStyleType = '';
+        if (style === 'dash') listElement.classList.add('list-dash');
+        if (style === 'plus') listElement.classList.add('list-plus');
+        if (style === 'circle') listElement.classList.add('list-circle');
+        if (style === 'lower-alpha') listElement.classList.add('list-alpha');
+        if (style === 'lower-roman') listElement.classList.add('list-roman');
+        if (style === 'decimal') listElement.classList.add('list-decimal');
+        if (style === 'dash' || style === 'plus') {
+            listElement.style.listStyleType = 'none';
+        }
+        if (style === 'circle') {
+            listElement.style.listStyleType = 'circle';
+        }
+        if (style === 'lower-alpha') {
+            listElement.style.listStyleType = 'lower-alpha';
+        }
+        if (style === 'lower-roman') {
+            listElement.style.listStyleType = 'lower-roman';
+        }
+        if (style === 'decimal') {
+            listElement.style.listStyleType = 'decimal';
+        }
+    }
+
+    function applyInlineStyle(command) {
+        document.execCommand(command, false, null);
+    }
+
+    function syncListStyleControl() {
+        if (!editor) return;
+        const blockIndex = editor.blocks.getCurrentBlockIndex();
+        const block = editor.blocks.getBlockByIndex(blockIndex);
+        if (!block || (block.name !== 'list' && block.name !== 'nestedList')) {
+            if (unorderedListSelect) unorderedListSelect.value = '';
+            if (orderedListSelect) orderedListSelect.value = '';
+            return;
+        }
+        const currentStyle = listStyleByBlockId.get(block.id)
+            || block.holder?.dataset.listStyle
+            || defaultListStyle(block.data?.listStyle, block.data?.style);
+        if (block.data?.style === 'ordered') {
+            if (orderedListSelect) orderedListSelect.value = currentStyle || 'decimal';
+            if (unorderedListSelect) unorderedListSelect.value = '';
+        } else {
+            if (unorderedListSelect) unorderedListSelect.value = currentStyle || 'disc';
+            if (orderedListSelect) orderedListSelect.value = '';
+        }
+    }
+
+    function applySavedListStyles() {
+        if (!editor || typeof editor.blocks.getBlocksCount !== 'function') return;
+        const count = editor.blocks.getBlocksCount();
+        for (let index = 0; index < count; index += 1) {
+            const block = editor.blocks.getBlockByIndex(index);
+            if (!block || (block.name !== 'list' && block.name !== 'nestedList')) continue;
+            const style = listStyleByBlockId.get(block.id)
+                || block.data?.listStyle
+                || defaultListStyle(null, block.data?.style);
+            listStyleByBlockId.set(block.id, style);
+            applyListStyleToBlock(block, style);
+        }
+    }
+
+    function findBlockById(targetId) {
+        if (!editor || typeof editor.blocks.getBlocksCount !== 'function') return null;
+        const count = editor.blocks.getBlocksCount();
+        for (let index = 0; index < count; index += 1) {
+            const block = editor.blocks.getBlockByIndex(index);
+            if (block && block.id === targetId) return block;
+        }
+        return null;
+    }
+
+    function applyListStyleWithRetry(blockId, style) {
+        const attempt = () => {
+            const block = findBlockById(blockId);
+            if (!block) return;
+            applyListStyleToBlock(block, style);
+        };
+        setTimeout(attempt, 0);
+        setTimeout(attempt, 60);
+    }
+
+
+    function initEditor(initialData) {
+        editor = new EditorJS({
+            holder: editorHolder,
+            placeholder: 'Nhập nội dung bài viết...',
+            data: initialData,
+            tools: {
+                header: Header,
+                list: {
+                    class: NestedList,
+                    inlineToolbar: true,
+                },
+                quote: {
+                    class: Quote,
+                    inlineToolbar: true,
+                    config: {
+                        quotePlaceholder: 'Nhập trích dẫn...',
+                        captionPlaceholder: 'Nguồn trích dẫn',
+                    },
+                },
+                image: {
+                    class: ImageTool,
+                    config: {
+                        captionPlaceholder: 'Ghi chú cho ảnh',
+                        uploader: {
+                            uploadByFile: async (file) => {
+                                const objectUrl = URL.createObjectURL(file);
+                                pendingImageFiles.set(objectUrl, file);
+                                return {
+                                    success: 1,
+                                    file: {
+                                        url: objectUrl,
+                                    },
+                                };
+                            },
+                        },
+                    },
+                },
+                table: {
+                    class: Table,
+                    inlineToolbar: true,
+                },
+                delimiter: Delimiter,
+            },
+            onReady: () => {
+                syncListStyleControl();
+            },
+            onChange: () => {
+                syncListStyleControl();
+                applySavedListStyles();
+            },
+        });
+    }
+
+    function insertBlock(type, data = {}) {
+        if (!editor) return;
+        const insertIndex = Math.max(editor.blocks.getCurrentBlockIndex() + 1, 0);
+        editor.blocks.insert(type, data, {}, insertIndex, true);
+        syncListStyleControl();
+        applySavedListStyles();
+        return editor.blocks.getBlockByIndex(insertIndex);
+    }
+
+    function addFile(file) {
+        attachments.push(file);
+        renderFiles();
+    }
+
+    function normalizeCategory(value) {
+        return CATEGORY_MAP[value] || value;
+    }
+
+    function normalizeAttachmentUrl(value) {
+        if (!value) return '';
+        if (value.startsWith('http://') || value.startsWith('https://')) return value;
+        if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
+        return value;
+    }
+
+    function applyEditMode() {
+        pageTitle.textContent = 'Chỉnh sửa bài viết';
+        submitBtn.textContent = 'Cập nhật bài viết';
+    }
+
+    async function applyDataToForm(data) {
+        titleInput.value = data.title || '';
+        categoryInput.value = normalizeCategory(data.category) || 'report';
+        summaryInput.value = (data.summary || stripHtml(data.description || '')).slice(0, SUMMARY_MAX_LENGTH);
+        summaryCount.textContent = summaryInput.value.length;
+        await editor.isReady;
+        if (data.content_blocks && Array.isArray(data.content_blocks.blocks)) {
+            await editor.render(data.content_blocks);
+        } else if (data.description) {
+            await editor.render({
+                time: Date.now(),
+                blocks: [
+                    {
+                        type: 'paragraph',
+                        data: { text: stripHtml(data.description) },
+                    },
+                ],
+                version: '2.28.2',
+            });
+        }
+            applySavedListStyles();
+            syncListStyleControl();
+            existingAttachmentUrl = normalizeAttachmentUrl(data.attachment_url || '');
+        tags.splice(0, tags.length, ...(data.tags || []));
+        renderTags();
+        isPublicInput.checked = Boolean(data.is_public);
+        publisherInput.value = data.issued_by || getStoredPublisher() || publisherInput.value;
+    }
+
+    async function loadDraft(policyId = null) {
+        const token = getToken();
+        if (!token) return null;
+        const url = policyId ? `${DRAFTS_CURRENT_ENDPOINT}?policy_id=${policyId}` : DRAFTS_CURRENT_ENDPOINT;
+        const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            redirectToLogin();
+            return null;
+        }
+        if (res.status === 404) return null;
+        if (!res.ok) throw new Error('Không tải được bản nháp');
+        return await res.json();
+    }
+
+    function formatDraftLabel(draft) {
+        const title = draft.title ? draft.title.trim() : 'Bản nháp không tiêu đề';
+        const updated = draft.updated_at || draft.created_at;
+        const dateLabel = updated ? new Date(updated).toLocaleString('vi-VN') : '';
+        const linkedLabel = draft.policy_id ? ` - Bài #${draft.policy_id}` : '';
+        return dateLabel ? `${title}${linkedLabel} (${dateLabel})` : `${title}${linkedLabel}`;
+    }
+
+    async function loadDraftList() {
+        const token = getToken();
+        if (!token) return [];
+        const query = isEditing && editingId ? `policy_id=${editingId}` : '';
+        const url = query ? `${DRAFTS_ENDPOINT}?${query}` : DRAFTS_ENDPOINT;
+        const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            redirectToLogin();
+            return [];
+        }
+        if (!res.ok) return [];
+        return await res.json();
+    }
+
+    async function renderDraftOptions() {
+        if (!draftSelect) return;
+        const drafts = await loadDraftList();
+        draftSelect.innerHTML = '<option value="">Chọn bản nháp</option>';
+        drafts.forEach((draft) => {
+            const option = document.createElement('option');
+            option.value = String(draft.id);
+            option.textContent = formatDraftLabel(draft);
+            draftSelect.appendChild(option);
+        });
+    }
+
+    function getStoredPublisher() {
+        return sessionStorage.getItem(PUBLISHER_STORAGE_KEY) || '';
+    }
+
+    function setStoredPublisher(value) {
+        if (value) {
+            sessionStorage.setItem(PUBLISHER_STORAGE_KEY, value);
+        }
+    }
+
+    function renderFiles() {
+        fileList.innerHTML = '';
+        attachments.forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'file-item';
+
+            const meta = document.createElement('div');
+            meta.className = 'file-meta';
+            const icon = document.createElement('div');
+            icon.className = 'icon-pdf';
+            icon.textContent = 'PDF';
+            const name = document.createElement('div');
+            name.innerHTML = `${file.name} <br><small>${bytesToSize(file.size)}</small>`;
+            meta.append(icon, name);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'icon-trash';
+            removeBtn.textContent = 'Xóa';
+            removeBtn.addEventListener('click', () => {
+                attachments.splice(index, 1);
+                renderFiles();
+            });
+
+            item.append(meta, removeBtn);
+            fileList.appendChild(item);
+        });
+    }
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (!ALLOWED_MIME_TYPES.has(file.type)) return;
+            if (file.size > FILE_LIMIT_BYTES) return;
+            addFile(file);
+        });
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', event => { event.preventDefault(); dropzone.style.borderColor = DROPZONE_HOVER_BORDER; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = DROPZONE_DEFAULT_BORDER; });
+    dropzone.addEventListener('drop', event => {
+        event.preventDefault();
+        dropzone.style.borderColor = DROPZONE_DEFAULT_BORDER;
+        handleFiles(event.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', event => handleFiles(event.target.files));
+
+    summaryInput.addEventListener('input', () => {
+        summaryCount.textContent = summaryInput.value.length;
+    });
+
+    function renderTags() {
+        const chips = Array.from(tagInput.querySelectorAll('.tag-chip'));
+        chips.forEach(chip => chip.remove());
+        tags.forEach((tag, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'tag-chip';
+            chip.textContent = tag;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = '×';
+            btn.addEventListener('click', () => {
+                tags.splice(index, 1);
+                renderTags();
+            });
+            chip.appendChild(btn);
+            tagInput.insertBefore(chip, tagField);
+        });
+    }
+
+    tagField.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && tagField.value.trim()) {
+            event.preventDefault();
+            tags.push(tagField.value.trim());
+            tagField.value = '';
+            renderTags();
+        }
+    });
+
+    function setError(el, message) {
+        el.textContent = message;
+    }
+
+    function clearErrors() {
+        [titleInput, categoryInput, editorHolder].forEach(el => el.classList.remove('invalid'));
+        [errorTitle, errorCategory, errorContent].forEach(el => el.textContent = '');
+    }
+
+    async function validate() {
+        clearErrors();
+        let valid = true;
+        if (!titleInput.value.trim()) {
+            titleInput.classList.add('invalid');
+            setError(errorTitle, 'Tiêu đề không được để trống');
+            valid = false;
+        }
+        if (!categoryInput.value) {
+            categoryInput.classList.add('invalid');
+            setError(errorCategory, 'Vui lòng chọn loại bài viết');
+            valid = false;
+        }
+        if (!editor) {
+            setError(errorContent, 'Nội dung không được để trống');
+            return false;
+        }
+        const editorData = await editor.save();
+        if (!hasMeaningfulBlocks(editorData.blocks)) {
+            editorHolder.classList.add('invalid');
+            setError(errorContent, 'Nội dung không được để trống');
+            valid = false;
+        }
+        return valid;
+    }
+
+    function applyListStylesToSavedData(editorData) {
+        if (!editorData || !Array.isArray(editorData.blocks)) return editorData;
+        const blocks = editorData.blocks.map((block) => {
+            if (!block || !block.data) return block;
+            if (block.type !== 'list' && block.type !== 'nestedList') return block;
+            const listStyle = listStyleByBlockId.get(block.id)
+                || block.data.listStyle
+                || defaultListStyle(null, block.data.style);
+            return {
+                ...block,
+                data: {
+                    ...block.data,
+                    listStyle,
+                },
+            };
+        });
+        return { ...editorData, blocks };
+    }
+
+    function showToast(message, isError = false) {
+        toast.textContent = message;
+        toast.style.color = isError ? 'var(--danger)' : 'var(--navy-900)';
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    async function saveDraft() {
+        if (!editor) return;
+        const token = getToken();
+        if (!token) { redirectToLogin(); return; }
+        if (!confirm('Bản nháp sẽ tự xóa sau 30 ngày. Bạn có muốn tiếp tục?')) {
+            return;
+        }
+        showToast('Đang lưu nháp...');
+        try {
+            const rawEditorData = await editor.save();
+            const editorData = applyListStylesToSavedData(rawEditorData);
+            const draftEditorData = await replaceImageUrlsForDraft(editorData);
+            const contentText = blocksToPlainText(draftEditorData.blocks);
+            let draftAttachmentUrl = existingAttachmentUrl || null;
+            if (attachments.length) {
+                draftAttachmentUrl = await uploadDraftFile(attachments[0], 'attachment');
+            }
+            const payload = {
+                policy_id: isEditing ? Number(editingId) : null,
+                title: titleInput.value.trim() || null,
+                category: normalizeCategory(categoryInput.value) || null,
+                summary: summaryInput.value.trim() || null,
+                description: contentText || summaryInput.value.trim() || null,
+                content_blocks: draftEditorData,
+                attachment_url: draftAttachmentUrl,
+                issued_by: publisherInput.value || null,
+                effective_date: null,
+                tags: tags.length ? tags : [],
+                is_public: isPublicInput.checked,
+            };
+            const res = await fetch(DRAFTS_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+            if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+                sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                redirectToLogin();
+                return;
+            }
+            if (!res.ok) throw new Error('Lưu nháp không thành công');
+            showToast('Đã lưu nháp');
+            const savedDraft = await res.json();
+            await renderDraftOptions();
+            if (draftSelect && savedDraft?.id) {
+                draftSelect.value = String(savedDraft.id);
+            }
+        } catch (error) {
+            showToast(error.message, true);
+        }
+    }
+
+    async function preloadData() {
+        const token = getToken();
+        if (!token) return;
+        try {
+            if (isEditing && editingId) {
+                applyEditMode();
+                const draft = await loadDraft(editingId);
+                if (draft) {
+                    await applyDataToForm(draft);
+                    await renderDraftOptions();
+                    return;
+                }
+                const res = await fetch(`${POLICIES_ENDPOINT}/${editingId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+                    localStorage.removeItem(TOKEN_STORAGE_KEY);
+                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                    redirectToLogin();
+                    return;
+                }
+                if (!res.ok) throw new Error('Không tải được bài để sửa');
+                const data = await res.json();
+                await applyDataToForm(data);
+                await renderDraftOptions();
+                return;
+            }
+            await renderDraftOptions();
+        } catch (error) {
+            showToast(error.message, true);
+        }
+    }
+
+    submitBtn.addEventListener('click', async () => {
+        if (!await validate()) return;
+        const token = getToken();
+        if (!token) { redirectToLogin(); return; }
+        showToast('Đang lưu...');
+        const rawEditorData = await editor.save();
+        const editorData = applyListStylesToSavedData(rawEditorData);
+        const finalizedEditorData = await replaceImageUrlsForPublish(editorData);
+        let attachmentUrl = existingAttachmentUrl;
+        if (attachments.length) {
+            const formData = new FormData();
+            formData.append('file', attachments[0]);
+            formData.append('entity_type', 'policy');
+            formData.append('policy_category', categoryInput.value || 'report');
+            formData.append('policy_title', titleInput.value.trim());
+            formData.append('policy_doc_type', docTypeInput.value.trim() || DEFAULT_DOC_TYPE);
+            formData.append('policy_doc_version', docVersionInput.value.trim() || DEFAULT_DOC_VERSION);
+            try {
+                const uploadRes = await fetch(UPLOAD_ENDPOINT, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData,
+                });
+                if (uploadRes.status === HTTP_STATUS_UNAUTHORIZED) {
+                    localStorage.removeItem(TOKEN_STORAGE_KEY);
+                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                    redirectToLogin();
+                    return;
+                }
+                if (!uploadRes.ok) throw new Error('Upload tệp không thành công');
+                const uploadData = await uploadRes.json();
+                attachmentUrl = normalizeAttachmentUrl(uploadData.url || '');
+            } catch (err) {
+                showToast(err.message, true);
+                return;
+            }
+        } else if (attachmentUrl && attachmentUrl.includes('/files/drafts/')) {
+            try {
+                const blob = await urlToBlob(attachmentUrl);
+                const name = `attachment.${(blob.type || 'application/pdf').split('/').pop()}`;
+                const file = new File([blob], name, { type: blob.type || 'application/pdf' });
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('entity_type', 'policy');
+                formData.append('policy_category', categoryInput.value || 'report');
+                formData.append('policy_title', titleInput.value.trim());
+                formData.append('policy_doc_type', docTypeInput.value.trim() || DEFAULT_DOC_TYPE);
+                formData.append('policy_doc_version', docVersionInput.value.trim() || DEFAULT_DOC_VERSION);
+                const uploadRes = await fetch(UPLOAD_ENDPOINT, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData,
+                });
+                if (uploadRes.status === HTTP_STATUS_UNAUTHORIZED) {
+                    localStorage.removeItem(TOKEN_STORAGE_KEY);
+                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                    redirectToLogin();
+                    return;
+                }
+                if (!uploadRes.ok) throw new Error('Upload tệp không thành công');
+                const uploadData = await uploadRes.json();
+                attachmentUrl = normalizeAttachmentUrl(uploadData.url || '');
+            } catch (err) {
+                showToast(err.message, true);
+                return;
+            }
+        }
+        const contentText = blocksToPlainText(finalizedEditorData.blocks);
+        setStoredPublisher(publisherInput.value);
+        const payload = {
+            title: titleInput.value.trim(),
+            category: normalizeCategory(categoryInput.value) || 'report',
+            summary: summaryInput.value.trim() || null,
+            description: contentText || summaryInput.value.trim() || null,
+            content_blocks: finalizedEditorData,
+            attachment_url: attachmentUrl,
+            issued_by: publisherInput.value || 'N/A',
+            effective_date: null,
+            tags: tags.length ? tags : [],
+            is_public: isPublicInput.checked,
+        };
+        const url = isEditing ? `${POLICIES_ENDPOINT}/${editingId}` : POLICIES_ENDPOINT;
+        const method = isEditing ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+            if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+                sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                redirectToLogin();
+                return;
+            }
+            if (!res.ok) throw new Error('Lưu không thành công');
+            showToast(mode === 'edit' ? 'Đã cập nhật bài viết thành công' : 'Đã lưu bài viết thành công');
+            setTimeout(() => window.location.href = POLICY_LIST_URL, SAVE_REDIRECT_DELAY_MS);
+        } catch (error) {
+            showToast(error.message, true);
+        }
+    });
+
+    draftBtn.addEventListener('click', () => {
+        saveDraft();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        window.location.href = POLICY_LIST_URL;
+    });
+
+    initEditor({
+        time: Date.now(),
+        blocks: [],
+        version: '2.28.2',
+    });
+    preloadData();
+
+    if (!isEditing) {
+        const storedPublisher = getStoredPublisher();
+        if (storedPublisher) {
+            publisherInput.value = storedPublisher;
+        }
+    }
+    if (docTypeInput && !docTypeInput.value.trim()) {
+        docTypeInput.value = DEFAULT_DOC_TYPE;
+    }
+    if (docVersionInput && !docVersionInput.value.trim()) {
+        docVersionInput.value = DEFAULT_DOC_VERSION;
+    }
+
+    publisherInput.addEventListener('change', () => setStoredPublisher(publisherInput.value));
+    if (loadDraftBtn) {
+        loadDraftBtn.addEventListener('click', async () => {
+            const selectedId = draftSelect && draftSelect.value ? Number(draftSelect.value) : null;
+            let draft = null;
+            if (selectedId) {
+                const drafts = await loadDraftList();
+                draft = drafts.find((item) => item.id === selectedId) || null;
+            } else {
+                draft = isEditing && editingId
+                    ? await loadDraft(editingId)
+                    : await loadDraft();
+            }
+            if (!draft) {
+                showToast('Không có bản nháp nào', true);
+                return;
+            }
+            await applyDataToForm(draft);
+        });
+    }
+    if (deleteDraftBtn) {
+        deleteDraftBtn.addEventListener('click', async () => {
+            const token = getToken();
+            if (!token) { redirectToLogin(); return; }
+            if (!confirm('Bạn có chắc chắn muốn xóa bản nháp hiện tại?')) return;
+            const selectedId = draftSelect && draftSelect.value ? Number(draftSelect.value) : null;
+            const url = selectedId
+                ? `${DRAFTS_ENDPOINT}/${selectedId}`
+                : (isEditing && editingId ? `${DRAFTS_CURRENT_ENDPOINT}?policy_id=${editingId}` : DRAFTS_CURRENT_ENDPOINT);
+            try {
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.status === HTTP_STATUS_UNAUTHORIZED) {
+                    localStorage.removeItem(TOKEN_STORAGE_KEY);
+                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                    redirectToLogin();
+                    return;
+                }
+                if (res.status === 404) {
+                    showToast('Không có bản nháp để xóa', true);
+                    return;
+                }
+                if (!res.ok) throw new Error('Xóa nháp không thành công');
+                showToast('Đã xóa nháp');
+                setTimeout(() => window.location.reload(), 600);
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        });
+    }
+    if (ribbon) {
+        ribbon.addEventListener('click', (event) => {
+            const inlineBtn = event.target.closest('[data-inline]');
+            if (inlineBtn) {
+                applyInlineStyle(inlineBtn.dataset.inline);
+                return;
+            }
+            const btn = event.target.closest('[data-block]');
+            if (!btn) return;
+            const blockType = btn.dataset.block;
+            if (blockType === 'header') {
+                const level = Number(btn.dataset.level || 2);
+                insertBlock('header', { text: '', level });
+                return;
+            }
+            if (blockType === 'paragraph') {
+                insertBlock('paragraph', { text: '' });
+                return;
+            }
+            if (blockType === 'list') {
+                const style = btn.dataset.style === 'ordered' ? 'ordered' : 'unordered';
+                insertBlock('list', { style, items: [] });
+                return;
+            }
+            if (blockType === 'quote') {
+                insertBlock('quote', { text: '', caption: '' });
+                return;
+            }
+            if (blockType === 'image') {
+                insertBlock('image', {});
+                return;
+            }
+            if (blockType === 'table') {
+                insertBlock('table', { withHeadings: true, content: [] });
+                return;
+            }
+            if (blockType === 'delimiter') {
+                insertBlock('delimiter', {});
+                return;
+            }
+        });
+    }
+    if (headingSelect) {
+        headingSelect.addEventListener('change', () => {
+            const level = Number(headingSelect.value || 0);
+            if (!level) return;
+            insertBlock('header', { text: '', level });
+            headingSelect.value = '';
+        });
+    }
+    if (unorderedListSelect) {
+        unorderedListSelect.addEventListener('change', async () => {
+            const style = unorderedListSelect.value;
+            if (!style) return;
+            if (!editor) return;
+            const blockIndex = editor.blocks.getCurrentBlockIndex();
+            const block = editor.blocks.getBlockByIndex(blockIndex);
+            if (!block || (block.name !== 'list' && block.name !== 'nestedList')) {
+                const newBlock = insertBlock('list', { style: 'unordered', items: [], listStyle: style });
+                if (newBlock) {
+                    listStyleByBlockId.set(newBlock.id, style);
+                    applyListStyleWithRetry(newBlock.id, style);
+                }
+                unorderedListSelect.value = '';
+                return;
+            }
+            if (block.data?.style !== 'unordered') {
+                await editor.blocks.update(block.id, {
+                    ...block.data,
+                    style: 'unordered',
+                    listStyle: style,
+                });
+            }
+            listStyleByBlockId.set(block.id, style);
+            applyListStyleToBlock(block, style);
+            if (typeof editor.blocks.update === 'function') {
+                await editor.blocks.update(block.id, {
+                    ...block.data,
+                    listStyle: style,
+                });
+            }
+            applyListStyleWithRetry(block.id, style);
+            unorderedListSelect.value = '';
+        });
+    }
+    if (orderedListSelect) {
+        orderedListSelect.addEventListener('change', async () => {
+            const style = orderedListSelect.value;
+            if (!style) return;
+            if (!editor) return;
+            const blockIndex = editor.blocks.getCurrentBlockIndex();
+            const block = editor.blocks.getBlockByIndex(blockIndex);
+            if (!block || (block.name !== 'list' && block.name !== 'nestedList')) {
+                const newBlock = insertBlock('list', { style: 'ordered', items: [], listStyle: style });
+                if (newBlock) {
+                    listStyleByBlockId.set(newBlock.id, style);
+                    applyListStyleWithRetry(newBlock.id, style);
+                }
+                orderedListSelect.value = '';
+                return;
+            }
+            if (block.data?.style !== 'ordered') {
+                await editor.blocks.update(block.id, {
+                    ...block.data,
+                    style: 'ordered',
+                    listStyle: style,
+                });
+            }
+            listStyleByBlockId.set(block.id, style);
+            applyListStyleToBlock(block, style);
+            if (typeof editor.blocks.update === 'function') {
+                await editor.blocks.update(block.id, {
+                    ...block.data,
+                    listStyle: style,
+                });
+            }
+            applyListStyleWithRetry(block.id, style);
+            orderedListSelect.value = '';
+        });
+    }
+    })();
+</script>
+</body>
+</html>
+
+
+
+

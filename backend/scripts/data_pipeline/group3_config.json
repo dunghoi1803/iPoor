@@ -1,0 +1,77 @@
+{
+  "output": "FE/data/processed/group3_values.csv",
+  "section_headers": [
+    "giới tính",
+    "khu vực",
+    "loại hình kinh tế",
+    "nhóm tuổi",
+    "khu vực kinh tế",
+    "ngành nghề",
+    "vị thế việc làm",
+    "vùng",
+    "địa phương"
+  ],
+  "sheets": [
+    {
+      "name": "3.1",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "labor_force_thousand"
+    },
+    {
+      "name": "3.1.M",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "labor_force_thousand"
+    },
+    {
+      "name": "3.2",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "employment_thousand"
+    },
+    {
+      "name": "3.2.M",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "employment_thousand"
+    },
+    {
+      "name": "3.3",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "informal_employment_rate_percent"
+    },
+    {
+      "name": "3.3.M",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "informal_employment_rate_percent"
+    },
+    {
+      "name": "3.4",
+      "layout": "year_metric_matrix",
+      "year_row": 4,
+      "metric_row": 5,
+      "data_start_row": 6,
+      "label_cols": [1],
+      "metric_aliases": {
+        "số nhân khẩu bình quân 1 hộ (người)": "avg_household_size",
+        "số người trong tuổi lao động bình quân 1 hộ (người)": "avg_working_age",
+        "tỷ lệ phụ thuộc (lần)": "dependency_ratio"
+      }
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "output": "FE/data/processed/group8_values.csv",
+  "section_headers": [
+    "khu vực",
+    "vùng",
+    "nhóm thu nhập",
+    "giới tính",
+    "nhóm tuổi",
+    "nhóm tuôi",
+    "loại điện thoại",
+    "loại kỹ năng"
+  ],
+  "sheets": [
+    {
+      "name": "8.1",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.1.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.2",
+      "layout": "fixed_year_single",
+      "fixed_year": 2024,
+      "value_col": 3,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.2.M",
+      "layout": "fixed_year_single",
+      "fixed_year": 2024,
+      "value_col": 3,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.3",
+      "layout": "fixed_year_single",
+      "fixed_year": 2024,
+      "value_col": 3,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.3.M",
+      "layout": "fixed_year_single",
+      "fixed_year": 2024,
+      "value_col": 3,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.4",
+      "layout": "fixed_year_single",
+      "fixed_year": 2024,
+      "value_col": 3,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.4.M",
+      "layout": "fixed_year_single",
+      "fixed_year": 2024,
+      "value_col": 3,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "8.5",
+      "layout": "year_metric_matrix",
+      "year_row": 4,
+      "metric_row": 5,
+      "data_start_row": 6,
+      "label_cols": [1],
+      "metric_aliases": {
+        "máy điện thoại": "phone_per_100_households",
+        "ti vi màu": "tv_per_100_households",
+        "máy vi tính": "computer_per_100_households"
+      }
+    }
+  ]
+}

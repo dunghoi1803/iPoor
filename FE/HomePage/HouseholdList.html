@@ -173,28 +173,32 @@
             </div>
             <div class="brand-name">iPOOR</div>
         </div>
-        <nav>
-            <a class="nav-item" href="./HomePage.html">
+                <nav>
+            <a class="nav-item" href="../LandingPage/index.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
-                <span>Bảng điều khiển</span>
+                <span>Trang giới thiệu</span>
             </a>
-            <a class="nav-item active" href="#">
+            <a class="nav-item" href="./HomePage.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/></svg></span>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item active" href="./HouseholdList.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
                 <span>Quản lý hộ nghèo</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./DataCollection.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
                 <span>Thu thập & cập nhật dữ liệu</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./PolicyList.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
                 <span>Chính sách & báo cáo</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./GISMap.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
                 <span>Bản đồ nghèo (GIS)</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./ActivityLogs.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                 <span>Nhật ký hoạt động</span>
             </a>
@@ -278,90 +282,11 @@
                         <th>Hành động</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    <tr>
-                        <td>H001245</td>
-                        <td>Nguyễn Thị Hoa</td>
-                        <td>031234567890</td>
-                        <td><span class="badge badge-ngheo">Nghèo</span></td>
-                        <td>68</td>
-                        <td>74</td>
-                        <td>Phường A</td>
-                        <td>12/08/2023</td>
-                        <td>Trần Văn Minh</td>
-                        <td>
-                            <div class="actions">
-                                <button class="icon-btn view-btn" data-target="./HouseholdDetail.html" title="Xem"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10Z" stroke="#0f172a" stroke-width="1.3"/><circle cx="10" cy="10" r="2.5" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                                <button class="icon-btn edit-btn" data-target="./HouseholdEdit.html" title="Sửa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7-7-2.5-2.5-7 7Z" stroke="#0f172a" stroke-width="1.3" stroke-linejoin="round"/><path d="m14.5 6-1.5-1.5" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/></svg></button>
-                                <button class="icon-btn" title="Xóa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8 6v8m4-8v8M7 6l1-2h4l1 2" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/><path d="M6 6h8v9a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6Z" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>H001312</td>
-                        <td>Phạm Văn Long</td>
-                        <td>087654321012</td>
-                        <td><span class="badge badge-can">Cận nghèo</span></td>
-                        <td>72</td>
-                        <td>79</td>
-                        <td>Phường B</td>
-                        <td>05/09/2023</td>
-                        <td>Lê Thị Mai</td>
-                        <td>
-                            <div class="actions">
-                                <button class="icon-btn" title="Xem"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10Z" stroke="#0f172a" stroke-width="1.3"/><circle cx="10" cy="10" r="2.5" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                                <button class="icon-btn" title="Sửa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7-7-2.5-2.5-7 7Z" stroke="#0f172a" stroke-width="1.3" stroke-linejoin="round"/><path d="m14.5 6-1.5-1.5" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/></svg></button>
-                                <button class="icon-btn" title="Xóa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8 6v8m4-8v8M7 6l1-2h4l1 2" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/><path d="M6 6h8v9a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6Z" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>H001490</td>
-                        <td>Trần Thị Hạnh</td>
-                        <td>099123456789</td>
-                        <td><span class="badge badge-thoat">Thoát nghèo</span></td>
-                        <td>82</td>
-                        <td>85</td>
-                        <td>Phường C</td>
-                        <td>20/10/2023</td>
-                        <td>Nguyễn Văn A</td>
-                        <td>
-                            <div class="actions">
-                                <button class="icon-btn" title="Xem"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10Z" stroke="#0f172a" stroke-width="1.3"/><circle cx="10" cy="10" r="2.5" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                                <button class="icon-btn" title="Sửa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7-7-2.5-2.5-7 7Z" stroke="#0f172a" stroke-width="1.3" stroke-linejoin="round"/><path d="m14.5 6-1.5-1.5" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/></svg></button>
-                                <button class="icon-btn" title="Xóa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8 6v8m4-8v8M7 6l1-2h4l1 2" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/><path d="M6 6h8v9a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6Z" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>H001512</td>
-                        <td>Lê Văn Nam</td>
-                        <td>022987654321</td>
-                        <td><span class="badge badge-nguyco">Nguy cơ tái nghèo</span></td>
-                        <td>65</td>
-                        <td>70</td>
-                        <td>Phường A</td>
-                        <td>02/11/2023</td>
-                        <td>Phạm Thu Trang</td>
-                        <td>
-                            <div class="actions">
-                                <button class="icon-btn" title="Xem"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10Z" stroke="#0f172a" stroke-width="1.3"/><circle cx="10" cy="10" r="2.5" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                                <button class="icon-btn" title="Sửa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7-7-2.5-2.5-7 7Z" stroke="#0f172a" stroke-width="1.3" stroke-linejoin="round"/><path d="m14.5 6-1.5-1.5" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/></svg></button>
-                                <button class="icon-btn" title="Xóa"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8 6v8m4-8v8M7 6l1-2h4l1 2" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/><path d="M6 6h8v9a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6Z" stroke="#0f172a" stroke-width="1.3"/></svg></button>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
+                    <tbody id="householdBody"></tbody>
                 </table>
                 <div class="pagination">
-                    <span>Hiển thị 1-4 / 120 hộ</span>
-                    <div class="page-controls">
-                        <button class="page-btn">«</button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <button class="page-btn">»</button>
-                    </div>
+                    <span id="paginationInfo">Hiển thị 0/0 hộ</span>
+                    <div class="page-controls" id="pageControls"></div>
                 </div>
             </section>
         </main>
@@ -404,6 +329,12 @@
         'Thái Nguyên', 'Thanh Hóa', 'Tuyên Quang', 'Vĩnh Long'
     ];
 
+    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const TOKEN_STORAGE_KEY = 'ipoor_access_token';
+    const PAGE_SIZE = 10;
+    const HOUSEHOLD_SELECTED_KEY = 'ipoor_household_selected_id';
+    const HOUSEHOLD_CACHE_KEY = 'ipoor_household_cache';
+
     const provinceInput = document.getElementById('province');
     const suggestionsBox = document.getElementById('provinceSuggestions');
     const communeInput = document.getElementById('commune');
@@ -413,9 +344,26 @@
     const searchInput = document.getElementById('search');
     const resetFiltersBtn = document.getElementById('resetFilters');
     const addHouseholdBtn = document.getElementById('addHousehold');
+    const householdBody = document.getElementById('householdBody');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const pageControls = document.getElementById('pageControls');
+    const STATUS_ENUM = {
+        'Nghèo': 'poor',
+        'Cận nghèo': 'near_poor',
+        'Thoát nghèo': 'escaped_poverty',
+        'Nguy cơ tái nghèo': 'at_risk',
+    };
+    const STATUS_BADGE_CLASS = {
+        poor: 'badge-ngheo',
+        near_poor: 'badge-can',
+        escaped_poverty: 'badge-thoat',
+        at_risk: 'badge-nguyco',
+    };
     let communesData = window.COMMUNES_DATA || {};
     const MAX_COMMUNE_RESULTS = 20;
     const statuses = ['Tất cả', 'Nghèo', 'Cận nghèo', 'Thoát nghèo', 'Nguy cơ tái nghèo'];
+    let currentPage = 1;
+    let totalItems = 0;
 
     async function ensureCommunes() {
         // Data đã được load qua file communes.js
@@ -755,6 +703,7 @@
         suggestionsBox.classList.remove('open');
         communeSuggestions.classList.remove('open');
         statusSuggestions.classList.remove('open');
+        loadHouseholds(1);
     });
 
     // Navigation
@@ -773,6 +722,190 @@
             window.location.href = target;
         });
     });
+
+    const filterButton = document.querySelector('.filter-actions .btn-primary');
+
+    const getToken = () => {
+        return localStorage.getItem(TOKEN_STORAGE_KEY) || sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    };
+
+    function ensureAuth() {
+        const token = getToken();
+        if (!token) {
+            window.location.href = '../Auth/Login.html';
+        }
+        return token;
+    }
+
+    function renderStatusBadge(status) {
+        if (!status) return '<span class="badge badge-can">Chưa rõ</span>';
+        const cls = STATUS_BADGE_CLASS[status] || 'badge-can';
+        const labelMap = {
+            poor: 'Nghèo',
+            near_poor: 'Cận nghèo',
+            escaped_poverty: 'Thoát nghèo',
+            at_risk: 'Nguy cơ tái nghèo',
+        };
+        return `<span class="badge ${cls}">${labelMap[status] || status}</span>`;
+    }
+
+    function renderRows(items) {
+        if (!items || !items.length) {
+            householdBody.innerHTML = '<tr><td colspan="10">Không có dữ liệu</td></tr>';
+            return;
+        }
+        householdBody.innerHTML = items
+            .map(
+                (item) => {
+                    const createdAt = item.last_surveyed_at ? new Date(item.last_surveyed_at).toLocaleDateString('vi-VN') : '-';
+                    const idCardValue = item.id_card || item.household_code || '-';
+                    const villageValue = item.village || item.commune || '';
+                    const officerValue = item.officer || '';
+                    return `<tr>
+                        <td>${item.household_code || '-'}</td>
+                        <td>${item.head_name || '-'}</td>
+                        <td>${idCardValue}</td>
+                        <td>${renderStatusBadge(item.poverty_status)}</td>
+                        <td>${item.score_b1 ?? '-'}</td>
+                        <td>${item.score_b2 ?? '-'}</td>
+                        <td>${villageValue}</td>
+                        <td>${createdAt}</td>
+                        <td>${officerValue}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="icon-btn view-btn" data-id="${item.id}" title="Xem" data-action="view"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10Z" stroke="#0f172a" stroke-width="1.3"/><circle cx="10" cy="10" r="2.5" stroke="#0f172a" stroke-width="1.3"/></svg></button>
+                                <button class="icon-btn edit-btn" data-id="${item.id}" title="Sửa" data-action="edit"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7-7-2.5-2.5-7 7Z" stroke="#0f172a" stroke-width="1.3" stroke-linejoin="round"/><path d="m14.5 6-1.5-1.5" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+                                <button class="icon-btn delete-btn" data-id="${item.id}" title="Xóa" data-action="delete"><svg class="icon" viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8 6v8m4-8v8M7 6l1-2h4l1 2" stroke="#0f172a" stroke-width="1.3" stroke-linecap="round"/><path d="M6 6h8v9a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6Z" stroke="#0f172a" stroke-width="1.3"/></svg></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            )
+            .join('');
+    }
+
+    function mapStatusToEnum(value) {
+        return STATUS_ENUM[value] || null;
+    }
+
+    function updatePagination() {
+        const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+        currentPage = Math.min(Math.max(1, currentPage), totalPages);
+        const start = totalItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+        const end = totalItems === 0 ? 0 : Math.min(currentPage * PAGE_SIZE, totalItems);
+        paginationInfo.textContent = `Hiển thị ${start}-${end} / ${totalItems} hộ`;
+        pageControls.innerHTML = '';
+
+        const buildButton = (label, page, isActive = false) => {
+            const btn = document.createElement('button');
+            btn.className = `page-btn${isActive ? ' active' : ''}`;
+            btn.type = 'button';
+            btn.textContent = label;
+            btn.addEventListener('click', () => loadHouseholds(page));
+            return btn;
+        };
+
+        const prevBtn = buildButton('«', Math.max(1, currentPage - 1));
+        prevBtn.disabled = currentPage === 1;
+        pageControls.appendChild(prevBtn);
+
+        for (let i = 1; i <= totalPages; i += 1) {
+            pageControls.appendChild(buildButton(String(i), i, i === currentPage));
+        }
+
+        const nextBtn = buildButton('»', Math.min(totalPages, currentPage + 1));
+        nextBtn.disabled = currentPage === totalPages;
+        pageControls.appendChild(nextBtn);
+    }
+
+    function renderPage(items, page) {
+        currentPage = page;
+        renderRows(items);
+        updatePagination();
+    }
+
+    async function loadHouseholds(page = 1) {
+        const token = ensureAuth();
+        householdBody.innerHTML = '<tr><td colspan="10">Đang tải dữ liệu...</td></tr>';
+        const query = new URLSearchParams();
+        query.set('limit', PAGE_SIZE);
+        query.set('skip', String((page - 1) * PAGE_SIZE));
+        if (provinceInput.value.trim()) query.set('province', provinceInput.value.trim());
+        if (communeInput.value.trim()) query.set('commune', communeInput.value.trim());
+        const mappedStatus = mapStatusToEnum(statusInput.value.trim());
+        if (mappedStatus) query.set('status_filter', mappedStatus);
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/households?${query.toString()}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+                sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                window.location.href = '../Auth/Login.html';
+                return;
+            }
+            if (!res.ok) {
+                throw new Error('Không tải được danh sách hộ');
+            }
+            const data = await res.json();
+            const items = Array.isArray(data.items) ? data.items : [];
+            totalItems = Number.isFinite(data.total) ? data.total : items.length;
+            const cache = {};
+            items.forEach((item) => {
+                if (item.id) {
+                    cache[item.id] = item;
+                }
+            });
+            sessionStorage.setItem(HOUSEHOLD_CACHE_KEY, JSON.stringify(cache));
+            renderPage(items, page);
+        } catch (error) {
+            householdBody.innerHTML = `<tr><td colspan="10" style="color:#dc2626;">${error.message}</td></tr>`;
+        }
+    }
+
+    async function deleteHousehold(id) {
+        const token = ensureAuth();
+        if (!confirm('Bạn chắc chắn muốn xóa hộ này?')) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/households/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error('Xóa không thành công');
+            await loadHouseholds();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    householdBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn || !btn.dataset.action) return;
+        const id = btn.dataset.id;
+        if (btn.dataset.action === 'view') {
+            sessionStorage.setItem(HOUSEHOLD_SELECTED_KEY, id);
+            window.location.href = `./HouseholdDetail.html?id=${id}`;
+        }
+        if (btn.dataset.action === 'edit') {
+            sessionStorage.setItem(HOUSEHOLD_SELECTED_KEY, id);
+            window.location.href = `./HouseholdEdit.html?id=${id}`;
+        }
+        if (btn.dataset.action === 'delete') {
+            deleteHousehold(id);
+        }
+    });
+
+    filterButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadHouseholds(1);
+    });
+
+    loadHouseholds(1);
 </script>
 </body>
 </html>
+
+
+
+

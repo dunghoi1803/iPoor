@@ -1,0 +1,63 @@
+{
+  "output": "FE/data/processed/group2_values.csv",
+  "section_headers": [
+    "khu vực",
+    "vùng",
+    "địa phương",
+    "dân tộc",
+    "chủ hộ",
+    "nguồn thu",
+    "nhóm thu nhập",
+    "giới tính",
+    "khu vực kinh tế",
+    "loại hình kinh tế",
+    "ngành nghề",
+    "nhóm tuổi"
+  ],
+  "sheets": [
+    {
+      "name": "2.1",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "income_1000_vnd"
+    },
+    {
+      "name": "2.1.M",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "income_1000_vnd"
+    },
+    {
+      "name": "2.2",
+      "layout": "fixed_year_metrics",
+      "fixed_year": 2024,
+      "metric_row": 3,
+      "data_start_row": 5,
+      "label_cols": [1],
+      "metric_aliases": {
+        "tnbq (1000 đồng)": "income_1000_vnd",
+        "tỷ lệ hộ nghèo (%)": "poverty_rate_percent"
+      }
+    },
+    {
+      "name": "2.3",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "income_1000_vnd"
+    },
+    {
+      "name": "2.3.M",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "income_1000_vnd"
+    }
+  ]
+}

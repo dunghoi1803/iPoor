@@ -209,7 +209,7 @@
             </p>
         </div>
 
-        <form action="#" method="POST" enctype="multipart/form-data">
+        <form id="signup-form" enctype="multipart/form-data">
             <div class="form-grid">
                 <!-- Thông tin cá nhân -->
                 <div class="form-group full-width">
@@ -272,7 +272,7 @@
                 <div class="form-group">
                     <label for="cccd">Số CCCD <span class="required">*</span></label>
                     <input type="text" id="cccd" name="cccd"
-                           placeholder="Nhập đủ 12 số CCCD" required>
+                           placeholder="Nhập đủ 12 số CCCD" maxlength="12" pattern="[0-9]{12}" inputmode="numeric" required>
                 </div>
 
                 <div class="form-group full-width">
@@ -303,14 +303,15 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn-primary">Gửi yêu cầu đăng ký</button>
-                <a href="login.html">
+                <a href="Login.html">
                     <button type="button" class="btn-secondary">Quay lại trang đăng nhập</button>
                 </a>
             </div>
+            <div id="signup-status" style="margin-top:12px;font-size:14px;color:#64748b;"></div>
         </form>
 
         <div class="card-footer">
-            <p>Đã có tài khoản? <a href="login.html">Đăng nhập</a></p>
+            <p>Đã có tài khoản? <a href="Login.html">Đăng nhập</a></p>
             <p>Bạn gặp vấn đề? <a href="#">Liên hệ quản trị hệ thống</a>.</p>
         </div>
     </div>
@@ -328,6 +329,149 @@
             fileNameSpan.textContent = 'Kéo thả hoặc chọn file ảnh mặt trước CCCD (.png)';
         }
     });
+
+    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const TOKEN_STORAGE_KEY = 'ipoor_access_token';
+    const signupForm = document.getElementById('signup-form');
+    const statusEl = document.getElementById('signup-status');
+    const MAX_CCCD_BYTES = 5 * 1024 * 1024;
+
+    const ROLE_BY_LEVEL = {
+        tinh: 'province_officer',
+        huyen: 'district_officer',
+        xa: 'commune_officer',
+        tw: 'admin',
+        khac: 'province_officer',
+    };
+    const DEFAULT_ROLE = 'province_officer';
+
+    function setStatus(message, isError = false) {
+        statusEl.textContent = message || '';
+        statusEl.style.color = isError ? '#DC2626' : '#64748b';
+    }
+
+    function pickRole(orgLevel) {
+        return ROLE_BY_LEVEL[orgLevel] || DEFAULT_ROLE;
+    }
+
+    function normalizeCccd(value) {
+        return (value || '').replace(/[^0-9]/g, '');
+    }
+
+    async function handleSignup(event) {
+        event.preventDefault();
+        setStatus('Đang gửi yêu cầu đăng ký...');
+
+        const fullName = document.getElementById('full-name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const orgLevel = document.getElementById('org-level').value;
+        const orgName = document.getElementById('org-name').value.trim();
+        const position = document.getElementById('position').value.trim();
+        const cccdInput = document.getElementById('cccd');
+        const cccdRaw = cccdInput.value.trim();
+        const cccd = normalizeCccd(cccdRaw);
+        const cccdFile = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+        if (!fullName) {
+            setStatus('Vui lòng nhập họ và tên.', true);
+            return;
+        }
+        if (!email) {
+            setStatus('Vui lòng nhập email công vụ.', true);
+            return;
+        }
+        if (!orgLevel) {
+            setStatus('Vui lòng chọn cấp đơn vị công tác.', true);
+            return;
+        }
+        if (!orgName) {
+            setStatus('Vui lòng nhập tên đơn vị cụ thể.', true);
+            return;
+        }
+        if (!cccd) {
+            setStatus('Vui lòng nhập số CCCD.', true);
+            return;
+        }
+        if (!/^\d{12}$/.test(cccd)) {
+            setStatus('Số CCCD phải đủ 12 chữ số.', true);
+            return;
+        }
+        if (cccdRaw !== cccd) {
+            cccdInput.value = cccd;
+        }
+        if (!password) {
+            setStatus('Vui lòng nhập mật khẩu.', true);
+            return;
+        }
+        if (!confirmPassword) {
+            setStatus('Vui lòng xác nhận mật khẩu.', true);
+            return;
+        }
+        if (password !== confirmPassword) {
+            setStatus('Mật khẩu xác nhận không khớp', true);
+            return;
+        }
+        if (!cccdFile) {
+            setStatus('Vui lòng chọn ảnh CCCD.', true);
+            return;
+        }
+        if (cccdFile.size > MAX_CCCD_BYTES) {
+            setStatus('Ảnh CCCD vượt quá 5MB.', true);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('full_name', fullName);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('role', pickRole(orgLevel));
+        formData.append('org_level', orgLevel);
+        formData.append('org_name', orgName);
+        if (position) {
+            formData.append('position', position);
+        }
+        formData.append('cccd', cccd);
+        formData.append('province', '');
+        formData.append('district', '');
+        formData.append('commune', '');
+        formData.append('is_active', 'true');
+        formData.append('cccd_image', cccdFile, cccdFile.name);
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.detail || 'Đăng ký không thành công');
+            }
+
+            setStatus('Đăng ký thành công. Vui lòng đăng nhập.', false);
+            // Optionally auto-login
+            const loginRes = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+            if (loginRes.ok) {
+                const loginData = await loginRes.json();
+                if (loginData.access_token) {
+                    localStorage.setItem(TOKEN_STORAGE_KEY, loginData.access_token);
+                }
+            }
+            setTimeout(() => {
+                window.location.href = 'Login.html';
+            }, 800);
+        } catch (error) {
+            setStatus(error.message, true);
+        }
+    }
+
+    signupForm.addEventListener('submit', handleSignup);
 </script>
 
 </body>

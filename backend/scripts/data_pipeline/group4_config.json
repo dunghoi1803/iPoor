@@ -1,0 +1,52 @@
+{
+  "output": "FE/data/processed/group4_values.csv",
+  "section_headers": [
+    "giới tính",
+    "khu vực",
+    "nhóm tuổi",
+    "chuyên môn kỹ thuật",
+    "vùng",
+    "địa phương",
+    "dân tộc"
+  ],
+  "sheets": [
+    {
+      "name": "4.1",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "trained_labor_rate_percent"
+    },
+    {
+      "name": "4.1.M",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "trained_labor_rate_percent"
+    },
+    {
+      "name": "4.2",
+      "layout": "year_series",
+      "year_row": 4,
+      "data_start_row": 5,
+      "label_cols": [1, 2],
+      "metric": "trained_working_age_rate_percent"
+    },
+    {
+      "name": "4.3",
+      "layout": "row_year_metrics",
+      "year_row": 4,
+      "metric_row": 4,
+      "year_col": 2,
+      "data_start_row": 5,
+      "label_cols": [1],
+      "metric_aliases": {
+        "tiểu học": "primary_school_rate",
+        "trung học cơ sở": "lower_secondary_rate",
+        "trung học phổ thông": "upper_secondary_rate"
+      }
+    }
+  ]
+}

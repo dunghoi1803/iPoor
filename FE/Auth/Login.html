@@ -130,7 +130,7 @@
             <h2 class="card-title">Đăng nhập hệ thống iPOOR</h2>
         </div>
 
-        <form action="../HomePage/HomePage.html" method="POST">
+        <form id="login-form">
             <div class="form-group">
                 <label for="login-username">Tên đăng nhập/Email</label>
                 <input type="text" id="login-username"
@@ -145,13 +145,14 @@
 
             <div class="form-options">
                 <label class="checkbox-label">
-                    <input type="checkbox">
+                    <input type="checkbox" id="remember-me">
                     <span>Ghi nhớ đăng nhập</span>
                 </label>
                 <a href="ForgotPassword.html">Quên mật khẩu?</a>
             </div>
 
-            <button type="submit" class="btn-primary">Đăng nhập</button>
+            <button type="submit" class="btn-primary" id="login-submit">Đăng nhập</button>
+            <div id="login-status" style="margin-top:12px;font-size:14px;color:#64748b;"></div>
         </form>
 
         <div class="card-footer">
@@ -163,5 +164,57 @@
     </div>
 </div>
 
+<script>
+    const API_BASE_URL = 'http://127.0.0.1:8000';
+    const TOKEN_STORAGE_KEY = 'ipoor_access_token';
+    const loginForm = document.getElementById('login-form');
+    const statusEl = document.getElementById('login-status');
+    const submitBtn = document.getElementById('login-submit');
+    const rememberMe = document.getElementById('remember-me');
+
+    function setStatus(message, isError = false) {
+        statusEl.textContent = message || '';
+        statusEl.style.color = isError ? '#DC2626' : '#64748b';
+    }
+
+    async function login(event) {
+        event.preventDefault();
+        setStatus('Đang đăng nhập...');
+        submitBtn.disabled = true;
+
+        const email = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.detail || 'Thông tin đăng nhập không hợp lệ');
+            }
+
+            const data = await res.json();
+            if (!data.access_token) {
+                throw new Error('Token không hợp lệ từ máy chủ');
+            }
+
+            const storage = rememberMe.checked ? localStorage : sessionStorage;
+            storage.setItem(TOKEN_STORAGE_KEY, data.access_token);
+            sessionStorage.setItem('ipoor_api_base', API_BASE_URL);
+            setStatus('Đăng nhập thành công, đang chuyển trang...');
+            window.location.href = '../HomePage/HomePage.html';
+        } catch (error) {
+            setStatus(error.message, true);
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    loginForm.addEventListener('submit', login);
+</script>
 </body>
 </html>

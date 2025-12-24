@@ -112,28 +112,32 @@
             <div class="brand-mark"><img src="../Image/icon.png" alt="iPOOR" class="brand-logo"></div>
             <div class="brand-name">iPOOR</div>
         </div>
-        <nav>
-            <a class="nav-item" href="./HomePage.html">
+                <nav>
+            <a class="nav-item" href="../LandingPage/index.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
-                <span>Bảng điều khiển</span>
+                <span>Trang giới thiệu</span>
+            </a>
+            <a class="nav-item" href="./HomePage.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/></svg></span>
+                <span>Dashboard</span>
             </a>
             <a class="nav-item active" href="./HouseholdList.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
                 <span>Quản lý hộ nghèo</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./DataCollection.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
                 <span>Thu thập & cập nhật dữ liệu</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./PolicyList.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
                 <span>Chính sách & báo cáo</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./GISMap.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
                 <span>Bản đồ nghèo (GIS)</span>
             </a>
-            <a class="nav-item" href="#">
+            <a class="nav-item" href="./ActivityLogs.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                 <span>Nhật ký hoạt động</span>
             </a>
@@ -227,14 +231,9 @@
                 <div class="card-title">Tài liệu đính kèm</div>
                 <div class="attachments">
                     <div class="attach-card">
-                        <div class="label">Ảnh CCCD</div>
-                        <input class="form-control" type="file" accept="image/*">
-                        <div class="error" data-error="cccdFile"></div>
-                    </div>
-                    <div class="attach-card">
-                        <div class="label">File scan</div>
-                        <input class="form-control" type="file" accept=".pdf,.jpg,.png">
-                        <div class="error" data-error="scanFile"></div>
+                        <div class="label">File PDF tổng hợp</div>
+                        <input class="form-control" id="attachmentFile" type="file" accept="application/pdf">
+                        <div class="error" data-error="attachmentFile"></div>
                     </div>
                 </div>
             </section>
@@ -243,6 +242,7 @@
                 <button class="btn-secondary" id="cancelEdit">Hủy bỏ</button>
                 <button class="btn-primary" id="saveForm">Lưu</button>
             </div>
+            <div id="formStatus" style="margin-top:8px;font-size:14px;color:#64748b;"></div>
         </main>
     </div>
 </div>
@@ -254,6 +254,24 @@
     const dropdownMenu = document.getElementById('dropdownMenu');
     const cancelBtn = document.getElementById('cancelEdit');
     const saveBtn = document.getElementById('saveForm');
+    const formStatus = document.getElementById('formStatus');
+    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const TOKEN_STORAGE_KEY = 'ipoor_access_token';
+    const LOGIN_URL = '../Auth/Login.html';
+    const LIST_URL = './HouseholdList.html';
+    const UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload`;
+    const FILE_LIMIT_BYTES = 20 * 1024 * 1024;
+    const ALLOWED_MIME_TYPES = new Set(['application/pdf']);
+    const STATUS_ENUM = {
+        'Nghèo': 'poor',
+        'Cận nghèo': 'near_poor',
+        'Thoát nghèo': 'escaped_poverty',
+        'Nguy cơ tái nghèo': 'at_risk',
+    };
+    const attachmentInput = document.getElementById('attachmentFile');
+    const officerInput = document.getElementById('officer');
+    const reviewDateInput = document.getElementById('reviewDate');
+    let selectedAttachment = null;
 
     function closeMenu() { dropdownMenu.classList.remove('open'); }
     dropdownBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('open'); });
@@ -298,14 +316,175 @@
         return ok;
     }
 
-    cancelBtn.addEventListener('click', (e) => { e.preventDefault(); window.location.href = './HouseholdList.html'; });
-    saveBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (validateForm()) {
-            alert('Lưu thành công (demo).');
-            window.location.href = './HouseholdList.html';
+    function setStatus(message, isError = false) {
+        if (!formStatus) return;
+        formStatus.textContent = message || '';
+        formStatus.style.color = isError ? '#dc2626' : '#64748b';
+    }
+
+    const getToken = () => {
+        return localStorage.getItem(TOKEN_STORAGE_KEY) || sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    };
+
+    function mapStatus(value) {
+        return STATUS_ENUM[value] || null;
+    }
+
+    function getLocalDateInputValue() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    async function preloadOfficer() {
+        const token = getToken();
+        if (!token) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/auth/me`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (officerInput && data.full_name) {
+                officerInput.value = data.full_name;
+            }
+        } catch (_) {
+            // ignore
         }
-    });
+    }
+
+    function normalizeAttachmentUrl(value) {
+        if (!value) return '';
+        if (value.startsWith('http://') || value.startsWith('https://')) return value;
+        if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
+        return value;
+    }
+
+    function buildPayload() {
+        const idCardValue = document.getElementById('idCard').value.trim();
+        const province = document.getElementById('provinceField').value.trim();
+        const commune = document.getElementById('communeField').value.trim();
+        const areaValue = document.getElementById('areaField').value.trim();
+        const district = areaValue || 'Chưa rõ';
+        const status = mapStatus(document.getElementById('statusField').value.trim());
+        return {
+            head_name: document.getElementById('fullName').value.trim(),
+            birth_date: document.getElementById('dob').value || null,
+            gender: document.getElementById('gender').value || null,
+            id_card: idCardValue || null,
+            address_line: document.getElementById('village').value.trim() || document.getElementById('remark').value.trim(),
+            province,
+            district,
+            commune,
+            area: areaValue || null,
+            village: document.getElementById('village').value.trim() || null,
+            poverty_status: status,
+            ethnicity: document.getElementById('ethnic').value.trim() || null,
+            members_count: Number(document.getElementById('members').value) || null,
+            income_per_capita: null,
+            score_b1: Number(document.getElementById('scoreB1').value) || null,
+            score_b2: Number(document.getElementById('scoreB2').value) || null,
+            note: document.getElementById('note').value.trim() || null,
+            officer: document.getElementById('officer').value.trim() || null,
+            remark: document.getElementById('remark').value.trim() || null,
+            last_surveyed_at: document.getElementById('reviewDate').value || null,
+        };
+    }
+
+    async function submitForm() {
+        const token = getToken();
+        if (!token) {
+            window.location.href = LOGIN_URL;
+            return;
+        }
+        if (!validateForm()) return;
+        setStatus('Đang lưu...');
+        try {
+            const payload = buildPayload();
+            const res = await fetch(`${API_BASE_URL}/households`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+                sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                window.location.href = LOGIN_URL;
+                return;
+            }
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.detail || 'Lưu hộ không thành công');
+            }
+            const created = await res.json();
+            if (selectedAttachment) {
+                if (!ALLOWED_MIME_TYPES.has(selectedAttachment.type)) {
+                    setStatus('Chỉ chấp nhận file PDF', true);
+                    return;
+                }
+                if (selectedAttachment.size > FILE_LIMIT_BYTES) {
+                    setStatus('File PDF vượt quá 20MB', true);
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('file', selectedAttachment);
+                formData.append('entity_type', 'household');
+                formData.append('household_code', created.household_code || '');
+                formData.append('poverty_status', created.poverty_status || '');
+                formData.append('head_name', created.head_name || '');
+                formData.append('id_card', created.id_card || '');
+                const uploadRes = await fetch(UPLOAD_ENDPOINT, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData,
+                });
+                if (uploadRes.status === 401) {
+                    localStorage.removeItem(TOKEN_STORAGE_KEY);
+                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
+                if (!uploadRes.ok) {
+                    throw new Error('Upload PDF không thành công');
+                }
+                const uploadData = await uploadRes.json();
+                const attachmentUrl = normalizeAttachmentUrl(uploadData.url || '');
+                const updateRes = await fetch(`${API_BASE_URL}/households/${created.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ attachment_url: attachmentUrl }),
+                });
+                if (!updateRes.ok) {
+                    throw new Error('Cập nhật file PDF không thành công');
+                }
+            }
+            setStatus('Lưu thành công, chuyển về danh sách...');
+            setTimeout(() => window.location.href = LIST_URL, 700);
+        } catch (error) {
+            setStatus(error.message, true);
+        }
+    }
+
+    cancelBtn.addEventListener('click', (e) => { e.preventDefault(); window.location.href = LIST_URL; });
+    saveBtn.addEventListener('click', (e) => { e.preventDefault(); submitForm(); });
+    if (attachmentInput) {
+        attachmentInput.addEventListener('change', (e) => {
+            selectedAttachment = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+        });
+    }
+
+    if (reviewDateInput) {
+        reviewDateInput.value = getLocalDateInputValue();
+    }
+    preloadOfficer();
 
     // Populate ethnicities
     const ethnicSelect = document.getElementById('ethnic');
@@ -513,3 +692,7 @@
 </script>
 </body>
 </html>
+
+
+
+

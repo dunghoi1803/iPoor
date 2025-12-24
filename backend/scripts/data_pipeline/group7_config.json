@@ -1,0 +1,58 @@
+{
+  "output": "FE/data/processed/group7_values.csv",
+  "section_headers": [
+    "khu vực",
+    "vùng",
+    "địa phương"
+  ],
+  "sheets": [
+    {
+      "name": "7.1",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "7.1.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1, 2],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "7.2",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "7.2.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "7.3",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    },
+    {
+      "name": "7.3.M",
+      "layout": "year_series",
+      "year_row": 3,
+      "data_start_row": 4,
+      "label_cols": [1],
+      "metric": "rate_percent"
+    }
+  ]
+}

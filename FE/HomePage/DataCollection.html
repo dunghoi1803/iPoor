@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thu thập & cập nhật dữ liệu hộ - iPOOR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --bg-light: #F8FAFC;
+            --bg-soft: #EEF2FF;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border-color: #cbd5e1;
+            --white: #ffffff;
+            --secondary-blue: #3b82f6;
+            --secondary-cyan: #06b6d4;
+            --success-green: #22c55e;
+            --warning-amber: #f59e0b;
+            --danger-red: #ef4444;
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-soft: 0 10px 30px -12px rgba(15, 23, 42, 0.22);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-soft) 0%, var(--bg-light) 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+        .sidebar { background: var(--primary-navy); color: var(--white); display: flex; flex-direction: column; padding: 20px 18px; }
+        .brand { display: flex; align-items: center; gap: 12px; padding: 10px 12px 20px; }
+        .brand-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--white); display: grid; place-items: center; }
+        .brand-logo { width: 30px; height: 30px; object-fit: contain; }
+        .brand-name { font-size: 18px; font-weight: 700; letter-spacing: 0.4px; }
+        nav { margin-top: 8px; display: grid; gap: 6px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: var(--white); text-decoration: none; transition: background 0.2s, transform 0.1s; }
+        .nav-item:hover { background: var(--primary-hover); transform: translateX(2px); }
+        .nav-item.active { background: var(--primary-hover); border-left: 3px solid var(--secondary-blue); }
+        .nav-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
+        main { background: linear-gradient(135deg, #f8fbff 0%, #f4f5fb 100%); padding: 24px 28px; }
+
+        .page {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-xl) var(--space-lg) var(--space-lg);
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .title-block h1 {
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--primary-navy);
+            margin-bottom: var(--space-sm);
+        }
+
+        .title-block .eyebrow {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--primary-navy);
+            font-weight: 600;
+            border-radius: 999px;
+            font-size: 13px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .title-block p { color: var(--text-gray); max-width: 720px; }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--secondary-blue);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .card-title { font-size: 18px; font-weight: 700; color: var(--primary-navy); }
+        .card-desc { color: var(--text-gray); margin-bottom: var(--space-md); }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 18px;
+            background: linear-gradient(90deg, var(--secondary-blue), var(--secondary-cyan));
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+            box-shadow: 0 12px 20px -10px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 18px 30px -14px rgba(59, 130, 246, 0.55); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .upload-card { position: relative; overflow: hidden; }
+        .upload-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(6, 182, 212, 0.1), transparent 35%);
+            pointer-events: none;
+        }
+
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 32px;
+            background: #f8fafc;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.2s ease, transform 0.1s ease;
+        }
+
+        .dropzone:hover { border-color: var(--secondary-blue); background: #f1f5f9; }
+        .dropzone.dragging { border-color: var(--secondary-blue); background: #e0f2fe; transform: translateY(-2px); }
+        .dropzone.has-file { border-color: var(--success-green); }
+
+        .upload-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--secondary-blue);
+            display: grid;
+            place-items: center;
+            margin: 0 auto var(--space-sm);
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .dropzone h4 { font-size: 16px; font-weight: 700; color: var(--primary-navy); margin-bottom: 6px; }
+        .dropzone p { color: var(--text-gray); font-size: 14px; }
+
+        .selected-file {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: var(--space-md);
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            background: #f8fafc;
+            gap: var(--space-sm);
+        }
+
+        .selected-file.visible { display: flex; }
+        .file-name { display: flex; align-items: center; gap: 10px; color: var(--text-dark); font-weight: 600; }
+        .file-badge { padding: 4px 10px; border-radius: 999px; background: rgba(34, 197, 94, 0.14); color: var(--success-green); font-weight: 700; font-size: 12px; }
+
+        .pdf-picker {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+            flex-wrap: wrap;
+        }
+
+        .pdf-info {
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        .actions-row { margin-top: var(--space-md); display: flex; gap: var(--space-sm); justify-content: flex-end; }
+
+        .secondary-btn {
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: var(--white);
+            color: var(--text-dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .secondary-btn:hover { background: #f8fafc; border-color: var(--border-color); }
+        .action-btn {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: var(--white);
+            color: var(--text-dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .action-btn.primary {
+            background: linear-gradient(90deg, var(--secondary-blue), var(--secondary-cyan));
+            color: var(--white);
+            border: none;
+        }
+
+        .result-panel {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            padding: var(--space-lg);
+        }
+
+        .result-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-md); }
+        .result-title { font-size: 17px; font-weight: 700; color: var(--primary-navy); }
+        .result-caption { color: var(--text-gray); font-size: 14px; }
+
+        .metrics { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-md); }
+        .metric-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .metric-chip .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .metric-chip.success { border-color: rgba(34, 197, 94, 0.4); background: rgba(34, 197, 94, 0.08); }
+        .metric-chip.success .dot { background: var(--success-green); }
+        .metric-chip.danger { border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); }
+        .metric-chip.danger .dot { background: var(--danger-red); }
+
+        .alert {
+            display: none;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.12);
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+        }
+
+        .table-wrapper { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #0f172a; color: var(--white); }
+        th, td { text-align: left; padding: 12px 14px; font-size: 14px; }
+        tbody tr:nth-child(odd) { background: #ffffff; }
+        tbody tr:nth-child(even) { background: #f8fafc; }
+        tbody tr:hover { background: #e2e8f0; }
+        .row-valid { background: #ecfdf3; }
+        .row-invalid { background: #fef2f2; }
+
+        .empty-row { text-align: center; color: var(--text-gray); font-style: italic; }
+
+        @media (max-width: 1024px) {
+            .app-shell { grid-template-columns: 1fr; }
+            .sidebar { flex-direction: row; overflow-x: auto; height: 72px; }
+            nav { grid-auto-flow: column; grid-auto-columns: max-content; align-items: center; }
+            main { padding: 20px; }
+        }
+        @media (max-width: 768px) {
+            .page { padding: var(--space-lg); }
+            .page-header { flex-direction: column; }
+            .result-header { flex-direction: column; align-items: flex-start; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .actions-row { justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark"><img class="brand-logo" src="../Image/icon.png" alt="Logo"></div>
+            <div class="brand-name">iPOOR</div>
+        </div>
+                <nav>
+            <a class="nav-item" href="../LandingPage/index.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
+                <span>Trang giới thiệu</span>
+            </a>
+            <a class="nav-item" href="./HomePage.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/></svg></span>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item" href="./HouseholdList.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
+                <span>Quản lý hộ nghèo</span>
+            </a>
+            <a class="nav-item active" href="./DataCollection.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
+                <span>Thu thập & cập nhật dữ liệu</span>
+            </a>
+            <a class="nav-item" href="./PolicyList.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+                <span>Chính sách & báo cáo</span>
+            </a>
+            <a class="nav-item" href="./GISMap.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
+                <span>Bản đồ nghèo (GIS)</span>
+            </a>
+            <a class="nav-item" href="./ActivityLogs.html">
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span>Nhật ký hoạt động</span>
+            </a>
+        </nav>
+    </aside>
+    <main>
+
+<div class="page">
+    <header class="page-header">
+        <div class="title-block">
+            <div class="eyebrow">Quản lý dữ liệu</div>
+            <h1>Thu thập &amp; cập nhật dữ liệu hộ</h1>
+            <p>Chuẩn hóa quy trình thu thập và cập nhật dữ liệu hộ dân qua file Excel. Tải template chuẩn, nhập dữ liệu ngoại tuyến rồi tải lên an toàn.</p>
+        </div>
+    </header>
+
+    <section class="cards-grid">
+        <article class="card">
+            <div class="card-header">
+                <div class="card-icon">XL</div>
+                <div>
+                    <div class="card-title">Tải file Excel mẫu</div>
+                    <div class="card-desc">Tải về file mẫu theo đúng cấu trúc dữ liệu hiện tại để nhập thông tin hộ ở ngoại tuyến.</div>
+                </div>
+            </div>
+            <a class="btn-primary" href="../data/FileExcelDataCollection.xlsx" download="FileExcelDataCollection.xlsx" aria-label="Tải file mẫu Excel">Tải file mẫu (Excel)</a>
+        </article>
+
+        <article class="card upload-card">
+            <div class="card-header">
+                <div class="card-icon">UP</div>
+                <div>
+                    <div class="card-title">Upload dữ liệu từ Excel</div>
+                    <div class="card-desc">Chọn file Excel đã điền đầy đủ thông tin để hệ thống tự động thêm vào cơ sở dữ liệu.</div>
+                </div>
+            </div>
+
+            <input id="data-file" type="file" accept=".xlsx,.csv" hidden>
+            <input id="pdf-folder" type="file" accept=".pdf" webkitdirectory multiple hidden>
+            <div id="upload-dropzone" class="dropzone" role="button" tabindex="0">
+                <div class="upload-icon">⭱</div>
+                <h4>Kéo thả file vào đây hoặc bấm để chọn</h4>
+                <p>Định dạng hỗ trợ: .xlsx, .csv — dung lượng &lt; 50MB</p>
+            </div>
+
+            <div class="selected-file" id="selected-file">
+                <div class="file-name">
+                    <span class="file-badge">Đã chọn</span>
+                    <span id="selected-file-name">File.xlsx</span>
+                </div>
+                <button type="button" class="secondary-btn" id="remove-file">Đổi file</button>
+            </div>
+
+            <div class="pdf-picker">
+                <button type="button" class="secondary-btn" id="choose-pdf-folder">Chọn thư mục PDF</button>
+                <span class="pdf-info" id="pdf-info">Chưa chọn thư mục PDF</span>
+            </div>
+
+            <div class="actions-row">
+                <button type="button" class="secondary-btn" id="reset-state">Làm mới</button>
+                <button type="button" class="btn-primary" id="upload-btn" disabled>Tải lên</button>
+            </div>
+        </article>
+    </section>
+
+    <section class="result-panel">
+        <div class="result-header">
+            <div>
+                <div class="result-title">Kết quả xử lý</div>
+                <div class="result-caption">Tổng hợp số bản ghi hợp lệ và danh sách lỗi (nếu có) từ file đã tải lên.</div>
+            </div>
+        </div>
+
+        <div class="metrics">
+            <div class="metric-chip success">
+                <span class="dot"></span>
+                <span>Số bản ghi hợp lệ: <strong id="valid-count">0</strong></span>
+            </div>
+            <div class="metric-chip danger">
+                <span class="dot"></span>
+                <span>Số lỗi: <strong id="error-count">0</strong></span>
+            </div>
+        </div>
+
+        <div class="alert" id="error-alert">Có lỗi trong file tải lên. Vui lòng kiểm tra danh sách chi tiết bên dưới.</div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Dòng</th>
+                    <th>Cột lỗi</th>
+                    <th>Mô tả lỗi</th>
+                </tr>
+                </thead>
+                <tbody id="error-rows">
+                <tr class="empty-row">
+                    <td colspan="3">Chưa có dữ liệu tải lên</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="result-panel" style="margin-top: 24px;">
+        <div class="result-header">
+            <div>
+                <div class="result-title">Danh sách hộ trong file</div>
+                <div class="result-caption">Tổng hợp các hộ trong file vừa tải lên, đánh dấu hợp lệ hoặc không hợp lệ.</div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Dòng</th>
+                    <th>Họ và tên</th>
+                    <th>CCCD</th>
+                    <th>Kết luận rà soát</th>
+                    <th>Trạng thái</th>
+                    <th>Lỗi</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="upload-rows">
+                <tr class="empty-row">
+                    <td colspan="7">Chưa có dữ liệu tải lên</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script>
+    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const TOKEN_STORAGE_KEY = 'ipoor_access_token';
+    const LOGIN_URL = '../Auth/Login.html';
+    const UPLOAD_ENDPOINT = `${API_BASE_URL}/data-collections/upload`;
+    const COMMIT_ENDPOINT = `${API_BASE_URL}/data-collections/commit`;
+    const FILE_LIMIT_BYTES = 50 * 1024 * 1024;
+    const ALLOWED_EXTENSIONS = ['.xlsx', '.csv'];
+
+    const fileInput = document.getElementById('data-file');
+    const pdfInput = document.getElementById('pdf-folder');
+    const dropzone = document.getElementById('upload-dropzone');
+    const selectedFileRow = document.getElementById('selected-file');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const choosePdfBtn = document.getElementById('choose-pdf-folder');
+    const pdfInfo = document.getElementById('pdf-info');
+    const uploadBtn = document.getElementById('upload-btn');
+    const resetBtn = document.getElementById('reset-state');
+    const removeBtn = document.getElementById('remove-file');
+    const errorAlert = document.getElementById('error-alert');
+    const validCount = document.getElementById('valid-count');
+    const errorCount = document.getElementById('error-count');
+    const errorRows = document.getElementById('error-rows');
+    const uploadRows = document.getElementById('upload-rows');
+
+    const emptyResult = { validRecords: 0, errorRecords: 0, errors: [], rows: [] };
+    const STATUS_LABELS = {
+        valid: 'Hợp lệ',
+        invalid: 'Không hợp lệ',
+    };
+    const COMMIT_STATUS_LABELS = {
+        done: 'Đã thêm',
+        error: 'Lỗi',
+    };
+
+    function normalizeFilename(value) {
+        if (!value) return '';
+        return value.normalize('NFC').trim().toLowerCase();
+    }
+
+    function buildPdfLookup() {
+        const lookup = new Map();
+        if (!pdfInput.files) return lookup;
+        Array.from(pdfInput.files).forEach(file => {
+            lookup.set(normalizeFilename(file.name), file);
+        });
+        return lookup;
+    }
+
+    function appendIfValue(formData, key, value) {
+        if (value === undefined || value === null || value === '') return;
+        formData.append(key, value);
+    }
+
+    function renderResult(result) {
+        validCount.textContent = result.validRecords;
+        errorCount.textContent = result.errorRecords;
+
+        const hasError = result.errorRecords > 0 && result.errors.length > 0;
+        errorAlert.style.display = hasError ? 'block' : 'none';
+
+        errorRows.innerHTML = '';
+        if (!result.errors.length) {
+            const row = document.createElement('tr');
+            row.className = 'empty-row';
+            const cell = document.createElement('td');
+            cell.colSpan = 3;
+            cell.textContent = 'Không có lỗi nào được phát hiện';
+            row.appendChild(cell);
+            errorRows.appendChild(row);
+        } else {
+            result.errors.forEach(item => {
+                const row = document.createElement('tr');
+                const cells = [item.row, item.column, item.message];
+                cells.forEach(value => {
+                    const cell = document.createElement('td');
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+                errorRows.appendChild(row);
+            });
+        }
+
+        uploadRows.innerHTML = '';
+        if (!result.rows || result.rows.length === 0) {
+            const row = document.createElement('tr');
+            row.className = 'empty-row';
+            const cell = document.createElement('td');
+            cell.colSpan = 7;
+            cell.textContent = 'Chưa có dữ liệu tải lên';
+            row.appendChild(cell);
+            uploadRows.appendChild(row);
+            return;
+        }
+
+        result.rows.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = item.valid ? 'row-valid' : 'row-invalid';
+            const errors = (item.errors || []).map(err => `${err.column}: ${err.message}`).join('; ');
+            const statusText = item.commitStatus
+                ? COMMIT_STATUS_LABELS[item.commitStatus] || item.commitStatus
+                : item.valid ? STATUS_LABELS.valid : STATUS_LABELS.invalid;
+            const cells = [
+                item.row,
+                item.name || '—',
+                item.id_card || '—',
+                item.poverty_status || '—',
+                statusText,
+                item.commitMessage || errors || '—',
+            ];
+            cells.forEach(value => {
+                const cell = document.createElement('td');
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+
+            const actionCell = document.createElement('td');
+            if (item.valid && !item.commitStatus) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'action-btn primary';
+                button.textContent = 'Thêm';
+                button.addEventListener('click', async () => {
+                    const token = getToken();
+                    if (!token) {
+                        window.location.href = LOGIN_URL;
+                        return;
+                    }
+                    button.disabled = true;
+                    button.textContent = 'Đang thêm...';
+                    try {
+                        const formData = new FormData();
+                        formData.append('name', item.name || '');
+                        formData.append('id_num', item.id_card || '');
+                        formData.append('family_mem', item.family_mem || 0);
+                        formData.append('b1_score', item.b1_score || 0);
+                        formData.append('b2_score', item.b2_score || 0);
+                        formData.append('classified_after_check', item.poverty_status || '');
+                        formData.append('province', item.province || '');
+                        formData.append('district', item.district || '');
+                        formData.append('commune', item.commune || '');
+                        formData.append('village', item.village || '');
+                        formData.append('date_check', item.date_check || '');
+                        formData.append('official_check', item.official_check || '');
+
+                        appendIfValue(formData, 'dob', item.birth_date);
+                        appendIfValue(formData, 'gender', item.gender);
+                        appendIfValue(formData, 'ethnic', item.ethnic);
+                        appendIfValue(formData, 'address_line', item.address_line);
+                        appendIfValue(formData, 'classified_before_check', item.classified_before_check);
+                        appendIfValue(formData, 'income_per_capita', item.income_per_capita);
+                        appendIfValue(formData, 'area', item.area);
+                        appendIfValue(formData, 'description', item.description);
+                        appendIfValue(formData, 'note', item.note);
+                        appendIfValue(formData, 'pdf_url', item.pdf_url);
+
+                        if (item.pdf_url) {
+                            const lookup = buildPdfLookup();
+                            const key = normalizeFilename(item.pdf_url.split('/').pop());
+                            const pdfFile = lookup.get(key);
+                            if (!pdfFile) {
+                                throw new Error('Không tìm thấy file PDF tương ứng');
+                            }
+                            formData.append('pdf_file', pdfFile);
+                        }
+
+                        const res = await fetch(COMMIT_ENDPOINT, {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${token}` },
+                            body: formData,
+                        });
+                        if (res.status === 401) {
+                            localStorage.removeItem(TOKEN_STORAGE_KEY);
+                            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                            window.location.href = LOGIN_URL;
+                            return;
+                        }
+                        if (!res.ok) {
+                            const data = await res.json().catch(() => ({}));
+                            throw new Error(data.detail || 'Không thể thêm hộ');
+                        }
+                        item.commitStatus = 'done';
+                        item.commitMessage = 'Đã thêm vào danh sách hộ';
+                        renderResult(result);
+                    } catch (error) {
+                        item.commitStatus = 'error';
+                        item.commitMessage = error.message || 'Lỗi khi thêm hộ';
+                        renderResult(result);
+                    }
+                });
+                actionCell.appendChild(button);
+            } else {
+                const status = document.createElement('span');
+                status.textContent = item.commitStatus ? (COMMIT_STATUS_LABELS[item.commitStatus] || item.commitStatus) : '—';
+                actionCell.appendChild(status);
+            }
+            row.appendChild(actionCell);
+            uploadRows.appendChild(row);
+        });
+    }
+
+    let selectedUploadFile = null;
+
+    function setFile(file) {
+        if (!file) return;
+        selectedUploadFile = file;
+        selectedFileRow.classList.add('visible');
+        selectedFileName.textContent = file.name;
+        uploadBtn.disabled = false;
+        dropzone.classList.add('has-file');
+    }
+
+    function clearFile() {
+        fileInput.value = '';
+        selectedUploadFile = null;
+        selectedFileRow.classList.remove('visible');
+        uploadBtn.disabled = true;
+        dropzone.classList.remove('has-file');
+    }
+
+    function clearPdfFolder() {
+        pdfInput.value = '';
+        pdfInfo.textContent = 'Chưa chọn thư mục PDF';
+    }
+
+    function resetAll() {
+        clearFile();
+        clearPdfFolder();
+        renderResult(emptyResult);
+    }
+
+    function hasAllowedExtension(fileName) {
+        const lower = fileName.toLowerCase();
+        return ALLOWED_EXTENSIONS.some(ext => lower.endsWith(ext));
+    }
+
+    function handleFiles(files) {
+        if (files && files.length > 0) {
+            const [file] = files;
+            if (!hasAllowedExtension(file.name)) {
+                alert('Chỉ chấp nhận file .xlsx hoặc .csv');
+                return;
+            }
+            if (file.size > FILE_LIMIT_BYTES) {
+                alert('File vượt quá 50MB');
+                return;
+            }
+            setFile(file);
+        }
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', event => {
+        event.preventDefault();
+        dropzone.classList.add('dragging');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragging'));
+    dropzone.addEventListener('drop', event => {
+        event.preventDefault();
+        dropzone.classList.remove('dragging');
+        handleFiles(event.dataTransfer.files);
+    });
+    dropzone.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            fileInput.click();
+        }
+    });
+
+    fileInput.addEventListener('change', event => handleFiles(event.target.files));
+    choosePdfBtn.addEventListener('click', () => pdfInput.click());
+    pdfInput.addEventListener('change', () => {
+        const count = pdfInput.files ? pdfInput.files.length : 0;
+        pdfInfo.textContent = count > 0
+            ? `Đã chọn ${count} file PDF`
+            : 'Chưa chọn thư mục PDF';
+    });
+
+    function getToken() {
+        return localStorage.getItem(TOKEN_STORAGE_KEY) || sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+        const token = getToken();
+        if (!token) {
+            window.location.href = LOGIN_URL;
+            return;
+        }
+        const file = selectedUploadFile || (fileInput.files && fileInput.files[0]);
+        if (!file) return;
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Đang xử lý...';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (pdfInput.files && pdfInput.files.length > 0) {
+                Array.from(pdfInput.files).forEach(pdfFile => {
+                    formData.append('pdf_files', pdfFile);
+                });
+            }
+            const res = await fetch(UPLOAD_ENDPOINT, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+                sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                window.location.href = LOGIN_URL;
+                return;
+            }
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.detail || 'Không tải được dữ liệu');
+            }
+            const result = await res.json();
+            renderResult(result);
+        } catch (error) {
+            renderResult(emptyResult);
+            errorAlert.style.display = 'block';
+            errorAlert.textContent = error.message || 'Lỗi khi tải file';
+        } finally {
+            uploadBtn.textContent = 'Tải lên';
+            uploadBtn.disabled = false;
+        }
+    });
+
+    resetBtn.addEventListener('click', resetAll);
+    removeBtn.addEventListener('click', clearFile);
+
+    renderResult(emptyResult);
+</script>
+    </main>
+</div>
+</body>
+</html>
+
+
+
+
