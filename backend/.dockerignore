@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.*
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+.mypy_cache
+uploads/
+seed/
+scripts/
+*.md
+docker-compose.yml
+Dockerfile
+.dockerignore

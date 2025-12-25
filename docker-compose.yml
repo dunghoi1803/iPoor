@@ -27,6 +27,7 @@ services:
 
   api:
     build: ./backend
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: ipoor_api
     restart: unless-stopped
     env_file:
@@ -43,6 +44,7 @@ services:
 
   fe:
     build: ./FE
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: ipoor_fe
     restart: unless-stopped
     ports:

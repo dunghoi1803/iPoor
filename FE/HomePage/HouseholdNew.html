@@ -335,7 +335,7 @@
     const cancelBtn = document.getElementById('cancelEdit');
     const saveBtn = document.getElementById('saveForm');
     const formStatus = document.getElementById('formStatus');
-    const API_BASE_URL = sessionStorage.getItem('ipoor_api_base') || 'http://127.0.0.1:8000';
+    const API_BASE_URL = '/api';
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/auth/me`;
     const LOGIN_URL = '../Auth/Login.html';
