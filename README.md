@@ -55,12 +55,25 @@ API reads data from:
 - `FE/data/processed/gis_indicator_values.csv`
 - `FE/data/processed/region_map.json`
 
-The API container mounts `FE/data` read-only via `docker-compose.yml`.
-If you update the CSV/JSON, restart API:
+The GIS data is embedded into the backend Docker image during build. If you update the CSV/JSON files, rebuild the API image:
 
 ```bash
-docker compose restart ipoor_api
+docker compose up -d --build api
 ```
+
+## Standalone Docker builds (without docker-compose)
+
+The backend Dockerfile uses the **repo root** as its build context to access `FE/data`. When building standalone images:
+
+```bash
+# Backend API - must run from repo root
+docker build -f backend/Dockerfile -t ipoor-api .
+
+# Frontend - can run from FE directory
+cd FE && docker build -t ipoor-fe .
+```
+
+Do NOT build the backend from inside the `backend/` directory, as it needs access to `FE/data` for GIS endpoints.
 
 ## Public demo via Cloudflare Tunnel (no domain)
 

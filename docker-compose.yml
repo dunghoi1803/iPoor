@@ -26,14 +26,14 @@ services:
       retries: 10
 
   api:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: ipoor_api
     restart: unless-stopped
     env_file:
       - ./backend/.env
-    volumes:
-      - ./FE/data:/app/FE/data:ro
     ports:
       - "8000:8000"
     depends_on:

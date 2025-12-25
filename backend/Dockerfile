@@ -3,7 +3,7 @@ FROM python:3.11-slim AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential default-libmysqlclient-dev
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --target=/app/deps -r requirements.txt
 
 FROM python:3.11-slim
@@ -20,9 +20,12 @@ RUN apt-get update && \
     useradd --create-home --shell /bin/bash appuser
 
 COPY --from=builder /app/deps /app/deps
-COPY app ./app
-COPY alembic ./alembic
-COPY alembic.ini ./alembic.ini
+COPY backend/app ./app
+COPY backend/alembic ./alembic
+COPY backend/alembic.ini ./alembic.ini
+
+# Copy GIS data files for the /gis endpoints
+COPY FE/data ./FE/data
 
 RUN mkdir -p uploads/attachments uploads/content uploads/drafts uploads/households uploads/policies/attachments uploads/policies/content && \
     chown -R appuser:appuser /app
