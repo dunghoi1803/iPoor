@@ -729,14 +729,14 @@
         setStatus('Đang tải dữ liệu bản đồ...');
         updateBtn.disabled = true;
         try {
-            const url = new URL(VALUES_ENDPOINT);
-            url.searchParams.set('indicator', indicator);
-            url.searchParams.set('year', year);
-            url.searchParams.set('geo_version', geoVersion);
+            const params = new URLSearchParams();
+            params.set('indicator', indicator);
+            params.set('year', year);
+            params.set('geo_version', geoVersion);
             if (metric) {
-                url.searchParams.set('metric', metric);
+                params.set('metric', metric);
             }
-            const res = await fetch(url.toString());
+            const res = await fetch(`${VALUES_ENDPOINT}?${params.toString()}`);
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
                 throw new Error(data.detail || 'Không tải được dữ liệu');

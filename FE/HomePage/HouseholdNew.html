@@ -625,7 +625,7 @@
 
     let provinceRequestId = 0;
     async function fetchProvinces(keyword) {
-        const url = new URL(`${API_BASE_URL}/locations/provinces`);
+        const url = new URL(`${API_BASE_URL}/locations/provinces`, window.location.origin);
         if (keyword) {
             url.searchParams.set('q', keyword);
         }
@@ -725,7 +725,7 @@
     });
 
     async function fetchCommunes(provinceName, keyword) {
-        const url = new URL(`${API_BASE_URL}/locations/communes`);
+        const url = new URL(`${API_BASE_URL}/locations/communes`, window.location.origin);
         url.searchParams.set('province', provinceName);
         if (keyword) {
             url.searchParams.set('q', keyword);

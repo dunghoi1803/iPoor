@@ -705,7 +705,7 @@
         setStatus('Đang tải dữ liệu bản đồ...');
         updateBtn.disabled = true;
         try {
-            const url = new URL(VALUES_ENDPOINT);
+            const url = new URL(VALUES_ENDPOINT, window.location.origin);
             url.searchParams.set('indicator', indicator);
             url.searchParams.set('year', year);
             url.searchParams.set('geo_version', geoVersion);
