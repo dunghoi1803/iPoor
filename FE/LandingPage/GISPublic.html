@@ -391,6 +391,11 @@
         );
     }
 
+    function getFeatureName(properties) {
+        if (!properties) return 'Không rõ';
+        return properties.ten_tinh || 'Không rõ';
+    }
+
     function resolveValueByCode(valuesByCode, rawCode) {
         if (rawCode === null || rawCode === undefined) return undefined;
         const raw = String(rawCode).trim();
@@ -654,7 +659,7 @@
                 console.log('Vector tile properties:', props);
             }
             const geoCode = getGeoCodeFromProperties(props);
-            const name = props.ten_tinh || 'Không rõ';
+            const name = getFeatureName(props);
             const value = resolveValueByCode(valuesByCode, geoCode);
             const label = value !== undefined ? value.toFixed(2) : 'Không có dữ liệu';
 

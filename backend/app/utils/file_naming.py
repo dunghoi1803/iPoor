@@ -8,6 +8,8 @@ POLICY_CATEGORY_VI = {
     "guideline": "hướng-dẫn",
     "guidline": "hướng-dẫn",
     "circular": "thông-tư",
+    "news": "tin-tức",
+    "announcement": "thông-báo",
 }
 POVERTY_STATUS_VI = {
     "poor": "nghèo",
@@ -64,10 +66,3 @@ def build_household_prefix(
     return FILENAME_SEPARATOR.join(parts)
 
 
-def build_policy_prefix(category: str | None, title: str | None) -> str:
-    category_label = translate_policy_category(category)
-    parts = [
-        slugify_filename(category_label),
-        slugify_filename(title or ""),
-    ]
-    return FILENAME_SEPARATOR.join(parts)

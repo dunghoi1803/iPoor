@@ -2,7 +2,6 @@ import csv
 import json
 from pathlib import Path
 from typing import Any
-from unicodedata import normalize
 
 from fastapi import APIRouter, HTTPException, Query, status
 
@@ -19,15 +18,12 @@ CACHE: dict[str, dict[str, Any]] = {}
 CACHE_ORDER: list[str] = []
 
 
-def normalize_text(value: Any) -> str:
-    if value is None:
-        return ""
-    text = normalize("NFC", str(value))
-    return " ".join(text.split()).strip().lower()
-
-
 def get_repo_root() -> Path:
-    return Path(__file__).resolve().parents[3]
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "FE" / "data").exists():
+            return parent
+    return here.parents[2]
 
 
 def load_geojson(geo_version: str) -> dict[str, Any]:

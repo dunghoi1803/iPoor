@@ -118,6 +118,28 @@ SAMPLES = [
         "tags": ["tổng kết", "giảm nghèo", "2025"],
         "is_public": True,
     },
+    {
+        "title": "Tin tức chương trình giảm nghèo tháng 12/2025",
+        "category": PolicyCategory.NEWS,
+        "summary": "Cập nhật nhanh hoạt động đào tạo, hỗ trợ sinh kế tại các địa phương.",
+        "description": "<p>Bản tin tổng hợp hoạt động nổi bật tháng 12/2025.</p><ul><li>Đào tạo cán bộ cấp xã.</li><li>Mô hình sinh kế hiệu quả.</li><li>Truyền thông cộng đồng.</li></ul>",
+        "effective_date": date(2025, 12, 5),
+        "issued_by": "Trung tâm thông tin",
+        "attachment_url": "",
+        "tags": ["tin tức", "tháng 12", "2025"],
+        "is_public": True,
+    },
+    {
+        "title": "Thông báo lịch kiểm tra liên ngành quý I/2026",
+        "category": PolicyCategory.ANNOUNCEMENT,
+        "summary": "Lịch kiểm tra liên ngành về công tác giảm nghèo quý I/2026.",
+        "description": "<p>Thông báo lịch kiểm tra liên ngành quý I/2026 tại các tỉnh trọng điểm.</p><ul><li>Thời gian: 10/01 - 25/01/2026.</li><li>Phạm vi: 12 tỉnh miền núi.</li><li>Đơn vị chủ trì: Bộ LĐ-TB&XH.</li></ul>",
+        "effective_date": date(2026, 1, 8),
+        "issued_by": "Văn phòng Bộ",
+        "attachment_url": "",
+        "tags": ["thông báo", "lịch kiểm tra", "2026"],
+        "is_public": True,
+    },
 ]
 
 

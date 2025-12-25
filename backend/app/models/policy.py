@@ -12,13 +12,16 @@ class Policy(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
-    category = Column(Enum(PolicyCategory), nullable=False)
+    category = Column(
+        Enum(PolicyCategory, values_callable=lambda value: [entry.value for entry in value]),
+        nullable=False,
+    )
     summary = Column(String(POLICY_SUMMARY_MAX_LENGTH), nullable=True)
     description = Column(Text, nullable=True)
     content_blocks = Column(JSON, nullable=True)
     effective_date = Column(Date, nullable=True)
     issued_by = Column(String(255), nullable=True)
-    attachment_url = Column(String(255), nullable=True)
+    attachment_url = Column(String(1024), nullable=True)
     tags = Column(JSON, nullable=True)
     is_public = Column(Boolean, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

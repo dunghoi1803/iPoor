@@ -1,0 +1,59 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: ipoor_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-18032002}
+      MYSQL_DATABASE: ${DB_NAME:-iPoor}
+      TZ: UTC
+    ports:
+      - "3306:3306"
+    command: [
+      "mysqld",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+    volumes:
+      - ipoor_db_data:/var/lib/mysql
+      - ./backend/seed:/docker-entrypoint-initdb.d:ro
+    networks:
+      - ipoor_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_PASSWORD:-18032002}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    container_name: ipoor_api
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./FE/data:/app/FE/data:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ipoor_net
+
+  fe:
+    build: ./FE
+    container_name: ipoor_fe
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - ipoor_net
+
+networks:
+  ipoor_net:
+    driver: bridge
+
+volumes:
+  ipoor_db_data:
+    driver: local

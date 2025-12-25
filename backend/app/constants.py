@@ -27,6 +27,8 @@ class PolicyCategory(str, Enum):
     CIRCULAR = "circular"
     REPORT = "report"
     GUIDELINE = "guideline"
+    NEWS = "news"
+    ANNOUNCEMENT = "announcement"
 
 
 POLICY_SUMMARY_MAX_LENGTH = 300

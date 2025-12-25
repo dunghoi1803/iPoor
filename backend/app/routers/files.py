@@ -12,8 +12,8 @@ from ..utils.file_naming import (
     FILENAME_MAX_LENGTH,
     FILENAME_SEPARATOR,
     build_household_prefix,
-    build_policy_prefix,
     slugify_filename,
+    translate_policy_category,
 )
 
 router = APIRouter(prefix="/files", tags=["files"])
@@ -30,6 +30,19 @@ HOUSEHOLD_SUBDIR = "households"
 POLICY_ATTACHMENTS_SUBDIR = "policies/attachments"
 POLICY_CONTENT_SUBDIR = "policies/content"
 ALLOWED_EDITOR_IMAGE_TYPES = {"image/png", "image/jpeg", "image/webp"}
+ALLOWED_POLICY_ATTACHMENT_TYPES = {
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "image/png",
+    "image/jpeg",
+}
+ALLOWED_HOUSEHOLD_ATTACHMENT_TYPES = {"application/pdf", "image/png", "image/jpeg"}
+DRAFT_ATTACHMENT_TYPES = {
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 DRAFTS_SUBDIR = "drafts"
 DRAFTS_POLICY_IMAGES_SUBDIR = "policies/images"
 DRAFTS_POLICY_ATTACHMENTS_SUBDIR = "policies/attachments"
@@ -40,25 +53,28 @@ async def upload_file(
     file: UploadFile = File(...),  # noqa: B008
     entity_type: str = Form(ENTITY_POLICY),
     policy_category: str | None = Form(None),
-    policy_title: str | None = Form(None),
-    policy_doc_type: str | None = Form(None),
-    policy_doc_version: str | None = Form(None),
     household_code: str | None = Form(None),
     poverty_status: str | None = Form(None),
     head_name: str | None = Form(None),
     id_card: str | None = Form(None),
     current_user=Depends(get_current_user),
 ):
-    if file.content_type not in {"application/pdf", "image/png", "image/jpeg"}:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only PDF or image files are allowed",
-        )
     normalized_entity = (entity_type or ENTITY_POLICY).strip().lower()
     if normalized_entity not in ALLOWED_ENTITIES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid entity type",
+        )
+    if normalized_entity == ENTITY_HOUSEHOLD:
+        allowed_types = ALLOWED_HOUSEHOLD_ATTACHMENT_TYPES
+        error_message = "Only PDF or image files are allowed"
+    else:
+        allowed_types = ALLOWED_POLICY_ATTACHMENT_TYPES
+        error_message = "Only PDF, Word, or image files are allowed"
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_message,
         )
     subdir = HOUSEHOLD_SUBDIR if normalized_entity == ENTITY_HOUSEHOLD else POLICY_ATTACHMENTS_SUBDIR
     target_dir = UPLOAD_DIR / subdir
@@ -69,11 +85,9 @@ async def upload_file(
         prefix = build_household_prefix(household_code, poverty_status, head_name, id_card)
         raw_name = f"{prefix}{extension}" if prefix else f"{random_suffix}{extension}"
     else:
-        policy_prefix = build_policy_prefix(policy_category, policy_title)
-        doc_type = slugify_filename(policy_doc_type or "")
-        doc_version = slugify_filename(policy_doc_version or "")
-        parts = [policy_prefix, doc_type, doc_version]
-        prefix = FILENAME_SEPARATOR.join([part for part in parts if part])
+        category_label = translate_policy_category(policy_category)
+        category_slug = slugify_filename(category_label)
+        prefix = category_slug or ""
         raw_name = f"{prefix}{FILENAME_SEPARATOR}{random_suffix}{extension}" if prefix else f"{random_suffix}{extension}"
     safe_name = raw_name[:FILENAME_MAX_LENGTH]
     file_path = target_dir / safe_name
@@ -155,10 +169,10 @@ async def upload_draft_file(
                 detail="Only PNG, JPG, or WEBP images are allowed",
             )
     elif normalized == "attachment":
-        if file.content_type != "application/pdf":
+        if file.content_type not in DRAFT_ATTACHMENT_TYPES:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only PDF files are allowed",
+                detail="Only PDF or Word files are allowed",
             )
     else:
         raise HTTPException(

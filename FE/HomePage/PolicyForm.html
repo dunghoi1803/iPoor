@@ -107,7 +107,7 @@
         .file-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 1px solid var(--gray-200); border-radius: 12px; background: var(--white); }
         .file-meta { display: flex; align-items: center; gap: 10px; color: var(--navy-900); font-weight: 700; }
         .file-meta small { color: var(--gray-500); font-weight: 600; }
-        .icon-pdf { width: 28px; height: 28px; border-radius: 8px; background: #fff1e6; display: grid; place-items: center; color: #ea580c; font-weight: 800; }
+        .icon-file { width: 28px; height: 28px; border-radius: 8px; background: #fff1e6; display: grid; place-items: center; color: #ea580c; font-weight: 800; }
         .icon-trash { background: transparent; border: 1px solid var(--gray-200); border-radius: 10px; padding: 8px 10px; cursor: pointer; font-weight: 700; color: var(--danger); }
 
         .toggle-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
@@ -129,6 +129,82 @@
             .page-header h1 { font-size: 22px; }
             .footer-actions { flex-wrap: wrap; }
         }
+            .menu-toggle {
+            margin-left: auto;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: transparent;
+            color: var(--white);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .menu-toggle svg { width: 18px; height: 18px; }
+
+        @media (max-width: 1024px) {
+            .app-shell { grid-template-columns: 72px 1fr; }
+            .sidebar { padding: 16px 10px; }
+            .brand { justify-content: space-between; padding: 8px 6px 16px; }
+            .brand-name { display: none; }
+            .menu-toggle { display: inline-flex; }
+            .nav-item { justify-content: center; }
+            .nav-item .nav-text { display: none; }
+            .sidebar.expanded { padding: 20px 18px; }
+            .sidebar.expanded .brand-name { display: block; }
+            .sidebar.expanded .nav-item { justify-content: flex-start; }
+            .sidebar.expanded .nav-item .nav-text { display: inline; }
+            .app-shell.menu-expanded { grid-template-columns: 240px 1fr; }
+        }
+        @media (max-width: 680px) {
+            .app-shell { grid-template-columns: 72px 1fr; }
+            .sidebar { flex-direction: column; height: auto; overflow: hidden; }
+            nav { grid-auto-flow: row; }
+        }
+            @media (max-width: 1024px) {
+            .app-shell { grid-template-columns: 72px 1fr; }
+            .sidebar { flex-direction: column; overflow: hidden; height: auto; }
+            nav { grid-auto-flow: row; grid-auto-columns: initial; align-items: stretch; }
+        }
+            @media (max-width: 1024px) {
+            .brand { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .brand-mark { order: 1; }
+            .menu-toggle { order: 2; align-self: flex-end; }
+            .brand-name { order: 3; }
+            .sidebar.expanded .brand { align-items: flex-start; }
+        }
+            @media (max-width: 1024px) {
+            .sidebar.expanded .brand {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px 12px;
+            }
+            .sidebar.expanded .brand-mark { order: 1; }
+            .sidebar.expanded .brand-name { order: 2; display: block; }
+            .sidebar.expanded .menu-toggle {
+                order: 3;
+                width: 100%;
+                align-self: flex-start;
+                margin-top: 8px;
+            }
+        }
+            @media (max-width: 1024px) {
+            .sidebar.expanded .brand { justify-content: flex-start; gap: 8px; }
+            .sidebar.expanded .brand-name { margin-left: 0; }
+            .sidebar.expanded .menu-toggle {
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                margin-top: 8px;
+            }
+        }
+            @media (max-width: 1024px) {
+            .nav-item .nav-text { display: none; }
+            .sidebar.expanded .nav-item .nav-text { display: inline; }
+        }
     </style>
 </head>
 <body>
@@ -137,35 +213,40 @@
         <div class="brand">
             <div class="brand-mark"><img class="brand-logo" src="../Image/icon.png" alt="Logo"></div>
             <div class="brand-name">iPOOR</div>
+            <button class="menu-toggle" type="button" aria-label="Mở menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
         </div>
                 <nav>
             <a class="nav-item" href="../LandingPage/index.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
-                <span>Trang giới thiệu</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/>`</svg></span>
+                <span class="nav-text">Trang giới thiệu</span>
             </a>
             <a class="nav-item" href="./HomePage.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/></svg></span>
-                <span>Dashboard</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/>`</svg></span>
+                <span class="nav-text">Dashboard</span>
             </a>
             <a class="nav-item" href="./HouseholdList.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
-                <span>Quản lý hộ nghèo</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/>`</svg></span>
+                <span class="nav-text">Quản lý hộ nghèo</span>
             </a>
             <a class="nav-item" href="./DataCollection.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
-                <span>Thu thập & cập nhật dữ liệu</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/>`</svg></span>
+                <span class="nav-text">Thu thập & cập nhật dữ liệu</span>
             </a>
             <a class="nav-item active" href="./PolicyList.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
-                <span>Chính sách & báo cáo</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>`</svg></span>
+                <span class="nav-text">Chính sách & báo cáo</span>
             </a>
             <a class="nav-item" href="./GISMap.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
-                <span>Bản đồ nghèo (GIS)</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/>`</svg></span>
+                <span class="nav-text">Bản đồ nghèo (GIS)</span>
             </a>
             <a class="nav-item" href="./ActivityLogs.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                <span>Nhật ký hoạt động</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`</svg></span>
+                <span class="nav-text">Nhật ký hoạt động</span>
             </a>
         </nav>
     </aside>
@@ -201,6 +282,8 @@
                         <option value="circular">Thông tư</option>
                         <option value="report">Báo cáo</option>
                         <option value="guideline">Hướng dẫn</option>
+                        <option value="news">Tin tức</option>
+                        <option value="announcement">Thông báo</option>
                     </select>
                     <div class="error" id="error-category"></div>
                 </div>
@@ -279,10 +362,10 @@
                 </div>
             </div>
             <label class="dropzone" id="dropzone">
-            <input id="file-input" type="file" accept="application/pdf,image/png,image/jpeg" multiple>
+            <input id="file-input" type="file" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg" multiple>
                 <div>
-                    <h4>Kéo thả file PDF vào đây hoặc bấm để chọn tệp</h4>
-                    <p>Chỉ nhận .pdf, dung lượng tối đa 20MB mỗi file.</p>
+                    <h4>Kéo thả file PDF/Word vào đây hoặc bấm để chọn tệp</h4>
+                    <p>Chỉ nhận .pdf, .doc, .docx, .png, .jpg — tối đa 20MB mỗi file.</p>
                 </div>
             </label>
             <div class="file-list" id="file-list"></div>
@@ -327,7 +410,14 @@
     const LOGIN_URL = '../Auth/Login.html';
     const POLICY_LIST_URL = './PolicyList.html';
     const FILE_LIMIT_BYTES = 20 * 1024 * 1024;
-    const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
+    const ALLOWED_MIME_TYPES = new Set([
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/png',
+        'image/jpeg',
+    ]);
+    const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg'];
     const UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload`;
     const EDITOR_UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload-article`;
     const POLICIES_ENDPOINT = `${API_BASE_URL}/policies`;
@@ -347,7 +437,8 @@
         policy: 'decree',
         guide: 'guideline',
         other: 'report',
-        news: 'report',
+        news: 'news',
+        announcement: 'announcement',
     };
 
     const params = new URLSearchParams(window.location.search);
@@ -387,6 +478,19 @@
     const ribbon = document.querySelector('.ribbon');
 
     const attachments = [];
+    const FILE_LABELS = {
+        'application/pdf': 'PDF',
+        'application/msword': 'DOC',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+    };
+    const FILE_LABELS_BY_EXTENSION = {
+        '.pdf': 'PDF',
+        '.doc': 'DOC',
+        '.docx': 'DOCX',
+        '.png': 'IMG',
+        '.jpg': 'IMG',
+        '.jpeg': 'IMG',
+    };
     const tags = [];
     const listStyleByBlockId = new Map();
     const pendingImageFiles = new Map();
@@ -444,10 +548,21 @@
         });
     }
 
+    function normalizeFileUrl(url) {
+        if (typeof url !== 'string' || !url) return url;
+        if (url.startsWith('/')) return `${API_BASE_URL}${url}`;
+        if (url.startsWith('files/')) return `${API_BASE_URL}/${url}`;
+        if (url.startsWith(window.location.origin + '/files/')) {
+            return `${API_BASE_URL}${url.slice(window.location.origin.length)}`;
+        }
+        return url;
+    }
+
     async function urlToBlob(url) {
-        const res = await fetch(url);
+        const targetUrl = normalizeFileUrl(url);
+        const res = await fetch(targetUrl);
         if (!res.ok) {
-            throw new Error('Không tải được ảnh tạm thời');
+            throw new Error(`Không tải được ảnh tạm thời: ${targetUrl}`);
         }
         return await res.blob();
     }
@@ -758,6 +873,19 @@
         return editor.blocks.getBlockByIndex(insertIndex);
     }
 
+    function getFileLabel(file) {
+        if (FILE_LABELS[file.type]) return FILE_LABELS[file.type];
+        if (file.type && file.type.startsWith('image/')) return 'IMG';
+        const lower = (file.name || '').toLowerCase();
+        const ext = ALLOWED_EXTENSIONS.find(item => lower.endsWith(item));
+        return FILE_LABELS_BY_EXTENSION[ext] || 'FILE';
+    }
+
+    function hasAllowedExtension(name) {
+        const lower = (name || '').toLowerCase();
+        return ALLOWED_EXTENSIONS.some(ext => lower.endsWith(ext));
+    }
+
     function addFile(file) {
         attachments.push(file);
         renderFiles();
@@ -883,8 +1011,8 @@
             const meta = document.createElement('div');
             meta.className = 'file-meta';
             const icon = document.createElement('div');
-            icon.className = 'icon-pdf';
-            icon.textContent = 'PDF';
+            icon.className = 'icon-file';
+            icon.textContent = getFileLabel(file);
             const name = document.createElement('div');
             name.innerHTML = `${file.name} <br><small>${bytesToSize(file.size)}</small>`;
             meta.append(icon, name);
@@ -904,7 +1032,7 @@
 
     function handleFiles(files) {
         Array.from(files).forEach(file => {
-            if (!ALLOWED_MIME_TYPES.has(file.type)) return;
+            if (!ALLOWED_MIME_TYPES.has(file.type) && !hasAllowedExtension(file.name)) return;
             if (file.size > FILE_LIMIT_BYTES) return;
             addFile(file);
         });
@@ -1410,8 +1538,30 @@
     }
     })();
 </script>
+<script>
+(() => {
+  const appShell = document.querySelector('.app-shell');
+  const sidebar = document.querySelector('.sidebar');
+  const toggle = document.querySelector('.menu-toggle');
+  if (!appShell || !sidebar || !toggle) return;
+  toggle.addEventListener('click', () => {
+    const expanded = sidebar.classList.toggle('expanded');
+    appShell.classList.toggle('menu-expanded', expanded);
+  });
+})();
+</script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
 
 

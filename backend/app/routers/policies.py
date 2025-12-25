@@ -294,6 +294,9 @@ def delete_policy(
     policy = db.query(models.Policy).filter(models.Policy.id == policy_id).first()
     if not policy:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found")
+    db.query(models.PolicyDraft).filter(models.PolicyDraft.policy_id == policy_id).update(
+        {models.PolicyDraft.policy_id: None}
+    )
     log_activity(
         db,
         user_id=current_user.id,

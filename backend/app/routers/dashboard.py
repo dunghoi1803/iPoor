@@ -34,7 +34,11 @@ REGION_METRIC_NEAR_POOR = "near_poor"
 
 
 def get_repo_root() -> Path:
-    return Path(__file__).resolve().parents[3]
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "FE" / "data").exists():
+            return parent
+    return here.parents[2]
 
 
 def normalize_location(value: str) -> str:

@@ -252,6 +252,7 @@
         .result-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-md); }
         .result-title { font-size: 17px; font-weight: 700; color: var(--primary-navy); }
         .result-caption { color: var(--text-gray); font-size: 14px; }
+        .result-actions { display: flex; align-items: center; gap: var(--space-sm); }
 
         .metrics { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-md); }
         .metric-chip {
@@ -300,6 +301,16 @@
 
         .empty-row { text-align: center; color: var(--text-gray); font-style: italic; }
 
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
         @media (max-width: 1024px) {
             .app-shell { grid-template-columns: 1fr; }
             .sidebar { flex-direction: row; overflow-x: auto; height: 72px; }
@@ -313,6 +324,82 @@
             .cards-grid { grid-template-columns: 1fr; }
             .actions-row { justify-content: flex-start; }
         }
+            .menu-toggle {
+            margin-left: auto;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: transparent;
+            color: var(--white);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .menu-toggle svg { width: 18px; height: 18px; }
+
+        @media (max-width: 1024px) {
+            .app-shell { grid-template-columns: 72px 1fr; }
+            .sidebar { padding: 16px 10px; }
+            .brand { justify-content: space-between; padding: 8px 6px 16px; }
+            .brand-name { display: none; }
+            .menu-toggle { display: inline-flex; }
+            .nav-item { justify-content: center; }
+            .nav-item .nav-text { display: none; }
+            .sidebar.expanded { padding: 20px 18px; }
+            .sidebar.expanded .brand-name { display: block; }
+            .sidebar.expanded .nav-item { justify-content: flex-start; }
+            .sidebar.expanded .nav-item .nav-text { display: inline; }
+            .app-shell.menu-expanded { grid-template-columns: 240px 1fr; }
+        }
+        @media (max-width: 680px) {
+            .app-shell { grid-template-columns: 72px 1fr; }
+            .sidebar { flex-direction: column; height: auto; overflow: hidden; }
+            nav { grid-auto-flow: row; }
+        }
+            @media (max-width: 1024px) {
+            .app-shell { grid-template-columns: 72px 1fr; }
+            .sidebar { flex-direction: column; overflow: hidden; height: auto; }
+            nav { grid-auto-flow: row; grid-auto-columns: initial; align-items: stretch; }
+        }
+            @media (max-width: 1024px) {
+            .brand { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .brand-mark { order: 1; }
+            .menu-toggle { order: 2; align-self: flex-end; }
+            .brand-name { order: 3; }
+            .sidebar.expanded .brand { align-items: flex-start; }
+        }
+            @media (max-width: 1024px) {
+            .sidebar.expanded .brand {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px 12px;
+            }
+            .sidebar.expanded .brand-mark { order: 1; }
+            .sidebar.expanded .brand-name { order: 2; display: block; }
+            .sidebar.expanded .menu-toggle {
+                order: 3;
+                width: 100%;
+                align-self: flex-start;
+                margin-top: 8px;
+            }
+        }
+            @media (max-width: 1024px) {
+            .sidebar.expanded .brand { justify-content: flex-start; gap: 8px; }
+            .sidebar.expanded .brand-name { margin-left: 0; }
+            .sidebar.expanded .menu-toggle {
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                margin-top: 8px;
+            }
+        }
+            @media (max-width: 1024px) {
+            .nav-item .nav-text { display: none; }
+            .sidebar.expanded .nav-item .nav-text { display: inline; }
+        }
     </style>
 </head>
 <body>
@@ -321,35 +408,40 @@
         <div class="brand">
             <div class="brand-mark"><img class="brand-logo" src="../Image/icon.png" alt="Logo"></div>
             <div class="brand-name">iPOOR</div>
+            <button class="menu-toggle" type="button" aria-label="Mở menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
         </div>
                 <nav>
             <a class="nav-item" href="../LandingPage/index.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/></svg></span>
-                <span>Trang giới thiệu</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7.5 8 2l6 5.5V14H9.5v-3h-3v3H2V7.5Z" fill="white" opacity="0.9"/>`</svg></span>
+                <span class="nav-text">Trang giới thiệu</span>
             </a>
             <a class="nav-item" href="./HomePage.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/></svg></span>
-                <span>Dashboard</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 0 0-6 6v2.5A1.5 1.5 0 0 0 3.5 12h9A1.5 1.5 0 0 0 14 10.5V8a6 6 0 0 0-6-6Z" stroke="white" stroke-width="1.3"/><path d="M8 8 10.8 6.2" stroke="white" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="white"/>`</svg></span>
+                <span class="nav-text">Dashboard</span>
             </a>
             <a class="nav-item" href="./HouseholdList.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/></svg></span>
-                <span>Quản lý hộ nghèo</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="white" stroke-width="1.4"/><path d="M5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/><circle cx="11" cy="7" r="1" fill="white"/>`</svg></span>
+                <span class="nav-text">Quản lý hộ nghèo</span>
             </a>
             <a class="nav-item active" href="./DataCollection.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/></svg></span>
-                <span>Thu thập & cập nhật dữ liệu</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 5.5h11v1.5h-11V5.5Zm0 3h7v1.5h-7V8.5Zm0 3h5v1.5h-5V11.5Z" fill="white" opacity="0.9"/><path d="M10.5 3v10" stroke="white" stroke-width="1.2" opacity="0.7"/>`</svg></span>
+                <span class="nav-text">Thu thập & cập nhật dữ liệu</span>
             </a>
             <a class="nav-item" href="./PolicyList.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></span>
-                <span>Chính sách & báo cáo</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V3h10v10H3Z" stroke="white" stroke-width="1.3"/><path d="M5 6.5h6M5 9h3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>`</svg></span>
+                <span class="nav-text">Chính sách & báo cáo</span>
             </a>
             <a class="nav-item" href="./GISMap.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/></svg></span>
-                <span>Bản đồ nghèo (GIS)</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/>`</svg></span>
+                <span class="nav-text">Bản đồ nghèo (GIS)</span>
             </a>
             <a class="nav-item" href="./ActivityLogs.html">
-                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                <span>Nhật ký hoạt động</span>
+                <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`</svg></span>
+                <span class="nav-text">Nhật ký hoạt động</span>
             </a>
         </nav>
     </aside>
@@ -417,7 +509,10 @@
         <div class="result-header">
             <div>
                 <div class="result-title">Kết quả xử lý</div>
-                <div class="result-caption">Tổng hợp số bản ghi hợp lệ và danh sách lỗi (nếu có) từ file đã tải lên.</div>
+                <div class="result-caption">Tổng hợp số bản ghi hợp lệ và danh sách hộ trong file vừa tải lên.</div>
+            </div>
+            <div class="result-actions">
+                <button type="button" class="action-btn primary" id="add-all-valid" disabled>Thêm tất cả hộ hợp lệ</button>
             </div>
         </div>
 
@@ -439,32 +534,6 @@
                 <thead>
                 <tr>
                     <th>Dòng</th>
-                    <th>Cột lỗi</th>
-                    <th>Mô tả lỗi</th>
-                </tr>
-                </thead>
-                <tbody id="error-rows">
-                <tr class="empty-row">
-                    <td colspan="3">Chưa có dữ liệu tải lên</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <section class="result-panel" style="margin-top: 24px;">
-        <div class="result-header">
-            <div>
-                <div class="result-title">Danh sách hộ trong file</div>
-                <div class="result-caption">Tổng hợp các hộ trong file vừa tải lên, đánh dấu hợp lệ hoặc không hợp lệ.</div>
-            </div>
-        </div>
-
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                <tr>
-                    <th>Dòng</th>
                     <th>Họ và tên</th>
                     <th>CCCD</th>
                     <th>Kết luận rà soát</th>
@@ -479,6 +548,12 @@
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="pagination">
+            <button type="button" class="secondary-btn" id="prev-page">Trang trước</button>
+            <span id="page-info">Trang 1/1</span>
+            <button type="button" class="secondary-btn" id="next-page">Trang sau</button>
         </div>
     </section>
 </div>
@@ -505,10 +580,14 @@
     const errorAlert = document.getElementById('error-alert');
     const validCount = document.getElementById('valid-count');
     const errorCount = document.getElementById('error-count');
-    const errorRows = document.getElementById('error-rows');
     const uploadRows = document.getElementById('upload-rows');
+    const addAllBtn = document.getElementById('add-all-valid');
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
 
     const emptyResult = { validRecords: 0, errorRecords: 0, errors: [], rows: [] };
+    const ROWS_PER_PAGE = 20;
     const STATUS_LABELS = {
         valid: 'Hợp lệ',
         invalid: 'Không hợp lệ',
@@ -537,34 +616,103 @@
         formData.append(key, value);
     }
 
+    let currentResult = emptyResult;
+    let currentPage = 1;
+
+    function updatePagination(totalRows) {
+        const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
+        if (currentPage > totalPages) currentPage = totalPages;
+        pageInfo.textContent = `Trang ${currentPage}/${totalPages}`;
+        prevPageBtn.disabled = currentPage <= 1;
+        nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    function commitRow(item, result, button, usePromptText) {
+        return (async () => {
+            const token = getToken();
+            if (!token) {
+                window.location.href = LOGIN_URL;
+                return;
+            }
+            if (button) {
+                button.disabled = true;
+                button.textContent = usePromptText || 'Đang thêm...';
+            }
+            try {
+                const formData = new FormData();
+                formData.append('name', item.name || '');
+                formData.append('id_num', item.id_card || '');
+                formData.append('family_mem', item.family_mem || 0);
+                formData.append('b1_score', item.b1_score || 0);
+                formData.append('b2_score', item.b2_score || 0);
+                formData.append('classified_after_check', item.poverty_status || '');
+                formData.append('province', item.province || '');
+                formData.append('district', item.district || '');
+                formData.append('commune', item.commune || '');
+                formData.append('village', item.village || '');
+                formData.append('date_check', item.date_check || '');
+                formData.append('official_check', item.official_check || '');
+
+                appendIfValue(formData, 'dob', item.birth_date);
+                appendIfValue(formData, 'gender', item.gender);
+                appendIfValue(formData, 'ethnic', item.ethnic);
+                appendIfValue(formData, 'address_line', item.address_line);
+                appendIfValue(formData, 'classified_before_check', item.classified_before_check);
+                appendIfValue(formData, 'income_per_capita', item.income_per_capita);
+                appendIfValue(formData, 'area', item.area);
+                appendIfValue(formData, 'description', item.description);
+                appendIfValue(formData, 'note', item.note);
+                appendIfValue(formData, 'pdf_url', item.pdf_url);
+
+                if (item.pdf_url) {
+                    const lookup = buildPdfLookup();
+                    const key = normalizeFilename(item.pdf_url.split('/').pop());
+                    const pdfFile = lookup.get(key);
+                    if (!pdfFile) {
+                        throw new Error('Không tìm thấy file PDF tương ứng');
+                    }
+                    formData.append('pdf_file', pdfFile);
+                }
+
+                const res = await fetch(COMMIT_ENDPOINT, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData,
+                });
+                if (res.status === 401) {
+                    localStorage.removeItem(TOKEN_STORAGE_KEY);
+                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.detail || 'Không thể thêm hộ');
+                }
+                item.commitStatus = 'done';
+                item.commitMessage = 'Đã thêm vào danh sách hộ';
+                renderPage(result);
+            } catch (error) {
+                item.commitStatus = 'error';
+                item.commitMessage = error.message || 'Lỗi khi thêm hộ';
+                renderPage(result);
+            }
+        })();
+    }
+
     function renderResult(result) {
+        currentResult = result;
+        currentPage = 1;
+        renderPage(result);
+    }
+
+    function renderPage(result = currentResult) {
+        currentResult = result;
         validCount.textContent = result.validRecords;
         errorCount.textContent = result.errorRecords;
 
-        const hasError = result.errorRecords > 0 && result.errors.length > 0;
+        const hasError = result.errorRecords > 0;
         errorAlert.style.display = hasError ? 'block' : 'none';
-
-        errorRows.innerHTML = '';
-        if (!result.errors.length) {
-            const row = document.createElement('tr');
-            row.className = 'empty-row';
-            const cell = document.createElement('td');
-            cell.colSpan = 3;
-            cell.textContent = 'Không có lỗi nào được phát hiện';
-            row.appendChild(cell);
-            errorRows.appendChild(row);
-        } else {
-            result.errors.forEach(item => {
-                const row = document.createElement('tr');
-                const cells = [item.row, item.column, item.message];
-                cells.forEach(value => {
-                    const cell = document.createElement('td');
-                    cell.textContent = value;
-                    row.appendChild(cell);
-                });
-                errorRows.appendChild(row);
-            });
-        }
 
         uploadRows.innerHTML = '';
         if (!result.rows || result.rows.length === 0) {
@@ -575,10 +723,19 @@
             cell.textContent = 'Chưa có dữ liệu tải lên';
             row.appendChild(cell);
             uploadRows.appendChild(row);
+            addAllBtn.disabled = true;
+            updatePagination(0);
             return;
         }
 
-        result.rows.forEach(item => {
+        const totalRows = result.rows.length;
+        updatePagination(totalRows);
+        const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+        const pageRows = result.rows.slice(startIndex, startIndex + ROWS_PER_PAGE);
+        const canAddAll = result.rows.some(item => item.valid && !item.commitStatus);
+        addAllBtn.disabled = !canAddAll;
+
+        pageRows.forEach(item => {
             const row = document.createElement('tr');
             row.className = item.valid ? 'row-valid' : 'row-invalid';
             const errors = (item.errors || []).map(err => `${err.column}: ${err.message}`).join('; ');
@@ -606,72 +763,7 @@
                 button.className = 'action-btn primary';
                 button.textContent = 'Thêm';
                 button.addEventListener('click', async () => {
-                    const token = getToken();
-                    if (!token) {
-                        window.location.href = LOGIN_URL;
-                        return;
-                    }
-                    button.disabled = true;
-                    button.textContent = 'Đang thêm...';
-                    try {
-                        const formData = new FormData();
-                        formData.append('name', item.name || '');
-                        formData.append('id_num', item.id_card || '');
-                        formData.append('family_mem', item.family_mem || 0);
-                        formData.append('b1_score', item.b1_score || 0);
-                        formData.append('b2_score', item.b2_score || 0);
-                        formData.append('classified_after_check', item.poverty_status || '');
-                        formData.append('province', item.province || '');
-                        formData.append('district', item.district || '');
-                        formData.append('commune', item.commune || '');
-                        formData.append('village', item.village || '');
-                        formData.append('date_check', item.date_check || '');
-                        formData.append('official_check', item.official_check || '');
-
-                        appendIfValue(formData, 'dob', item.birth_date);
-                        appendIfValue(formData, 'gender', item.gender);
-                        appendIfValue(formData, 'ethnic', item.ethnic);
-                        appendIfValue(formData, 'address_line', item.address_line);
-                        appendIfValue(formData, 'classified_before_check', item.classified_before_check);
-                        appendIfValue(formData, 'income_per_capita', item.income_per_capita);
-                        appendIfValue(formData, 'area', item.area);
-                        appendIfValue(formData, 'description', item.description);
-                        appendIfValue(formData, 'note', item.note);
-                        appendIfValue(formData, 'pdf_url', item.pdf_url);
-
-                        if (item.pdf_url) {
-                            const lookup = buildPdfLookup();
-                            const key = normalizeFilename(item.pdf_url.split('/').pop());
-                            const pdfFile = lookup.get(key);
-                            if (!pdfFile) {
-                                throw new Error('Không tìm thấy file PDF tương ứng');
-                            }
-                            formData.append('pdf_file', pdfFile);
-                        }
-
-                        const res = await fetch(COMMIT_ENDPOINT, {
-                            method: 'POST',
-                            headers: { Authorization: `Bearer ${token}` },
-                            body: formData,
-                        });
-                        if (res.status === 401) {
-                            localStorage.removeItem(TOKEN_STORAGE_KEY);
-                            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-                            window.location.href = LOGIN_URL;
-                            return;
-                        }
-                        if (!res.ok) {
-                            const data = await res.json().catch(() => ({}));
-                            throw new Error(data.detail || 'Không thể thêm hộ');
-                        }
-                        item.commitStatus = 'done';
-                        item.commitMessage = 'Đã thêm vào danh sách hộ';
-                        renderResult(result);
-                    } catch (error) {
-                        item.commitStatus = 'error';
-                        item.commitMessage = error.message || 'Lỗi khi thêm hộ';
-                        renderResult(result);
-                    }
+                    await commitRow(item, result, button, 'Đang thêm...');
                 });
                 actionCell.appendChild(button);
             } else {
@@ -813,13 +905,59 @@
 
     resetBtn.addEventListener('click', resetAll);
     removeBtn.addEventListener('click', clearFile);
+    addAllBtn.addEventListener('click', async () => {
+        const candidates = currentResult.rows.filter(item => item.valid && !item.commitStatus);
+        if (candidates.length === 0) return;
+        addAllBtn.disabled = true;
+        addAllBtn.textContent = 'Đang thêm...';
+        for (const item of candidates) {
+            await commitRow(item, currentResult, null, null);
+        }
+        addAllBtn.textContent = 'Thêm tất cả hộ hợp lệ';
+        renderPage(currentResult);
+    });
+    prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage -= 1;
+            renderPage(currentResult);
+        }
+    });
+    nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.max(1, Math.ceil((currentResult.rows || []).length / ROWS_PER_PAGE));
+        if (currentPage < totalPages) {
+            currentPage += 1;
+            renderPage(currentResult);
+        }
+    });
 
     renderResult(emptyResult);
 </script>
     </main>
 </div>
+<script>
+(() => {
+  const appShell = document.querySelector('.app-shell');
+  const sidebar = document.querySelector('.sidebar');
+  const toggle = document.querySelector('.menu-toggle');
+  if (!appShell || !sidebar || !toggle) return;
+  toggle.addEventListener('click', () => {
+    const expanded = sidebar.classList.toggle('expanded');
+    appShell.classList.toggle('menu-expanded', expanded);
+  });
+})();
+</script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
 
 

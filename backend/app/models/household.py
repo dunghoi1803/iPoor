@@ -31,7 +31,7 @@ class Household(Base):
     village = Column(String(255), nullable=True)
     officer = Column(String(255), nullable=True)
     remark = Column(Text, nullable=True)
-    attachment_url = Column(String(255), nullable=True)
+    attachment_url = Column(String(1024), nullable=True)
     last_surveyed_at = Column(Date, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

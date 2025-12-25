@@ -35,6 +35,7 @@ app.include_router(routers.activity_logs.router)
 app.include_router(routers.files.router)
 app.include_router(routers.gis.router)
 app.include_router(routers.dashboard.router)
+app.include_router(routers.locations.router)
 
 app.mount("/files", StaticFiles(directory=settings.upload_dir), name="files")
 

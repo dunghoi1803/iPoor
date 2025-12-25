@@ -2,7 +2,6 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any
-from unicodedata import normalize
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
@@ -18,6 +17,7 @@ from ..utils.file_naming import (
     build_household_prefix,
 )
 from ..utils.household_code import generate_household_code
+from ..utils.text import normalize_header, normalize_text
 
 router = APIRouter(prefix="/data-collections", tags=["data_collections"])
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024
@@ -85,20 +85,6 @@ REQUIRED_FIELDS = {
     "official_check": "Cán bộ rà soát",
 }
 ATTACHMENT_LABEL = "Tài liệu đính kèm"
-
-
-def normalize_text(value: Any) -> str:
-    if value is None:
-        return ""
-    text = normalize("NFC", str(value))
-    return " ".join(text.split()).strip()
-
-
-def normalize_header(value: Any) -> str:
-    if value is None:
-        return ""
-    text = normalize("NFC", str(value))
-    return " ".join(text.split()).strip().lower()
 
 
 def parse_date(value: Any) -> datetime | None:

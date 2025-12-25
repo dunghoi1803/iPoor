@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      - ../FE/data:/app/FE/data:ro
     ports:
       - "8000:8000"
     depends_on:
@@ -31,6 +33,7 @@ services:
     ]
     volumes:
       - ipoor_db_data:/var/lib/mysql
+      - ./seed:/docker-entrypoint-initdb.d:ro
     networks:
       - ipoor_net
 
