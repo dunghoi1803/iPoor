@@ -312,8 +312,8 @@
                 <div class="card-title">Tài liệu đính kèm</div>
                 <div class="attachments">
                     <div class="attach-card">
-                        <div class="label">File PDF tổng hợp</div>
-                        <input class="form-control" id="attachmentFile" type="file" accept="application/pdf">
+                        <div class="label">File PDF hoặc ảnh</div>
+                        <input class="form-control" id="attachmentFile" type="file" accept="application/pdf,image/png,image/jpeg">
                         <div class="error" data-error="attachmentFile"></div>
                     </div>
                 </div>
@@ -343,7 +343,9 @@
     const LIST_URL = './HouseholdList.html';
     const UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload`;
     const FILE_LIMIT_BYTES = 20 * 1024 * 1024;
-    const ALLOWED_MIME_TYPES = new Set(['application/pdf']);
+    const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
+    const IMAGE_MAX_DIM = 1920;
+    const IMAGE_QUALITY = 0.75;
     const STATUS_ENUM = {
         'Nghèo': 'poor',
         'Cận nghèo': 'near_poor',
@@ -375,6 +377,46 @@
     document.addEventListener('click', closeMenu);
 
     function clearErrors() { document.querySelectorAll('.error').forEach(e => e.textContent = ''); }
+
+    function loadImageFromFile(file) {
+        if (window.createImageBitmap) {
+            return createImageBitmap(file);
+        }
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                resolve(img);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Không đọc được ảnh'));
+            };
+            img.src = url;
+        });
+    }
+
+    async function compressImageToJpeg(file) {
+        if (!file || !file.type.startsWith('image/')) return file;
+        const image = await loadImageFromFile(file);
+        const width = image.width || image.naturalWidth;
+        const height = image.height || image.naturalHeight;
+        if (!width || !height) return file;
+        const scale = Math.min(1, IMAGE_MAX_DIM / Math.max(width, height));
+        const targetW = Math.round(width * scale);
+        const targetH = Math.round(height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return file;
+        ctx.drawImage(image, 0, 0, targetW, targetH);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', IMAGE_QUALITY));
+        if (!blob) return file;
+        const name = (file.name || 'attachment').replace(/\.[^/.]+$/, '') + '.jpg';
+        return new File([blob], name, { type: 'image/jpeg' });
+    }
 
     function validateForm() {
         let ok = true;
@@ -543,15 +585,23 @@
             const created = await res.json();
             if (selectedAttachment) {
                 if (!ALLOWED_MIME_TYPES.has(selectedAttachment.type)) {
-                    setStatus('Chỉ chấp nhận file PDF', true);
+                    setStatus('Chỉ chấp nhận file PDF hoặc ảnh', true);
                     return;
                 }
                 if (selectedAttachment.size > FILE_LIMIT_BYTES) {
-                    setStatus('File PDF vượt quá 20MB', true);
+                    setStatus('Tệp vượt quá 20MB', true);
                     return;
                 }
+                let uploadFile = selectedAttachment;
+                if (selectedAttachment.type.startsWith('image/')) {
+                    try {
+                        uploadFile = await compressImageToJpeg(selectedAttachment);
+                    } catch (_) {
+                        uploadFile = selectedAttachment;
+                    }
+                }
                 const formData = new FormData();
-                formData.append('file', selectedAttachment);
+                formData.append('file', uploadFile);
                 formData.append('entity_type', 'household');
                 formData.append('household_code', created.household_code || '');
                 formData.append('poverty_status', created.poverty_status || '');
@@ -852,8 +902,6 @@
 </script>
 </body>
 </html>
-
-
 
 
 

@@ -434,6 +434,8 @@
     const DEFAULT_DOC_TYPE = 'attachment';
     const DEFAULT_DOC_VERSION = 'v01';
     const PUBLISHER_STORAGE_KEY = 'ipoor_policy_publisher';
+    const WEBP_QUALITY = 0.75;
+    const WEBP_MAX_DIM = 1920;
     const CATEGORY_MAP = {
         policy: 'decree',
         guide: 'guideline',
@@ -549,6 +551,51 @@
         });
     }
 
+    function getImageName(fileName) {
+        const base = (fileName || 'image').replace(/\.[^/.]+$/, '');
+        return `${base}.webp`;
+    }
+
+    function loadImageFromFile(file) {
+        if (window.createImageBitmap) {
+            return createImageBitmap(file);
+        }
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                resolve(img);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Không đọc được ảnh'));
+            };
+            img.src = url;
+        });
+    }
+
+    async function compressImageToWebp(file) {
+        if (!file || !file.type || !file.type.startsWith('image/')) return file;
+        if (file.type === 'image/webp') return file;
+        const image = await loadImageFromFile(file);
+        const width = image.width || image.naturalWidth;
+        const height = image.height || image.naturalHeight;
+        if (!width || !height) return file;
+        const scale = Math.min(1, WEBP_MAX_DIM / Math.max(width, height));
+        const targetW = Math.round(width * scale);
+        const targetH = Math.round(height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return file;
+        ctx.drawImage(image, 0, 0, targetW, targetH);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY));
+        if (!blob) return file;
+        return new File([blob], getImageName(file.name), { type: 'image/webp' });
+    }
+
     function normalizeFileUrl(url) {
         if (typeof url !== 'string' || !url) return url;
         if (url.startsWith('/api/')) return url;
@@ -576,8 +623,14 @@
             redirectToLogin();
             return '';
         }
+        let uploadFile = file;
+        try {
+            uploadFile = await compressImageToWebp(file);
+        } catch (_) {
+            uploadFile = file;
+        }
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', uploadFile);
         const res = await fetch(EDITOR_UPLOAD_ENDPOINT, {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
@@ -604,8 +657,16 @@
             redirectToLogin();
             return '';
         }
+        let uploadFile = file;
+        if ((purpose || '').toLowerCase() === 'image') {
+            try {
+                uploadFile = await compressImageToWebp(file);
+            } catch (_) {
+                uploadFile = file;
+            }
+        }
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', uploadFile);
         formData.append('purpose', purpose);
         const res = await fetch(DRAFT_UPLOAD_ENDPOINT, {
             method: 'POST',
@@ -1556,7 +1617,6 @@
 </script>
 </body>
 </html>
-
 
 
 

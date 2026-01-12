@@ -336,6 +336,7 @@
     const signupForm = document.getElementById('signup-form');
     const statusEl = document.getElementById('signup-status');
     const MAX_CCCD_BYTES = 5 * 1024 * 1024;
+    const IMAGE_MAX_DIM = 1920;
 
     const ROLE_BY_LEVEL = {
         tinh: 'province_officer',
@@ -357,6 +358,46 @@
 
     function normalizeCccd(value) {
         return (value || '').replace(/[^0-9]/g, '');
+    }
+
+    function loadImageFromFile(file) {
+        if (window.createImageBitmap) {
+            return createImageBitmap(file);
+        }
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                resolve(img);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Không đọc được ảnh'));
+            };
+            img.src = url;
+        });
+    }
+
+    async function resizeImageToPng(file) {
+        if (!file || !file.type.startsWith('image/')) return file;
+        const image = await loadImageFromFile(file);
+        const width = image.width || image.naturalWidth;
+        const height = image.height || image.naturalHeight;
+        if (!width || !height) return file;
+        const scale = Math.min(1, IMAGE_MAX_DIM / Math.max(width, height));
+        const targetW = Math.round(width * scale);
+        const targetH = Math.round(height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return file;
+        ctx.drawImage(image, 0, 0, targetW, targetH);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+        if (!blob) return file;
+        const name = (file.name || 'cccd').replace(/\.[^/.]+$/, '') + '.png';
+        return new File([blob], name, { type: 'image/png' });
     }
 
     async function handleSignup(event) {
@@ -422,6 +463,12 @@
             setStatus('Ảnh CCCD vượt quá 5MB.', true);
             return;
         }
+        let uploadFile = cccdFile;
+        try {
+            uploadFile = await resizeImageToPng(cccdFile);
+        } catch (_) {
+            uploadFile = cccdFile;
+        }
 
         const formData = new FormData();
         formData.append('full_name', fullName);
@@ -438,7 +485,7 @@
         formData.append('district', '');
         formData.append('commune', '');
         formData.append('is_active', 'true');
-        formData.append('cccd_image', cccdFile, cccdFile.name);
+        formData.append('cccd_image', uploadFile, uploadFile.name);
 
         try {
             const res = await fetch(`${API_BASE_URL}/auth/register`, {
