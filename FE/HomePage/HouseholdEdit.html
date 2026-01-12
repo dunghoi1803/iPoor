@@ -240,7 +240,7 @@
         <main class="content">
             <div class="page-header">
                 <div>
-                    <div class="page-title">Chỉnh sửa hộ nghèo – Nguyễn Thị Hoa</div>
+                <div class="page-title" id="pageTitle">Chỉnh sửa hộ nghèo</div>
                     <div class="breadcrumb" style="margin-top:6px;"><strong>Trang chủ</strong> / Quản lý hộ nghèo / Chỉnh sửa</div>
                 </div>
             </div>
@@ -320,13 +320,14 @@
 </div>
 
 <script src="../data/ethnicities.js"></script>
+<script src="../config.js"></script>
 <script>
     const dropdownBtn = document.getElementById('accountDropdown');
     const dropdownMenu = document.getElementById('dropdownMenu');
     const cancelBtn = document.getElementById('cancelEdit');
     const saveBtn = document.getElementById('saveForm');
     const formStatus = document.getElementById('formStatus');
-    const API_BASE_URL = '/api';
+    const API_BASE_URL = window.IPOOR_API_BASE || '/api';
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/auth/me`;
     const LOGIN_URL = '../Auth/Login.html';
@@ -477,6 +478,7 @@
     function normalizeAttachmentUrl(value) {
         if (!value) return '';
         if (value.startsWith('http://') || value.startsWith('https://')) return value;
+        if (value.startsWith('/api/')) return value;
         if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
         return value;
     }
@@ -520,6 +522,12 @@
     function populateForm(data) {
         const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = value || ''; };
         setVal('fullName', data.head_name);
+        const titleName = (data.head_name || '').trim();
+        const titleSuffix = titleName ? ` - ${titleName}` : '';
+        const pageTitle = document.getElementById('pageTitle');
+        if (pageTitle) {
+            pageTitle.textContent = `Chỉnh sửa hộ nghèo${titleSuffix}`;
+        }
         setVal('idCard', data.id_card || data.household_code);
         setVal('ethnic', data.ethnicity);
         setVal('members', data.members_count);
@@ -893,7 +901,6 @@
 </script>
 </body>
 </html>
-
 
 
 

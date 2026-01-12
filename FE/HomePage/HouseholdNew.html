@@ -329,13 +329,14 @@
 </div>
 
 <script src="../data/ethnicities.js"></script>
+<script src="../config.js"></script>
 <script>
     const dropdownBtn = document.getElementById('accountDropdown');
     const dropdownMenu = document.getElementById('dropdownMenu');
     const cancelBtn = document.getElementById('cancelEdit');
     const saveBtn = document.getElementById('saveForm');
     const formStatus = document.getElementById('formStatus');
-    const API_BASE_URL = '/api';
+    const API_BASE_URL = window.IPOOR_API_BASE || '/api';
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/auth/me`;
     const LOGIN_URL = '../Auth/Login.html';
@@ -475,6 +476,7 @@
     function normalizeAttachmentUrl(value) {
         if (!value) return '';
         if (value.startsWith('http://') || value.startsWith('https://')) return value;
+        if (value.startsWith('/api/')) return value;
         if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
         return value;
     }

@@ -127,6 +127,7 @@
         .featured-body p { color: var(--gray-500); }
         .featured-list { display: grid; gap: 10px; }
         .featured-item { padding: 10px 12px; border: 1px solid var(--gray-100); border-radius: 12px; background: var(--white); box-shadow: var(--card-shadow); display: grid; gap: 4px; cursor: pointer; }
+        .featured-item .card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .featured-item:hover { background: #f8fafc; }
         .meta { color: var(--gray-500); font-size: 13px; }
 
@@ -213,8 +214,8 @@
             <a class="btn-secondary" href="./GISPublic.html">Bản đồ nghèo cho người dân</a>
         </div>
         <div class="stats">
-            <div class="stat-card"><div class="stat-value">63</div><div class="stat-label">Tỉnh/thành</div></div>
-            <div class="stat-card"><div class="stat-value">2.5 triệu</div><div class="stat-label">Hộ được quản lý dữ liệu</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-provinces">34</div><div class="stat-label">tỉnh thành</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-households">--</div><div class="stat-label">Hộ được quản lý dữ liệu</div></div>
             <div class="stat-card"><div class="stat-value">1.200+</div><div class="stat-label">Báo cáo, chính sách công bố</div></div>
         </div>
     </div>
@@ -308,8 +309,8 @@
                 <div class="faq-answer">Dữ liệu chi tiết hộ nghèo được bảo mật; chỉ báo cáo tổng hợp và chính sách được công khai.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question">Ai chịu trách nhiệm quản lý dữ liệu trên iPOOR?<span>+</span></div>
-                <div class="faq-answer">Cơ quan quản lý nhà nước (Bộ LĐTBXH và các địa phương) chịu trách nhiệm quản lý và cập nhật dữ liệu.</div>
+                <div class="faq-question">Làm sao để liên hệ hỗ trợ kỹ thuật khi gặp sự cố?<span>+</span></div>
+                <div class="faq-answer">Bạn có thể liên hệ theo email, điện thoại hoặc fax trong mục Liên hệ để được hỗ trợ.</div>
             </div>
         </div>
     </div>
@@ -318,6 +319,7 @@
 <footer>
     <div class="footer-inner">
         <div>
+            <img src="../Image/icon.png" alt="iPOOR" style="width:40px;height:40px;margin-bottom:8px;">
             <div class="footer-title">iPOOR</div>
             <div>Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia.</div>
         </div>
@@ -329,14 +331,16 @@
         </div>
         <div>
             <div class="footer-title">Liên hệ</div>
-            <div>Email: support@ipoor.gov.vn</div>
-            <div>Điện thoại: (024) 1234 5678</div>
-            <div>Địa chỉ: Bộ LĐTBXH, Hà Nội</div>
+            <div>Email: vienclcs@mae.gov.vn</div>
+            <div>Tel: 04-39722067</div>
+            <div>Fax: 84-4-39711062</div>
+            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE), Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
         </div>
     </div>
     <div class="footer-meta">© 2025 Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia – iPOOR</div>
 </footer>
 
+<script src="../config.js"></script>
 <script>
     // FAQ toggle
     document.querySelectorAll('.faq-question').forEach(q => {
@@ -358,7 +362,7 @@
         });
     }
 
-    const API_BASE_URL = '/api';
+    const API_BASE_URL = window.IPOOR_API_BASE || '/api';
     const PUBLIC_POLICY_ENDPOINT = `${API_BASE_URL}/policies/public`;
     const POLICY_SELECTED_KEY = 'ipoor_policy_selected_id';
     const featuredMain = document.getElementById('featuredMain');
@@ -368,6 +372,8 @@
     const newsFilter = document.getElementById('newsFilter');
     const newsSearch = document.getElementById('newsSearch');
     const newsSearchBtn = document.getElementById('newsSearchBtn');
+    const statHouseholds = document.getElementById('stat-households');
+    const statProvinces = document.getElementById('stat-provinces');
     let publicPolicies = [];
     const NEWS_LIMIT = 12;
 
@@ -408,6 +414,7 @@
     function normalizeAttachmentUrl(value) {
         if (!value) return '';
         if (value.startsWith('http://') || value.startsWith('https://')) return value;
+        if (value.startsWith('/api/')) return value;
         if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
         return value;
     }
@@ -426,6 +433,73 @@
         const imageBlock = blocks.find((block) => block?.type === 'image' && block?.data?.file?.url);
         if (!imageBlock) return '';
         return normalizeAttachmentUrl(imageBlock.data.file.url || '');
+    }
+
+    function formatHouseholdTotal(value) {
+        if (!Number.isFinite(value)) return '--';
+        if (value >= 1000000) {
+            const millions = value / 1000000;
+            return `${millions.toFixed(1).replace(/\\.0$/, '')} triệu`;
+        }
+        return Math.round(value).toLocaleString('vi-VN');
+    }
+
+    function getLatestYear(years) {
+        if (!Array.isArray(years) || !years.length) return null;
+        return years.map((year) => Number(year)).filter(Number.isFinite).sort((a, b) => b - a)[0] || null;
+    }
+
+    function pickGeoVersion(geoVersions) {
+        if (!Array.isArray(geoVersions) || !geoVersions.length) return 'new_34';
+        if (geoVersions.includes('new_34')) return 'new_34';
+        return geoVersions[0];
+    }
+
+    function pickMetric(metrics, fallback) {
+        if (!Array.isArray(metrics) || !metrics.length) return fallback;
+        if (metrics.includes('count_households')) return 'count_households';
+        return metrics[0];
+    }
+
+    async function fetchIndicatorMeta(code) {
+        const res = await fetch(`${API_BASE_URL}/gis/indicators/${code}/metrics`);
+        if (!res.ok) throw new Error('Không tải được dữ liệu chỉ số');
+        return await res.json();
+    }
+
+    async function fetchIndicatorTotal(code, year, geoVersion, metric) {
+        const params = new URLSearchParams({
+            indicator: code,
+            year: String(year),
+            geo_version: geoVersion,
+        });
+        if (metric) params.set('metric', metric);
+        const res = await fetch(`${API_BASE_URL}/gis/values?${params.toString()}`);
+        if (!res.ok) throw new Error('Không tải được số liệu hộ');
+        const data = await res.json();
+        const values = data?.values || {};
+        return Object.values(values).reduce((sum, val) => sum + (Number(val) || 0), 0);
+    }
+
+    async function loadHouseholdStats() {
+        if (!statHouseholds) return;
+        try {
+            const meta = await fetchIndicatorMeta('1.3');
+            const latestYear = getLatestYear(meta.years);
+            if (!latestYear) throw new Error('Thiếu dữ liệu năm');
+            const geoVersion = pickGeoVersion(meta.geo_versions);
+            const metric = pickMetric(meta.metrics, meta.default_metric);
+            if (statProvinces) {
+                statProvinces.textContent = geoVersion === 'new_34' ? '34' : '63';
+            }
+            const [poorTotal, nearPoorTotal] = await Promise.all([
+                fetchIndicatorTotal('1.3', latestYear, geoVersion, metric),
+                fetchIndicatorTotal('1.5', latestYear, geoVersion, metric),
+            ]);
+            statHouseholds.textContent = formatHouseholdTotal(poorTotal + nearPoorTotal);
+        } catch (_) {
+            statHouseholds.textContent = '--';
+        }
     }
 
     function buildPolicyLink(id) {
@@ -610,6 +684,7 @@
     }
 
     loadPublicPolicies();
+    loadHouseholdStats();
 </script>
 </body>
 </html>

@@ -164,8 +164,9 @@
     </div>
 </div>
 
+<script src="../config.js"></script>
 <script>
-    const API_BASE_URL = '/api';
+    const API_BASE_URL = window.IPOOR_API_BASE || '/api';
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const loginForm = document.getElementById('login-form');
     const statusEl = document.getElementById('login-status');
