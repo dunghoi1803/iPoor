@@ -360,6 +360,10 @@
                     <label for="doc-version">Document version</label>
                     <input id="doc-version" type="text" placeholder="v01">
                 </div>
+                <div class="form-group">
+                    <label for="flipbook-url">Flipbook URL (FlipHTML5)</label>
+                    <input id="flipbook-url" type="url" placeholder="https://online.fliphtml5.com/...">
+                </div>
             </div>
             <label class="dropzone" id="dropzone">
             <input id="file-input" type="file" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg" multiple>
@@ -475,6 +479,7 @@
     const publisherInput = document.getElementById('publisher');
     const docTypeInput = document.getElementById('doc-type');
     const docVersionInput = document.getElementById('doc-version');
+    const flipbookInput = document.getElementById('flipbook-url');
     const headingSelect = document.getElementById('heading-style');
     const unorderedListSelect = document.getElementById('unordered-list-style');
     const orderedListSelect = document.getElementById('ordered-list-style');
@@ -967,6 +972,13 @@
         return value;
     }
 
+    function normalizeFlipbookUrl(value) {
+        const trimmed = (value || '').trim();
+        if (!trimmed) return '';
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+        return '';
+    }
+
     function applyEditMode() {
         pageTitle.textContent = 'Chỉnh sửa bài viết';
         submitBtn.textContent = 'Cập nhật bài viết';
@@ -999,6 +1011,9 @@
         renderTags();
         isPublicInput.checked = Boolean(data.is_public);
         publisherInput.value = data.issued_by || getStoredPublisher() || publisherInput.value;
+        if (flipbookInput) {
+            flipbookInput.value = data.flipbook_url || '';
+        }
     }
 
     async function loadDraft(policyId = null) {
@@ -1231,6 +1246,7 @@
                 description: contentText || summaryInput.value.trim() || null,
                 content_blocks: draftEditorData,
                 attachment_url: draftAttachmentUrl,
+                flipbook_url: normalizeFlipbookUrl(flipbookInput ? flipbookInput.value : ''),
                 issued_by: publisherInput.value || null,
                 effective_date: null,
                 tags: tags.length ? tags : [],
@@ -1371,6 +1387,7 @@
             description: contentText || summaryInput.value.trim() || null,
             content_blocks: finalizedEditorData,
             attachment_url: attachmentUrl,
+            flipbook_url: normalizeFlipbookUrl(flipbookInput ? flipbookInput.value : ''),
             issued_by: publisherInput.value || 'N/A',
             effective_date: null,
             tags: tags.length ? tags : [],
@@ -1617,11 +1634,6 @@
 </script>
 </body>
 </html>
-
-
-
-
-
 
 
 

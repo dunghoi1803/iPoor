@@ -242,6 +242,7 @@
                 <div class="tag-list" id="tags"></div>
             </div>
             <div id="content">Đang tải nội dung...</div>
+            <div id="flipbookEmbed" class="embed" style="display:none;"></div>
             <div class="attachments" id="attachments"></div>
         </article>
     </main>
@@ -270,6 +271,7 @@
     const postedDate = document.getElementById('postedDate');
     const author = document.getElementById('author');
     const content = document.getElementById('content');
+    const flipbookEmbed = document.getElementById('flipbookEmbed');
     const attachments = document.getElementById('attachments');
     const deleteBtn = document.getElementById('deleteBtn');
     const editLink = document.getElementById('editLink');
@@ -293,6 +295,13 @@
         if (value.startsWith('/api/')) return value;
         if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
         return value;
+    }
+
+    function normalizeFlipbookUrl(value) {
+        const trimmed = (value || '').trim();
+        if (!trimmed) return '';
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+        return '';
     }
 
     function formatDate(value) {
@@ -436,6 +445,16 @@
         } else {
             content.innerHTML = `<p>${policy.description || 'Chưa có nội dung chi tiết.'}</p>`;
         }
+        const flipbookUrl = normalizeFlipbookUrl(policy.flipbook_url || '');
+        if (flipbookEmbed) {
+            if (flipbookUrl) {
+                flipbookEmbed.innerHTML = `<iframe src="${flipbookUrl}" width="100%" height="600" frameborder="0" allowfullscreen></iframe>`;
+                flipbookEmbed.style.display = 'block';
+            } else {
+                flipbookEmbed.innerHTML = '';
+                flipbookEmbed.style.display = 'none';
+            }
+        }
         summaryEl.textContent = policy.summary || '-';
         isPublicEl.textContent = typeof policy.is_public === 'boolean' ? (policy.is_public ? PUBLIC_LABEL : PRIVATE_LABEL) : '-';
         tagsEl.innerHTML = '';
@@ -548,9 +567,6 @@
 </script>
 </body>
 </html>
-
-
-
 
 
 

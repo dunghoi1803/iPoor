@@ -16,6 +16,7 @@ class PolicyDraftBase(BaseModel):
     effective_date: date | None = None
     issued_by: str | None = None
     attachment_url: str | None = None
+    flipbook_url: str | None = None
     tags: list[str] | None = None
     is_public: bool | None = None
 

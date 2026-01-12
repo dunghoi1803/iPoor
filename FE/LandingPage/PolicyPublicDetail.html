@@ -167,6 +167,7 @@
     <article class="article" id="articleBody">
         <p>Vui lòng chờ trong giây lát.</p>
     </article>
+    <div id="flipbookEmbed" class="embed" style="display:none;"></div>
     <div class="status" id="statusBox" style="margin-top: 12px; display: none;"></div>
 </section>
 
@@ -177,6 +178,7 @@
     const heroSection = document.getElementById('heroSection');
     const metaLine = document.getElementById('metaLine');
     const articleBody = document.getElementById('articleBody');
+    const flipbookEmbed = document.getElementById('flipbookEmbed');
     const statusBox = document.getElementById('statusBox');
 
     const typeLabels = {
@@ -207,6 +209,13 @@
         if (value.startsWith('/api/')) return value;
         if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
         return value;
+    }
+
+    function normalizeFlipbookUrl(value) {
+        const trimmed = (value || '').trim();
+        if (!trimmed) return '';
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+        return '';
     }
 
     function sanitizeHtml(input) {
@@ -361,6 +370,7 @@
                 <span>${policy.issued_by || 'iPOOR'}</span>
             `;
             const attachment = normalizeAttachmentUrl(policy.attachment_url || '');
+            const flipbookUrl = normalizeFlipbookUrl(policy.flipbook_url || '');
             const blocksHtml = renderBlocks(policy.content_blocks);
             const contentHtml = blocksHtml || `<p>${policy.description || policy.summary || 'Chưa có nội dung chi tiết.'}</p>`;
             articleBody.innerHTML = `
@@ -371,6 +381,15 @@
                     </div>
                 ` : ''}
             `;
+            if (flipbookEmbed) {
+                if (flipbookUrl) {
+                    flipbookEmbed.innerHTML = `<iframe src="${flipbookUrl}" width="100%" height="600" frameborder="0" allowfullscreen></iframe>`;
+                    flipbookEmbed.style.display = 'block';
+                } else {
+                    flipbookEmbed.innerHTML = '';
+                    flipbookEmbed.style.display = 'none';
+                }
+            }
         } catch (error) {
             showStatus('Không tải được bài viết.', true);
         }

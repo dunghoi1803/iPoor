@@ -22,6 +22,7 @@ class Policy(Base):
     effective_date = Column(Date, nullable=True)
     issued_by = Column(String(255), nullable=True)
     attachment_url = Column(String(1024), nullable=True)
+    flipbook_url = Column(String(1024), nullable=True)
     tags = Column(JSON, nullable=True)
     is_public = Column(Boolean, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
