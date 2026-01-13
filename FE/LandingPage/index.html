@@ -449,10 +449,9 @@
         return years.map((year) => Number(year)).filter(Number.isFinite).sort((a, b) => b - a)[0] || null;
     }
 
-    function pickGeoVersion(geoVersions) {
-        if (!Array.isArray(geoVersions) || !geoVersions.length) return 'new_34';
-        if (geoVersions.includes('new_34')) return 'new_34';
-        return geoVersions[0];
+    function pickGeoVersionFallback(geoVersions) {
+        if (!Array.isArray(geoVersions) || !geoVersions.length) return 'old_63';
+        return geoVersions.find((value) => value !== 'new_34') || geoVersions[0];
     }
 
     function pickMetric(metrics, fallback) {
@@ -487,16 +486,37 @@
             const meta = await fetchIndicatorMeta('1.3');
             const latestYear = getLatestYear(meta.years);
             if (!latestYear) throw new Error('Thiếu dữ liệu năm');
-            const geoVersion = pickGeoVersion(meta.geo_versions);
             const metric = pickMetric(meta.metrics, meta.default_metric);
+            const primaryGeoVersion = 'new_34';
+            const fallbackGeoVersion = pickGeoVersionFallback(meta.geo_versions);
             if (statProvinces) {
-                statProvinces.textContent = geoVersion === 'new_34' ? '34' : '63';
+                statProvinces.textContent = '34';
             }
-            const [poorTotal, nearPoorTotal] = await Promise.all([
-                fetchIndicatorTotal('1.3', latestYear, geoVersion, metric),
-                fetchIndicatorTotal('1.5', latestYear, geoVersion, metric),
-            ]);
-            statHouseholds.textContent = formatHouseholdTotal(poorTotal + nearPoorTotal);
+            const years = meta.years
+                .map((year) => Number(year))
+                .filter(Number.isFinite)
+                .sort((a, b) => b - a);
+            const tryYears = years.slice(0, 6);
+            let total = 0;
+            for (const year of tryYears) {
+                const [poorTotal, nearPoorTotal] = await Promise.all([
+                    fetchIndicatorTotal('1.3', year, primaryGeoVersion, metric),
+                    fetchIndicatorTotal('1.5', year, primaryGeoVersion, metric),
+                ]);
+                total = poorTotal + nearPoorTotal;
+                if (total > 0) break;
+            }
+            if (total <= 0 && fallbackGeoVersion !== primaryGeoVersion) {
+                for (const year of tryYears) {
+                    const [poorTotal, nearPoorTotal] = await Promise.all([
+                        fetchIndicatorTotal('1.3', year, fallbackGeoVersion, metric),
+                        fetchIndicatorTotal('1.5', year, fallbackGeoVersion, metric),
+                    ]);
+                    total = poorTotal + nearPoorTotal;
+                    if (total > 0) break;
+                }
+            }
+            statHouseholds.textContent = formatHouseholdTotal(total);
         } catch (_) {
             statHouseholds.textContent = '--';
         }
