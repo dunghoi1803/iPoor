@@ -17,7 +17,7 @@ from .data_collection import (
 )
 from .household import HouseholdCreate, HouseholdListResponse, HouseholdRead, HouseholdUpdate
 from .password import ChangePasswordRequest
-from .policy import PolicyCreate, PolicyRead, PolicyUpdate
+from .policy import PolicyBrief, PolicyCreate, PolicyRead, PolicyUpdate
 from .policy_draft import PolicyDraftRead, PolicyDraftUpsert
 from .user import UserCreate, UserRead, UserUpdate
 
@@ -41,6 +41,7 @@ __all__ = [
     "HouseholdUpdate",
     "ChangePasswordRequest",
     "PolicyCreate",
+    "PolicyBrief",
     "PolicyRead",
     "PolicyUpdate",
     "PolicyDraftRead",

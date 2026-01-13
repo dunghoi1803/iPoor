@@ -98,6 +98,29 @@ def list_public_policies(
     return query.order_by(models.Policy.updated_at.desc(), models.Policy.created_at.desc()).offset(skip).limit(limit).all()
 
 
+@router.get("/public/brief", response_model=list[schemas.PolicyBrief])
+def list_public_policy_brief(
+    limit: int = Query(7, le=MAX_PAGE_LIMIT),
+    db: Session = Depends(deps.get_db),
+) -> list[schemas.PolicyBrief]:
+    rows = (
+        db.query(
+            models.Policy.id,
+            models.Policy.title,
+            models.Policy.summary,
+            models.Policy.description,
+            models.Policy.category,
+            models.Policy.created_at,
+            models.Policy.updated_at,
+        )
+        .filter(models.Policy.is_public.is_(True))
+        .order_by(models.Policy.updated_at.desc(), models.Policy.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return [schemas.PolicyBrief(**dict(row._mapping)) for row in rows]
+
+
 @router.get("/public/{policy_id}", response_model=schemas.PolicyRead)
 def get_public_policy(
     policy_id: int,

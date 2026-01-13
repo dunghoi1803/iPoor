@@ -109,11 +109,21 @@
         #flipbookEmbed { position: relative; width: calc(100% + 40px); height: 1200px; border-radius: 12px; overflow: hidden; background: #0f172a; margin: 16px -20px 0; }
         #flipbookEmbed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .article hr { border: none; border-top: 1px solid var(--gray-100); margin: 8px 0; }
+        .related { margin-top: 28px; display: grid; gap: 12px; }
+        .related-title { font-size: 20px; font-weight: 800; }
+        .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 260px)); gap: 14px; justify-content: start; }
+        .related-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px; overflow: hidden; box-shadow: var(--card-shadow); text-decoration: none; color: inherit; display: grid; }
+        .related-card img { width: 100%; height: 140px; object-fit: cover; background: #e2e8f0; }
+        .related-body { padding: 12px; display: grid; gap: 6px; }
+        .related-meta { color: var(--gray-500); font-size: 12px; }
+        .related-title-text { font-weight: 800; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         footer { background: var(--navy-900); color: var(--white); padding: 28px 18px; margin-top: 36px; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: start; }
         .footer-title { font-weight: 800; margin-bottom: 10px; }
+        .footer-brand { margin-top: 5px; }
+        .footer-links { margin-top: 22px; }
         .footer-links a { display: block; color: #e2e8f0; margin-bottom: 6px; }
-        .footer-meta { margin-top: 12px; color: #cbd5e1; }
+        .footer-meta { margin-top: 12px; color: #cbd5e1; max-width: 1200px; margin-left: auto; margin-right: auto; text-align: left; }
         @media (max-width: 900px) {
             #flipbookEmbed { height: 70vh; width: 100%; margin: 16px 0 0; }
         }
@@ -179,11 +189,15 @@
     </article>
     <div id="flipbookEmbed" class="embed" style="display:none;"></div>
     <div class="status" id="statusBox" style="margin-top: 12px; display: none;"></div>
+    <section class="related" id="relatedSection" style="display:none;">
+        <div class="related-title">Xem thêm</div>
+        <div class="related-grid" id="relatedGrid"></div>
+    </section>
 </section>
 
 <footer>
     <div class="footer-inner">
-        <div>
+        <div class="footer-brand">
             <img src="../Image/icon.png" alt="iPOOR" style="width:40px;height:40px;margin-bottom:8px;">
             <div class="footer-title">iPOOR</div>
             <div>Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia.</div>
@@ -199,7 +213,8 @@
             <div>Email: vienclcs@mae.gov.vn</div>
             <div>Tel: 04-39722067</div>
             <div>Fax: 84-4-39711062</div>
-            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE), Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
+            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE)</div>
+            <div>Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
         </div>
     </div>
     <div class="footer-meta">© 2025 Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia – iPOOR</div>
@@ -214,6 +229,8 @@
     const articleBody = document.getElementById('articleBody');
     const flipbookEmbed = document.getElementById('flipbookEmbed');
     const statusBox = document.getElementById('statusBox');
+    const relatedSection = document.getElementById('relatedSection');
+    const relatedGrid = document.getElementById('relatedGrid');
 
     const typeLabels = {
         decree: { text: 'Chính sách', cls: 'policy' },
@@ -250,6 +267,58 @@
         if (!trimmed) return '';
         if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
         return '';
+    }
+
+    function getFirstBlockImage(item) {
+        const blocks = item?.content_blocks?.blocks;
+        if (!Array.isArray(blocks)) return '';
+        const imageBlock = blocks.find((block) => block?.type === 'image' && block?.data?.file?.url);
+        if (!imageBlock) return '';
+        return normalizeAttachmentUrl(imageBlock.data.file.url || '');
+    }
+
+    function hasTagIntersection(tagsA, tagsB) {
+        if (!Array.isArray(tagsA) || !Array.isArray(tagsB)) return false;
+        const setA = new Set(tagsA.map((tag) => String(tag).toLowerCase()));
+        return tagsB.some((tag) => setA.has(String(tag).toLowerCase()));
+    }
+
+    async function loadRelated(policy) {
+        if (!relatedSection || !relatedGrid) return;
+        try {
+            const res = await fetch(`${POLICY_DETAIL_ENDPOINT}?limit=20`);
+            if (!res.ok) return;
+            const items = await res.json();
+            const tags = policy?.tags || [];
+            let related = items.filter((item) => item.id !== policy.id);
+            if (tags.length) {
+                related = related.filter((item) => hasTagIntersection(tags, item.tags || []));
+            }
+            if (!related.length) {
+                related = items.filter((item) => item.id !== policy.id && item.category === policy.category);
+            }
+            related = related.slice(0, 6);
+            if (!related.length) return;
+            relatedGrid.innerHTML = '';
+            related.forEach((item) => {
+                const card = document.createElement('a');
+                const imageSource = getFirstBlockImage(item) || normalizeAttachmentUrl(item.attachment_url || '') || '../Image/xoa-doi-giam-ngheo.jpg';
+                const dateLabel = formatDate(item.updated_at || item.created_at);
+                card.className = 'related-card';
+                card.href = `./PolicyPublicDetail.html?id=${item.id}`;
+                card.innerHTML = `
+                    <img src="${imageSource}" alt="${item.title || ''}">
+                    <div class="related-body">
+                        <div class="related-meta">${dateLabel}</div>
+                        <div class="related-title-text">${item.title || 'Chưa có tiêu đề'}</div>
+                    </div>
+                `;
+                relatedGrid.appendChild(card);
+            });
+            relatedSection.style.display = 'grid';
+        } catch (_) {
+            relatedSection.style.display = 'none';
+        }
     }
 
     function sanitizeHtml(input) {
@@ -424,6 +493,7 @@
                     flipbookEmbed.style.display = 'none';
                 }
             }
+            loadRelated(policy);
         } catch (error) {
             showStatus('Không tải được bài viết.', true);
         }

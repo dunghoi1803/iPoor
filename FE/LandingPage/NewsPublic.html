@@ -81,12 +81,17 @@
         .page-hero h1 { font-size: 36px; }
         .page-hero p { color: var(--gray-500); max-width: 720px; }
         .ticker {
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 8px;
             padding: 10px 14px; border-radius: 12px;
             background: var(--white); border: 1px solid var(--gray-100);
             box-shadow: var(--card-shadow); font-weight: 700;
+            width: 100%; overflow: hidden;
         }
-        .ticker span { color: var(--gray-500); font-weight: 600; }
+        .ticker strong { white-space: nowrap; }
+        .ticker-track { position: relative; overflow: hidden; flex: 1; min-width: 0; }
+        .ticker-marquee { display: inline-flex; gap: 24px; align-items: center; white-space: nowrap; animation: ticker 75s linear infinite; }
+        .ticker-item { display: inline-flex; align-items: center; gap: 8px; }
+        .ticker-item span { color: var(--gray-500); font-weight: 600; font-size: 14px; }
 
         .filters { max-width: 1200px; margin: 0 auto; padding: 0 18px 18px; display: flex; gap: 12px; flex-wrap: wrap; }
         .filters select, .filters input { padding: 10px 12px; border: 1px solid var(--gray-100); border-radius: 10px; font-weight: 600; background: var(--white); }
@@ -129,7 +134,19 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .card-desc { color: var(--gray-500); font-size: 14px; }
+        .card-desc { color: var(--gray-500); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .quick-brief { margin-top: 16px; background: var(--white); border: 1px solid var(--gray-100); border-radius: 16px; padding: 10px 14px; box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 14px; }
+        .quick-title { font-weight: 800; font-size: 16px; white-space: nowrap; }
+        .quick-track { position: relative; overflow: hidden; flex: 1; }
+        .quick-marquee { display: inline-flex; gap: 24px; align-items: center; white-space: nowrap; animation: ticker 24s linear infinite; }
+        .quick-item { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; }
+        .quick-item strong { font-weight: 800; }
+        .quick-item span { color: var(--gray-500); font-size: 13px; }
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
 
         .report-grid { display: grid; gap: 12px; }
         .report-item { background: var(--white); border: 1px solid var(--gray-100); border-radius: 12px; padding: 12px; display: flex; gap: 10px; align-items: center; box-shadow: var(--card-shadow); }
@@ -137,10 +154,12 @@
         .report-action { color: var(--blue-500); font-weight: 800; margin-left: auto; }
 
         footer { background: var(--navy-900); color: var(--white); padding: 28px 18px; margin-top: 36px; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: start; }
         .footer-title { font-weight: 800; margin-bottom: 10px; }
+        .footer-brand { margin-top: 5px; }
+        .footer-links { margin-top: 22px; }
         .footer-links a { display: block; color: #e2e8f0; margin-bottom: 6px; }
-        .footer-meta { margin-top: 12px; color: #cbd5e1; }
+        .footer-meta { margin-top: 12px; color: #cbd5e1; max-width: 1200px; margin-left: auto; margin-right: auto; text-align: left; }
 
         @media (max-width: 1024px) {
             .layout { grid-template-columns: 1fr; }
@@ -193,9 +212,11 @@
 <section class="page-hero">
     <h1>Tin tức & Chính sách giảm nghèo đa chiều</h1>
     <p>Trang tin tổng hợp các chính sách, báo cáo và thông tin nổi bật về giảm nghèo đa chiều trên toàn quốc.</p>
-    <div class="ticker" id="newsTicker">
+    <div class="ticker">
         <strong>Điểm tin nhanh</strong>
-        <span>Đang tải dữ liệu...</span>
+        <div class="ticker-track">
+            <div class="ticker-marquee" id="newsTicker"></div>
+        </div>
     </div>
 </section>
 
@@ -237,14 +258,14 @@
 
 <footer>
     <div class="footer-inner">
-        <div>
+        <div class="footer-brand">
             <img src="../Image/icon.png" alt="iPOOR" style="width:40px;height:40px;margin-bottom:8px;">
             <div class="footer-title">iPOOR</div>
-            <div>Cổng thông tin công khai về giảm nghèo đa chiều.</div>
+            <div>Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia.</div>
         </div>
         <div class="footer-links">
             <a href="./NewsPublic.html">Tin tức & Chính sách</a>
-            <a href="./GISPublic.html">Bản đồ nghèo</a>
+            <a href="./index.html#reports">Báo cáo</a>
             <a href="./index.html#about">Về iPOOR</a>
             <a href="../Auth/Login.html">Đăng nhập cán bộ</a>
         </div>
@@ -253,16 +274,18 @@
             <div>Email: vienclcs@mae.gov.vn</div>
             <div>Tel: 04-39722067</div>
             <div>Fax: 84-4-39711062</div>
-            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE), Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
+            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE)</div>
+            <div>Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
         </div>
     </div>
-    <div class="footer-meta">© 2025 iPOOR</div>
+    <div class="footer-meta">© 2025 Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia – iPOOR</div>
 </footer>
 
 <script src="../config.js"></script>
 <script>
     const API_BASE_URL = window.IPOOR_API_BASE || '/api';
     const PUBLIC_POLICY_ENDPOINT = `${API_BASE_URL}/policies/public`;
+    const PUBLIC_BRIEF_ENDPOINT = `${API_BASE_URL}/policies/public/brief`;
     const NEWS_LIMIT = 24;
     const featuredMain = document.getElementById('featuredMain');
     const featuredList = document.getElementById('featuredList');
@@ -441,12 +464,21 @@
 
     function updateTicker(items) {
         if (!newsTicker) return;
+        newsTicker.innerHTML = '';
         if (!items.length) {
-            newsTicker.innerHTML = '<strong>Điểm tin nhanh</strong><span>Chưa có dữ liệu.</span>';
+            newsTicker.innerHTML = '<div class="ticker-item"><span>Chưa có dữ liệu.</span></div>';
             return;
         }
-        const headline = items[0];
-        newsTicker.innerHTML = `<strong>Điểm tin nhanh</strong><span>${headline.title || 'Chưa có tiêu đề'}</span>`;
+        const buildItem = (item) => {
+            const title = item.title || 'Chưa có tiêu đề';
+            const description = item.summary || item.description || '';
+            const el = document.createElement('div');
+            el.className = 'ticker-item';
+            el.innerHTML = `<strong>${title}</strong><span>- ${description}</span>`;
+            return el;
+        };
+        items.forEach((item) => newsTicker.appendChild(buildItem(item)));
+        items.forEach((item) => newsTicker.appendChild(buildItem(item)));
     }
 
     function buildPublicQueryParams(type, keyword, limit) {
@@ -512,6 +544,21 @@
         }
     }
 
+    async function loadTicker() {
+        if (!newsTicker) return;
+        try {
+            const res = await fetch(`${PUBLIC_BRIEF_ENDPOINT}?limit=7`);
+            if (!res.ok) {
+                updateTicker([]);
+                return;
+            }
+            const items = await res.json();
+            updateTicker(items);
+        } catch (_) {
+            updateTicker([]);
+        }
+    }
+
     const menuToggle = document.getElementById('menuToggle');
     const menuPanel = document.getElementById('menuPanel');
     if (menuToggle && menuPanel) {
@@ -541,6 +588,7 @@
     }
 
     loadPublicPolicies();
+    loadTicker();
 </script>
 </body>
 </html>

@@ -45,3 +45,13 @@ class PolicyRead(PolicyBase):
 
     class Config:
         from_attributes = True
+
+
+class PolicyBrief(BaseModel):
+    id: int
+    title: str | None = None
+    summary: str | None = None
+    description: str | None = None
+    category: PolicyCategory | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

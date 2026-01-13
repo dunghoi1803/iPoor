@@ -131,6 +131,39 @@
         .featured-item:hover { background: #f8fafc; }
         .meta { color: var(--gray-500); font-size: 13px; }
 
+        .news-banner { background: linear-gradient(135deg, #0f172a, #1f2f54); color: var(--white); border-radius: 22px; padding: 18px; display: grid; gap: 12px; position: relative; overflow: hidden; width: 100%; }
+        .news-banner::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.2), transparent 55%); pointer-events: none; }
+        .banner-shell { max-width: 1400px; margin: 0 auto; padding: 0 18px; }
+        .banner-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; z-index: 1; }
+        .banner-title { font-weight: 800; font-size: 18px; }
+        .banner-track { position: relative; height: 66vh; min-height: 420px; z-index: 1; }
+        .banner-card { position: absolute; inset: 0; opacity: 0; transform: translateX(30px); transition: opacity 0.4s ease, transform 0.4s ease; display: grid; gap: 6px; border-radius: 18px; overflow: hidden; }
+        .banner-card.active { opacity: 1; transform: translateX(0); }
+        .banner-media { position: absolute; inset: 0; background-size: cover; background-position: center; filter: saturate(1.05); }
+        .banner-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.2)); }
+        .banner-content { position: relative; z-index: 1; padding: 24px; max-width: 560px; display: grid; gap: 8px; }
+        .banner-card .banner-meta { font-size: 12px; color: rgba(226, 232, 240, 0.8); }
+        .banner-card .banner-text { font-size: 26px; font-weight: 800; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .banner-card .banner-link { font-weight: 700; color: var(--white); display: inline-flex; align-items: center; gap: 6px; }
+        .banner-nav { display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; }
+        .banner-btn { width: 40px; height: 40px; border-radius: 999px; border: none; background: rgba(255, 255, 255, 0.65); color: var(--navy-900); display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2); }
+        .banner-btn:hover { background: rgba(255, 255, 255, 0.85); }
+        .banner-dots { display: flex; gap: 8px; justify-content: center; position: relative; z-index: 1; }
+        .banner-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.35); cursor: pointer; }
+        .banner-dot.active { background: var(--white); }
+
+        .quick-brief { margin-top: 18px; background: var(--white); border: 1px solid var(--gray-100); border-radius: 18px; padding: 12px 16px; box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 10px; }
+        .quick-title { font-weight: 800; font-size: 18px; white-space: nowrap; }
+        .quick-track { position: relative; overflow: hidden; flex: 1; }
+        .quick-marquee { display: inline-flex; gap: 28px; align-items: center; white-space: nowrap; animation: ticker 75s linear infinite; }
+        .quick-item { display: inline-flex; align-items: center; gap: 10px; padding: 4px 0; }
+        .quick-item strong { font-weight: 800; }
+        .quick-item span { color: var(--gray-500); font-size: 14px; }
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
         .news-grid { display: grid; gap: 16px; }
         .filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
         .filters select, .filters input { padding: 10px 12px; border: 1px solid var(--gray-100); border-radius: 10px; font-weight: 600; }
@@ -148,7 +181,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .card-desc { color: var(--gray-500); font-size: 14px; }
+        .card-desc { color: var(--gray-500); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
         .reports { display: grid; gap: 12px; }
         .report-item { border: 1px solid var(--gray-100); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px; box-shadow: var(--card-shadow); background: var(--white); }
@@ -170,13 +203,19 @@
         .faq-item.open .faq-answer { display: block; }
 
         footer { background: var(--navy-900); color: var(--white); padding: 28px 18px; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: start; }
         .footer-title { font-weight: 800; margin-bottom: 10px; }
+        .footer-brand { margin-top: 5px; }
+        .footer-links { margin-top: 22px; }
         .footer-links a { display: block; color: #e2e8f0; margin-bottom: 6px; }
-        .footer-meta { margin-top: 12px; color: #cbd5e1; }
+        .footer-meta { margin-top: 12px; color: #cbd5e1; max-width: 1200px; margin-left: auto; margin-right: auto; text-align: left; }
 
         @media (max-width: 820px) {
             .featured { grid-template-columns: 1fr; }
+            .banner-track { height: 55vh; min-height: 320px; }
+            .banner-card .banner-text { font-size: 18px; }
+            .banner-content { padding: 18px; }
+            .quick-marquee { animation-duration: 75s; }
         }
     </style>
 </head>
@@ -203,6 +242,32 @@
         </div>
     </div>
 </header>
+
+<section id="news-banner">
+    <div class="banner-shell">
+        <div class="news-banner">
+            <div class="banner-header">
+                <div class="banner-title">Tin tức mới nhất</div>
+                <div class="banner-nav">
+                    <button class="banner-btn" id="bannerPrev" type="button" aria-label="Tin trước">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="banner-btn" id="bannerNext" type="button" aria-label="Tin sau">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="banner-track" id="bannerTrack"></div>
+            <div class="banner-dots" id="bannerDots"></div>
+        </div>
+        <div class="quick-brief">
+            <div class="quick-title">Điểm tin nhanh</div>
+            <div class="quick-track">
+                <div class="quick-marquee" id="quickMarquee"></div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <section class="hero" id="top">
     <div>
@@ -318,7 +383,7 @@
 
 <footer>
     <div class="footer-inner">
-        <div>
+        <div class="footer-brand">
             <img src="../Image/icon.png" alt="iPOOR" style="width:40px;height:40px;margin-bottom:8px;">
             <div class="footer-title">iPOOR</div>
             <div>Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia.</div>
@@ -334,7 +399,8 @@
             <div>Email: vienclcs@mae.gov.vn</div>
             <div>Tel: 04-39722067</div>
             <div>Fax: 84-4-39711062</div>
-            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE), Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
+            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE)</div>
+            <div>Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
         </div>
     </div>
     <div class="footer-meta">© 2025 Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia – iPOOR</div>
@@ -364,6 +430,7 @@
 
     const API_BASE_URL = window.IPOOR_API_BASE || '/api';
     const PUBLIC_POLICY_ENDPOINT = `${API_BASE_URL}/policies/public`;
+    const PUBLIC_BRIEF_ENDPOINT = `${API_BASE_URL}/policies/public/brief`;
     const POLICY_SELECTED_KEY = 'ipoor_policy_selected_id';
     const featuredMain = document.getElementById('featuredMain');
     const featuredList = document.getElementById('featuredList');
@@ -372,10 +439,18 @@
     const newsFilter = document.getElementById('newsFilter');
     const newsSearch = document.getElementById('newsSearch');
     const newsSearchBtn = document.getElementById('newsSearchBtn');
+    const bannerTrack = document.getElementById('bannerTrack');
+    const bannerDots = document.getElementById('bannerDots');
+    const bannerPrev = document.getElementById('bannerPrev');
+    const bannerNext = document.getElementById('bannerNext');
+    const quickMarquee = document.getElementById('quickMarquee');
     const statHouseholds = document.getElementById('stat-households');
     const statProvinces = document.getElementById('stat-provinces');
     let publicPolicies = [];
     const NEWS_LIMIT = 12;
+    let bannerIndex = 0;
+    let bannerTimer = null;
+    let quickItems = [];
 
     const typeLabels = {
         decree: { text: 'Chính sách', cls: 'policy' },
@@ -524,6 +599,85 @@
 
     function buildPolicyLink(id) {
         return `./PolicyPublicDetail.html?id=${id}`;
+    }
+
+    function parseDateValue(item) {
+        const raw = item?.updated_at || item?.created_at || '';
+        const value = Date.parse(raw);
+        return Number.isNaN(value) ? 0 : value;
+    }
+
+    function renderBanner(items) {
+        if (!bannerTrack || !bannerDots) return;
+        bannerTrack.innerHTML = '';
+        bannerDots.innerHTML = '';
+        if (!items.length) {
+            bannerTrack.innerHTML = '<div class="banner-card active"><div class="banner-text">Chưa có tin mới.</div></div>';
+            return;
+        }
+        items.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = `banner-card${index === 0 ? ' active' : ''}`;
+            const meta = [formatDate(item.updated_at || item.created_at), mapCategory(item.category || 'other').text]
+                .filter(Boolean)
+                .join(' · ');
+            const imageSource = getFirstBlockImage(item) || normalizeAttachmentUrl(item.attachment_url || '') || '../Image/xoa-doi-giam-ngheo.jpg';
+            card.innerHTML = `
+                <div class="banner-media" style="background-image: url('${imageSource}')"></div>
+                <div class="banner-overlay"></div>
+                <div class="banner-content">
+                    <div class="banner-meta">${meta}</div>
+                    <div class="banner-text">${item.title || 'Chưa có tiêu đề'}</div>
+                    <a class="banner-link" href="${buildPolicyLink(item.id)}">Xem chi tiết →</a>
+                </div>
+            `;
+            bannerTrack.appendChild(card);
+
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = `banner-dot${index === 0 ? ' active' : ''}`;
+            dot.setAttribute('aria-label', `Tin ${index + 1}`);
+            dot.addEventListener('click', () => setBannerIndex(index));
+            bannerDots.appendChild(dot);
+        });
+        bannerIndex = 0;
+        startBannerAuto(items.length);
+    }
+
+    function renderQuickBrief(items) {
+        if (!quickMarquee) return;
+        quickMarquee.innerHTML = '';
+        quickItems = items || [];
+        if (!quickItems.length) {
+            quickMarquee.innerHTML = '<div class="quick-item"><strong>Chưa có tin mới.</strong></div>';
+            return;
+        }
+        const buildItem = (item) => {
+            const title = item.title || 'Chưa có tiêu đề';
+            const description = item.summary || item.description || '';
+            const span = document.createElement('div');
+            span.className = 'quick-item';
+            span.innerHTML = `<strong>${title}</strong><span>- ${description}</span>`;
+            return span;
+        };
+        quickItems.forEach((item) => quickMarquee.appendChild(buildItem(item)));
+        quickItems.forEach((item) => quickMarquee.appendChild(buildItem(item)));
+    }
+
+    function setBannerIndex(index) {
+        if (!bannerTrack || !bannerDots) return;
+        const cards = Array.from(bannerTrack.children);
+        const dots = Array.from(bannerDots.children);
+        if (!cards.length) return;
+        bannerIndex = (index + cards.length) % cards.length;
+        cards.forEach((card, idx) => card.classList.toggle('active', idx === bannerIndex));
+        dots.forEach((dot, idx) => dot.classList.toggle('active', idx === bannerIndex));
+    }
+
+    function startBannerAuto(length) {
+        if (bannerTimer) clearInterval(bannerTimer);
+        if (length <= 1) return;
+        bannerTimer = setInterval(() => setBannerIndex(bannerIndex + 1), 5000);
     }
 
     function renderFeatured(items) {
@@ -675,16 +829,35 @@
                 renderFeatured([]);
                 renderNews([]);
                 renderReports([]);
+                renderBanner([]);
                 return;
             }
             publicPolicies = await res.json();
             renderFeatured(publicPolicies);
             renderNews(publicPolicies);
             renderReports(publicPolicies);
+            const sortedLatest = [...publicPolicies].sort((a, b) => parseDateValue(b) - parseDateValue(a)).slice(0, 7);
+            renderBanner(sortedLatest);
         } catch (error) {
             renderFeatured([]);
             renderNews([]);
             renderReports([]);
+            renderBanner([]);
+        }
+    }
+
+    async function loadQuickBrief() {
+        if (!quickMarquee) return;
+        try {
+            const res = await fetch(`${PUBLIC_BRIEF_ENDPOINT}?limit=7`);
+            if (!res.ok) {
+                renderQuickBrief([]);
+                return;
+            }
+            const items = await res.json();
+            renderQuickBrief(items);
+        } catch (_) {
+            renderQuickBrief([]);
         }
     }
 
@@ -702,9 +875,16 @@
     if (newsSearchBtn) {
         newsSearchBtn.addEventListener('click', applyFilters);
     }
+    if (bannerPrev) {
+        bannerPrev.addEventListener('click', () => setBannerIndex(bannerIndex - 1));
+    }
+    if (bannerNext) {
+        bannerNext.addEventListener('click', () => setBannerIndex(bannerIndex + 1));
+    }
 
     loadPublicPolicies();
     loadHouseholdStats();
+    loadQuickBrief();
 </script>
 </body>
 </html>

@@ -147,10 +147,12 @@
         .leaflet-container:focus,
         .leaflet-interactive:focus { outline: none; }
         footer { background: var(--navy-900); color: var(--white); padding: 28px 18px; margin-top: 36px; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: start; }
         .footer-title { font-weight: 800; margin-bottom: 10px; }
+        .footer-brand { margin-top: 5px; }
+        .footer-links { margin-top: 22px; }
         .footer-links a { display: block; color: #e2e8f0; margin-bottom: 6px; }
-        .footer-meta { margin-top: 12px; color: #cbd5e1; }
+        .footer-meta { margin-top: 12px; color: #cbd5e1; max-width: 1200px; margin-left: auto; margin-right: auto; text-align: left; }
 
         @media (max-width: 1100px) {
             .map-section { grid-template-columns: 1fr; }
@@ -256,7 +258,7 @@
 
 <footer>
     <div class="footer-inner">
-        <div>
+        <div class="footer-brand">
             <img src="../Image/icon.png" alt="iPOOR" style="width:40px;height:40px;margin-bottom:8px;">
             <div class="footer-title">iPOOR</div>
             <div>Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia.</div>
@@ -265,7 +267,6 @@
             <a href="./NewsPublic.html">Tin tức & Chính sách</a>
             <a href="./index.html#reports">Báo cáo</a>
             <a href="./index.html#about">Về iPOOR</a>
-            <a href="./GISPublic.html">Bản đồ nghèo</a>
             <a href="../Auth/Login.html">Đăng nhập cán bộ</a>
         </div>
         <div>
@@ -273,7 +274,8 @@
             <div>Email: vienclcs@mae.gov.vn</div>
             <div>Tel: 04-39722067</div>
             <div>Fax: 84-4-39711062</div>
-            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE), Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
+            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE)</div>
+            <div>Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
         </div>
     </div>
     <div class="footer-meta">© 2025 Bộ công cụ số hóa quản lý chuẩn nghèo quốc gia – iPOOR</div>
