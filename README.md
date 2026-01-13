@@ -1,9 +1,9 @@
 # iPoor
 MIS for Poverty Reduction
 
-## Quick start (Docker)
+## Local Docker (recommended)
 
-1) Ensure `backend/.env` exists and matches the DB container:
+1) Create `backend/.env`:
 
 ```
 DB_HOST=db
@@ -14,27 +14,40 @@ DB_NAME=iPoor
 ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
-2) Build + run:
+2) Persist uploads on host (avoid losing images on rebuild):
+
+In `docker-compose.yml` (service `api`):
+
+```yaml
+services:
+  api:
+    volumes:
+      - ./backend/uploads:/app/uploads
+```
+
+Create the folder:
+
+```bash
+mkdir -p backend/uploads
+```
+
+3) Build + run:
 
 ```bash
 docker compose up -d --build
 ```
 
-3) Open:
+4) Open:
    - Frontend: `http://localhost:3000/LandingPage/index.html`
    - Backend: `http://localhost:8000/docs`
 
 ## Seed demo data
 
-Run inside the API container:
-
 ```bash
-docker exec -it ipoor_api sh -c "cd /app && python -m app.seeds.seed_all"
+docker compose exec api sh -c "cd /app && python -m app.seeds.seed_all"
 ```
 
-## Reset DB (only when passwords/DB name changed)
-
-This will delete all data:
+## Reset DB (only when DB name/password changed)
 
 ```bash
 docker compose down
@@ -45,63 +58,54 @@ docker compose up -d --build
 Then re-seed:
 
 ```bash
-docker exec -it ipoor_api sh -c "cd /app && python -m app.seeds.seed_all"
+docker compose exec api sh -c "cd /app && python -m app.seeds.seed_all"
 ```
 
-## GIS/Dashboard data
-
-API reads data from:
-
-- `FE/data/processed/gis_indicator_values.csv`
-- `FE/data/processed/region_map.json`
-
-The GIS data is embedded into the backend Docker image during build. If you update the CSV/JSON files, rebuild the API image:
+## Rebuild only API (GIS data updated)
 
 ```bash
 docker compose up -d --build api
 ```
 
-## Standalone Docker builds (without docker-compose)
+## Production / Coolify
 
-The backend Dockerfile uses the **repo root** as its build context to access `FE/data`. When building standalone images:
+1) Configure environment in Coolify (or `backend/.env` on server):
 
-```bash
-# Backend API - must run from repo root
-docker build -f backend/Dockerfile -t ipoor-api .
-
-# Frontend - can run from FE directory
-cd FE && docker build -t ipoor-fe .
+```
+DB_HOST=<prod-db-host>
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=<prod-password>
+DB_NAME=<prod-db-name>
+ALLOWED_ORIGINS=https://ipoor.hanzomaster.dev
 ```
 
-Do NOT build the backend from inside the `backend/` directory, as it needs access to `FE/data` for GIS endpoints.
+2) Persist uploads in production:
 
-## Public demo via Cloudflare Tunnel (no domain)
-
-1) Run two tunnels:
-
-```bash
-cloudflared.exe tunnel --url http://localhost:3000
-cloudflared.exe tunnel --url http://localhost:8000
+```yaml
+services:
+  api:
+    volumes:
+      - ./backend/uploads:/app/uploads
 ```
 
-2) Update FE API base:
-
-`FE/config.js`:
+3) FE config auto-detects local vs prod. Optional override:
 
 ```js
-window.IPOOR_API_BASE = "https://<api-trycloudflare-url>";
+window.IPOOR_API_BASE = "https://ipoor.hanzomaster.dev/api";
 ```
 
-3) Allow CORS for the FE URL:
-
-`backend/.env`:
-
-```
-ALLOWED_ORIGINS=https://<fe-trycloudflare-url>,http://localhost:3000,http://127.0.0.1:3000
-```
-
-4) Rebuild:
+4) Deploy:
 
 ```bash
 docker compose up -d --build
+```
+
+## Standalone Docker builds (no compose)
+
+Backend uses repo root as build context (needs `FE/data`):
+
+```bash
+docker build -f backend/Dockerfile -t ipoor-api .
+cd FE && docker build -t ipoor-fe .
 ```
