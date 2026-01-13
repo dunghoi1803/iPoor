@@ -14,6 +14,8 @@ DB_NAME=iPoor
 ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
+Note: If you change `DB_PASSWORD` or `DB_NAME` in `backend/.env`, update the MySQL container settings in `docker-compose.yml` (`MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`) to match. If the DB was already created, reset the volume or recreate the DB with the new credentials.
+
 2) Persist uploads on host (avoid losing images on rebuild):
 
 In `docker-compose.yml` (service `api`):
