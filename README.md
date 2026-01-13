@@ -77,7 +77,7 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=<prod-password>
 DB_NAME=<prod-db-name>
-ALLOWED_ORIGINS=https://ipoor.hanzomaster.dev
+ALLOWED_ORIGINS=https://<your-domain>
 ```
 
 2) Persist uploads in production:
@@ -92,7 +92,7 @@ services:
 3) FE config auto-detects local vs prod. Optional override:
 
 ```js
-window.IPOOR_API_BASE = "https://ipoor.hanzomaster.dev/api";
+window.IPOOR_API_BASE = "https://<your-domain>/api";
 ```
 
 4) Deploy:
