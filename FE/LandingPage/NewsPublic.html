@@ -486,7 +486,7 @@
         };
         items.forEach((item) => newsTicker.appendChild(buildItem(item)));
         items.forEach((item) => newsTicker.appendChild(buildItem(item)));
-        requestAnimationFrame(() => setTickerSpeed(newsTicker, 50));
+        requestAnimationFrame(() => setTickerSpeed(newsTicker, 75));
     }
 
     function setTickerSpeed(marquee, speedPxPerSec) {
@@ -604,7 +604,7 @@
         newsSearchBtn.addEventListener('click', applyFilters);
     }
     if (newsTicker) {
-        window.addEventListener('resize', () => setTickerSpeed(newsTicker, 50));
+        window.addEventListener('resize', () => setTickerSpeed(newsTicker, 75));
     }
 
     loadPublicPolicies();

@@ -662,7 +662,7 @@
         };
         quickItems.forEach((item) => quickMarquee.appendChild(buildItem(item)));
         quickItems.forEach((item) => quickMarquee.appendChild(buildItem(item)));
-        requestAnimationFrame(() => setTickerSpeed(quickMarquee, 50));
+        requestAnimationFrame(() => setTickerSpeed(quickMarquee, 75));
     }
 
     function setTickerSpeed(marquee, speedPxPerSec) {
@@ -892,7 +892,7 @@
         bannerNext.addEventListener('click', () => setBannerIndex(bannerIndex + 1));
     }
     if (quickMarquee) {
-        window.addEventListener('resize', () => setTickerSpeed(quickMarquee, 50));
+        window.addEventListener('resize', () => setTickerSpeed(quickMarquee, 75));
     }
 
     loadPublicPolicies();
