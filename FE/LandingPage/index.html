@@ -428,7 +428,7 @@
         });
     }
 
-    const API_BASE_URL = window.IPOOR_API_BASE || '/api';
+    const API_BASE_URL = window.IPOOR_API_BASE;
     const PUBLIC_POLICY_ENDPOINT = `${API_BASE_URL}/policies/public`;
     const PUBLIC_BRIEF_ENDPOINT = `${API_BASE_URL}/policies/public/brief`;
     const POLICY_SELECTED_KEY = 'ipoor_policy_selected_id';
@@ -662,6 +662,16 @@
         };
         quickItems.forEach((item) => quickMarquee.appendChild(buildItem(item)));
         quickItems.forEach((item) => quickMarquee.appendChild(buildItem(item)));
+        requestAnimationFrame(() => setTickerSpeed(quickMarquee, 50));
+    }
+
+    function setTickerSpeed(marquee, speedPxPerSec) {
+        if (!marquee || !marquee.parentElement) return;
+        const trackWidth = marquee.parentElement.clientWidth;
+        const contentWidth = marquee.scrollWidth;
+        if (!trackWidth || !contentWidth) return;
+        const duration = Math.max((contentWidth + trackWidth) / speedPxPerSec, 30);
+        marquee.style.animationDuration = `${duration.toFixed(2)}s`;
     }
 
     function setBannerIndex(index) {
@@ -880,6 +890,9 @@
     }
     if (bannerNext) {
         bannerNext.addEventListener('click', () => setBannerIndex(bannerIndex + 1));
+    }
+    if (quickMarquee) {
+        window.addEventListener('resize', () => setTickerSpeed(quickMarquee, 50));
     }
 
     loadPublicPolicies();

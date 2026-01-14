@@ -150,8 +150,15 @@
 
         .report-grid { display: grid; gap: 12px; }
         .report-item { background: var(--white); border: 1px solid var(--gray-100); border-radius: 12px; padding: 12px; display: flex; gap: 10px; align-items: center; box-shadow: var(--card-shadow); }
-        .report-icon { width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; display: grid; place-items: center; font-weight: 800; color: #b91c1c; }
-        .report-action { color: var(--blue-500); font-weight: 800; margin-left: auto; }
+        .report-icon { width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; display: grid; place-items: center; font-weight: 800; color: #b91c1c; flex-shrink: 0; }
+        .report-body { min-width: 0; }
+        .report-item .card-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .report-action { color: var(--blue-500); font-weight: 800; margin-left: auto; white-space: nowrap; }
 
         footer { background: var(--navy-900); color: var(--white); padding: 28px 18px; margin-top: 36px; }
         .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: start; }
@@ -283,7 +290,7 @@
 
 <script src="../config.js"></script>
 <script>
-    const API_BASE_URL = window.IPOOR_API_BASE || '/api';
+    const API_BASE_URL = window.IPOOR_API_BASE;
     const PUBLIC_POLICY_ENDPOINT = `${API_BASE_URL}/policies/public`;
     const PUBLIC_BRIEF_ENDPOINT = `${API_BASE_URL}/policies/public/brief`;
     const NEWS_LIMIT = 24;
@@ -479,6 +486,16 @@
         };
         items.forEach((item) => newsTicker.appendChild(buildItem(item)));
         items.forEach((item) => newsTicker.appendChild(buildItem(item)));
+        requestAnimationFrame(() => setTickerSpeed(newsTicker, 50));
+    }
+
+    function setTickerSpeed(marquee, speedPxPerSec) {
+        if (!marquee || !marquee.parentElement) return;
+        const trackWidth = marquee.parentElement.clientWidth;
+        const contentWidth = marquee.scrollWidth;
+        if (!trackWidth || !contentWidth) return;
+        const duration = Math.max((contentWidth + trackWidth) / speedPxPerSec, 30);
+        marquee.style.animationDuration = `${duration.toFixed(2)}s`;
     }
 
     function buildPublicQueryParams(type, keyword, limit) {
@@ -585,6 +602,9 @@
     }
     if (newsSearchBtn) {
         newsSearchBtn.addEventListener('click', applyFilters);
+    }
+    if (newsTicker) {
+        window.addEventListener('resize', () => setTickerSpeed(newsTicker, 50));
     }
 
     loadPublicPolicies();
