@@ -469,6 +469,10 @@
         } catch (_) {
             uploadFile = cccdFile;
         }
+        if (uploadFile.size > MAX_CCCD_BYTES) {
+            setStatus('Ảnh CCCD vượt quá 5MB.', true);
+            return;
+        }
 
         const formData = new FormData();
         formData.append('full_name', fullName);

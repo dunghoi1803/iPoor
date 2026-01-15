@@ -429,6 +429,7 @@
     const DRAFTS_ENDPOINT = `${API_BASE_URL}/policies/drafts`;
     const DRAFTS_CURRENT_ENDPOINT = `${API_BASE_URL}/policies/drafts/current`;
     const DRAFT_UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload-draft`;
+    const PRESIGN_ENDPOINT = `${API_BASE_URL}/files/presign`;
     const DROPZONE_HOVER_BORDER = 'var(--blue-500)';
     const DROPZONE_DEFAULT_BORDER = 'var(--gray-300)';
     const HTTP_STATUS_UNAUTHORIZED = 401;
@@ -622,6 +623,59 @@
         return await res.blob();
     }
 
+    async function uploadFileViaPresign(file, options = {}) {
+        const token = getToken();
+        if (!token) {
+            redirectToLogin();
+            return '';
+        }
+        if (file && file.size > FILE_LIMIT_BYTES) {
+            throw new Error('Tệp vượt quá 20MB');
+        }
+        const payload = {
+            filename: file.name,
+            content_type: file.type || 'application/octet-stream',
+            entity_type: options.entityType || 'policy',
+            purpose: options.purpose || 'attachment',
+            policy_category: options.policyCategory || null,
+            household_code: options.householdCode || null,
+            poverty_status: options.povertyStatus || null,
+            head_name: options.headName || null,
+            id_card: options.idCard || null,
+        };
+        let presignRes;
+        try {
+            presignRes = await fetch(PRESIGN_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+        } catch (_) {
+            return '';
+        }
+        if (presignRes.status === HTTP_STATUS_UNAUTHORIZED) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            redirectToLogin();
+            return '';
+        }
+        if (!presignRes.ok) return '';
+        const data = await presignRes.json();
+        if (!data?.upload_url || !data?.file_url) return '';
+        const putRes = await fetch(data.upload_url, {
+            method: 'PUT',
+            headers: { 'Content-Type': payload.content_type },
+            body: file,
+        });
+        if (!putRes.ok) {
+            throw new Error('Upload tệp không thành công');
+        }
+        return data.file_url;
+    }
+
     async function uploadEditorImage(file) {
         const token = getToken();
         if (!token) {
@@ -662,8 +716,17 @@
             redirectToLogin();
             return '';
         }
+        const normalizedPurpose = (purpose || '').toLowerCase();
+        if (normalizedPurpose === 'attachment') {
+            const presignedUrl = await uploadFileViaPresign(file, {
+                entityType: 'policy',
+                purpose: 'draft_attachment',
+                policyCategory: categoryInput.value || null,
+            });
+            if (presignedUrl) return presignedUrl;
+        }
         let uploadFile = file;
-        if ((purpose || '').toLowerCase() === 'image') {
+        if (normalizedPurpose === 'image') {
             try {
                 uploadFile = await compressImageToWebp(file);
             } catch (_) {
@@ -690,6 +753,41 @@
         const payload = await res.json();
         if (payload?.file?.url) return payload.file.url;
         return payload?.url || '';
+    }
+
+    async function uploadPolicyAttachment(file) {
+        const presignedUrl = await uploadFileViaPresign(file, {
+            entityType: 'policy',
+            purpose: 'attachment',
+            policyCategory: categoryInput.value || null,
+        });
+        if (presignedUrl) return presignedUrl;
+        const token = getToken();
+        if (!token) {
+            redirectToLogin();
+            return '';
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('entity_type', 'policy');
+        formData.append('policy_category', categoryInput.value || 'report');
+        formData.append('policy_title', titleInput.value.trim());
+        formData.append('policy_doc_type', docTypeInput.value.trim() || DEFAULT_DOC_TYPE);
+        formData.append('policy_doc_version', docVersionInput.value.trim() || DEFAULT_DOC_VERSION);
+        const uploadRes = await fetch(UPLOAD_ENDPOINT, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+        });
+        if (uploadRes.status === HTTP_STATUS_UNAUTHORIZED) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            redirectToLogin();
+            return '';
+        }
+        if (!uploadRes.ok) throw new Error('Upload tệp không thành công');
+        const uploadData = await uploadRes.json();
+        return normalizeAttachmentUrl(uploadData.url || '');
     }
 
     async function replaceImageUrlsForDraft(editorData) {
@@ -1321,28 +1419,8 @@
         const finalizedEditorData = await replaceImageUrlsForPublish(editorData);
         let attachmentUrl = existingAttachmentUrl;
         if (attachments.length) {
-            const formData = new FormData();
-            formData.append('file', attachments[0]);
-            formData.append('entity_type', 'policy');
-            formData.append('policy_category', categoryInput.value || 'report');
-            formData.append('policy_title', titleInput.value.trim());
-            formData.append('policy_doc_type', docTypeInput.value.trim() || DEFAULT_DOC_TYPE);
-            formData.append('policy_doc_version', docVersionInput.value.trim() || DEFAULT_DOC_VERSION);
             try {
-                const uploadRes = await fetch(UPLOAD_ENDPOINT, {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${token}` },
-                    body: formData,
-                });
-                if (uploadRes.status === HTTP_STATUS_UNAUTHORIZED) {
-                    localStorage.removeItem(TOKEN_STORAGE_KEY);
-                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-                    redirectToLogin();
-                    return;
-                }
-                if (!uploadRes.ok) throw new Error('Upload tệp không thành công');
-                const uploadData = await uploadRes.json();
-                attachmentUrl = normalizeAttachmentUrl(uploadData.url || '');
+                attachmentUrl = await uploadPolicyAttachment(attachments[0]);
             } catch (err) {
                 showToast(err.message, true);
                 return;
@@ -1352,27 +1430,7 @@
                 const blob = await urlToBlob(attachmentUrl);
                 const name = `attachment.${(blob.type || 'application/pdf').split('/').pop()}`;
                 const file = new File([blob], name, { type: blob.type || 'application/pdf' });
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('entity_type', 'policy');
-                formData.append('policy_category', categoryInput.value || 'report');
-                formData.append('policy_title', titleInput.value.trim());
-                formData.append('policy_doc_type', docTypeInput.value.trim() || DEFAULT_DOC_TYPE);
-                formData.append('policy_doc_version', docVersionInput.value.trim() || DEFAULT_DOC_VERSION);
-                const uploadRes = await fetch(UPLOAD_ENDPOINT, {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${token}` },
-                    body: formData,
-                });
-                if (uploadRes.status === HTTP_STATUS_UNAUTHORIZED) {
-                    localStorage.removeItem(TOKEN_STORAGE_KEY);
-                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-                    redirectToLogin();
-                    return;
-                }
-                if (!uploadRes.ok) throw new Error('Upload tệp không thành công');
-                const uploadData = await uploadRes.json();
-                attachmentUrl = normalizeAttachmentUrl(uploadData.url || '');
+                attachmentUrl = await uploadPolicyAttachment(file);
             } catch (err) {
                 showToast(err.message, true);
                 return;
@@ -1634,8 +1692,6 @@
 </script>
 </body>
 </html>
-
-
 
 
 

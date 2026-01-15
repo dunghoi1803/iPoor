@@ -2,7 +2,9 @@ from pathlib import Path
 from urllib.parse import quote
 
 import aiofiles
+import boto3
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 
@@ -20,6 +22,45 @@ MAX_CCCD_BYTES = 5 * 1024 * 1024
 ALLOWED_CCCD_TYPES = {"image/png"}
 
 
+def get_s3_client():
+    if not settings.s3_bucket or not settings.s3_region:
+        return None
+    if not settings.s3_access_key_id or not settings.s3_secret_access_key:
+        return None
+    return boto3.client(
+        "s3",
+        region_name=settings.s3_region,
+        aws_access_key_id=settings.s3_access_key_id,
+        aws_secret_access_key=settings.s3_secret_access_key,
+        endpoint_url=settings.s3_endpoint_url or None,
+    )
+
+
+def build_public_file_url(key: str) -> str:
+    if settings.s3_public_base_url:
+        return f"{settings.s3_public_base_url.rstrip('/')}/{key}"
+    if settings.s3_endpoint_url:
+        return f"{settings.s3_endpoint_url.rstrip('/')}/{settings.s3_bucket}/{key}"
+    return f"https://{settings.s3_bucket}.s3.{settings.s3_region}.amazonaws.com/{key}"
+
+
+def upload_cccd_to_s3(file_path: Path, key: str) -> str | None:
+    client = get_s3_client()
+    if not client:
+        return None
+    try:
+        with file_path.open("rb") as handle:
+            client.upload_fileobj(
+                handle,
+                settings.s3_bucket,
+                key,
+                ExtraArgs={"ContentType": "image/png"},
+            )
+    except Exception:
+        return None
+    return build_public_file_url(key)
+
+
 @router.post("/register", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 async def register_user(
     email: EmailStr = Form(...),
@@ -34,49 +75,61 @@ async def register_user(
     district: str | None = Form(None),
     commune: str | None = Form(None),
     is_active: bool = Form(True),
-    cccd_image: UploadFile = File(...),
+    cccd_image: UploadFile | None = File(None),
+    cccd_image_url: str | None = Form(None),
     db: Session = Depends(deps.get_db),
 ) -> models.User:
     existing = db.query(models.User).filter(models.User.email == email).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    if cccd_image.content_type not in ALLOWED_CCCD_TYPES:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only PNG files are allowed")
+    if cccd_image_url and cccd_image_url.strip():
+        image_url = cccd_image_url.strip()
+    else:
+        if not cccd_image:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CCCD image is required")
+        if cccd_image.content_type not in ALLOWED_CCCD_TYPES:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only PNG files are allowed")
 
-    target_dir = UPLOAD_DIR / USER_UPLOAD_SUBDIR
-    target_dir.mkdir(parents=True, exist_ok=True)
-    extension = Path(cccd_image.filename or "").suffix or ".png"
-    safe_cccd = slugify_filename(cccd or "")
-    safe_name = slugify_filename(full_name)
-    prefix_parts = [part for part in ["cccd", safe_cccd, safe_name] if part]
-    raw_name = f"{FILENAME_SEPARATOR.join(prefix_parts)}{extension}"
-    stored_name = raw_name[:FILENAME_MAX_LENGTH]
-    file_path = target_dir / stored_name
-    counter = 1
-    stem = Path(stored_name).stem
-    while file_path.exists():
-        candidate = f"{stem}{FILENAME_SEPARATOR}{counter}{extension}"
-        stored_name = candidate[:FILENAME_MAX_LENGTH]
+        target_dir = UPLOAD_DIR / USER_UPLOAD_SUBDIR
+        target_dir.mkdir(parents=True, exist_ok=True)
+        extension = Path(cccd_image.filename or "").suffix or ".png"
+        safe_cccd = slugify_filename(cccd or "")
+        safe_name = slugify_filename(full_name)
+        prefix_parts = [part for part in ["cccd", safe_cccd, safe_name] if part]
+        raw_name = f"{FILENAME_SEPARATOR.join(prefix_parts)}{extension}"
+        stored_name = raw_name[:FILENAME_MAX_LENGTH]
         file_path = target_dir / stored_name
-        counter += 1
+        counter = 1
+        stem = Path(stored_name).stem
+        while file_path.exists():
+            candidate = f"{stem}{FILENAME_SEPARATOR}{counter}{extension}"
+            stored_name = candidate[:FILENAME_MAX_LENGTH]
+            file_path = target_dir / stored_name
+            counter += 1
 
-    total_bytes = 0
-    try:
-        async with aiofiles.open(file_path, "wb") as out_file:
-            while True:
-                chunk = await cccd_image.read(1024 * 1024)
-                if not chunk:
-                    break
-                total_bytes += len(chunk)
-                if total_bytes > MAX_CCCD_BYTES:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File exceeds 5MB")
-                await out_file.write(chunk)
-    except HTTPException:
-        if file_path.exists():
-            file_path.unlink(missing_ok=True)
-        raise
+        total_bytes = 0
+        try:
+            async with aiofiles.open(file_path, "wb") as out_file:
+                while True:
+                    chunk = await cccd_image.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total_bytes += len(chunk)
+                    if total_bytes > MAX_CCCD_BYTES:
+                        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File exceeds 5MB")
+                    await out_file.write(chunk)
+        except HTTPException:
+            if file_path.exists():
+                file_path.unlink(missing_ok=True)
+            raise
 
-    image_url = f"/files/{USER_UPLOAD_SUBDIR}/{quote(stored_name)}"
+        image_url = f"/files/{USER_UPLOAD_SUBDIR}/{quote(stored_name)}"
+        if settings.s3_bucket and settings.s3_region:
+            s3_key = f"{USER_UPLOAD_SUBDIR}/{stored_name}"
+            s3_url = await run_in_threadpool(upload_cccd_to_s3, file_path, s3_key)
+            if s3_url:
+                image_url = s3_url
+                file_path.unlink(missing_ok=True)
     user = models.User(
         email=email,
         full_name=full_name,

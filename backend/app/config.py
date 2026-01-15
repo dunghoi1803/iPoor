@@ -25,6 +25,14 @@ class Settings(BaseSettings):
 
     upload_dir: str = Field("uploads", alias="UPLOAD_DIR")
 
+    s3_bucket: str | None = Field(None, alias="AWS_S3_BUCKET")
+    s3_region: str | None = Field(None, alias="AWS_REGION")
+    s3_access_key_id: str | None = Field(None, alias="AWS_ACCESS_KEY_ID")
+    s3_secret_access_key: str | None = Field(None, alias="AWS_SECRET_ACCESS_KEY")
+    s3_endpoint_url: str | None = Field(None, alias="AWS_S3_ENDPOINT_URL")
+    s3_public_base_url: str | None = Field(None, alias="AWS_S3_PUBLIC_BASE_URL")
+    s3_presign_expires: int = Field(900, alias="AWS_S3_PRESIGN_EXPIRES")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

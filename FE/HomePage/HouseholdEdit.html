@@ -333,6 +333,7 @@
     const LOGIN_URL = '../Auth/Login.html';
     const LIST_URL = './HouseholdList.html';
     const UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload`;
+    const PRESIGN_ENDPOINT = `${API_BASE_URL}/files/presign`;
     const FILE_LIMIT_BYTES = 20 * 1024 * 1024;
     const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
     const IMAGE_MAX_DIM = 1920;
@@ -525,6 +526,55 @@
         return value;
     }
 
+    async function uploadFileViaPresign(file, options = {}) {
+        const token = getToken();
+        if (!token) {
+            window.location.href = LOGIN_URL;
+            return '';
+        }
+        const payload = {
+            filename: file.name,
+            content_type: file.type || 'application/octet-stream',
+            entity_type: options.entityType || 'household',
+            purpose: options.purpose || 'attachment',
+            household_code: options.householdCode || null,
+            poverty_status: options.povertyStatus || null,
+            head_name: options.headName || null,
+            id_card: options.idCard || null,
+        };
+        let presignRes;
+        try {
+            presignRes = await fetch(PRESIGN_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+        } catch (_) {
+            return '';
+        }
+        if (presignRes.status === 401) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            window.location.href = LOGIN_URL;
+            return '';
+        }
+        if (!presignRes.ok) return '';
+        const data = await presignRes.json();
+        if (!data?.upload_url || !data?.file_url) return '';
+        const putRes = await fetch(data.upload_url, {
+            method: 'PUT',
+            headers: { 'Content-Type': payload.content_type },
+            body: file,
+        });
+        if (!putRes.ok) {
+            throw new Error('Upload PDF không thành công');
+        }
+        return data.file_url;
+    }
+
     function reverseStatus(enumValue) {
         const entry = Object.entries(STATUS_ENUM).find(([, v]) => v === enumValue);
         return entry ? entry[0] : '';
@@ -654,29 +704,40 @@
                         uploadFile = selectedAttachment;
                     }
                 }
-                const formData = new FormData();
-                formData.append('file', uploadFile);
-                formData.append('entity_type', 'household');
-                formData.append('household_code', originalHouseholdCode || '');
-                formData.append('poverty_status', payload.poverty_status || '');
-                formData.append('head_name', payload.head_name || '');
-                formData.append('id_card', payload.id_card || '');
-                const uploadRes = await fetch(UPLOAD_ENDPOINT, {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${token}` },
-                    body: formData,
+                let attachmentUrl = await uploadFileViaPresign(uploadFile, {
+                    entityType: 'household',
+                    purpose: 'attachment',
+                    householdCode: originalHouseholdCode || '',
+                    povertyStatus: payload.poverty_status || '',
+                    headName: payload.head_name || '',
+                    idCard: payload.id_card || '',
                 });
-                if (uploadRes.status === 401) {
-                    localStorage.removeItem(TOKEN_STORAGE_KEY);
-                    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-                    window.location.href = LOGIN_URL;
-                    return;
+                if (!attachmentUrl) {
+                    const formData = new FormData();
+                    formData.append('file', uploadFile);
+                    formData.append('entity_type', 'household');
+                    formData.append('household_code', originalHouseholdCode || '');
+                    formData.append('poverty_status', payload.poverty_status || '');
+                    formData.append('head_name', payload.head_name || '');
+                    formData.append('id_card', payload.id_card || '');
+                    const uploadRes = await fetch(UPLOAD_ENDPOINT, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: formData,
+                    });
+                    if (uploadRes.status === 401) {
+                        localStorage.removeItem(TOKEN_STORAGE_KEY);
+                        sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                        window.location.href = LOGIN_URL;
+                        return;
+                    }
+                    if (!uploadRes.ok) {
+                        throw new Error('Upload PDF không thành công');
+                    }
+                    const uploadData = await uploadRes.json();
+                    attachmentUrl = normalizeAttachmentUrl(uploadData.url || '');
                 }
-                if (!uploadRes.ok) {
-                    throw new Error('Upload PDF không thành công');
-                }
-                const uploadData = await uploadRes.json();
-                payload.attachment_url = normalizeAttachmentUrl(uploadData.url || '');
+                payload.attachment_url = attachmentUrl;
             }
             const res = await fetch(`${API_BASE_URL}/households/${householdId}`, {
                 method: 'PUT',
@@ -951,7 +1012,6 @@
 </script>
 </body>
 </html>
-
 
 
 
