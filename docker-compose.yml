@@ -39,6 +39,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./backend/uploads:/app/uploads
     networks:
       - ipoor_net
 
