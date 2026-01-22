@@ -487,20 +487,27 @@
             reportList.innerHTML = '<div class="meta">Chưa có báo cáo công khai.</div>';
             return;
         }
-        reportItems.slice(0, 6).forEach((item) => {
+        const sortedReports = reportItems.slice().sort((a, b) => {
+            const aDate = Date.parse(a?.updated_at || a?.created_at || '') || 0;
+            const bDate = Date.parse(b?.updated_at || b?.created_at || '') || 0;
+            return bDate - aDate;
+        });
+        const reportFiles = sortedReports.flatMap((item) => {
             const attachmentFiles = normalizeAttachmentFiles(item.attachment_files || []);
+            return attachmentFiles.map((file) => ({ item, file }));
+        });
+        reportFiles.slice(0, 10).forEach(({ item, file }) => {
             const card = document.createElement('div');
             card.className = 'report-item';
-            const fileLinks = attachmentFiles.map((file) => (
-                `<a class="report-action" href="${file.url}" target="_blank" rel="noopener">${item.title || 'Chưa có tiêu đề'} - ${file.name}</a>`
-            )).join('');
             card.innerHTML = `
                 <div class="report-icon">PDF</div>
                 <div class="report-body">
-                    <div class="card-title">${item.title || 'Chưa có tiêu đề'}</div>
+                    <div class="card-title">${item.title || 'Chưa có tiêu đề'} - ${file.name}</div>
                     <div class="meta">${formatDate(item.updated_at || item.created_at)}</div>
                 </div>
-                <div class="report-actions">${fileLinks}</div>
+                <div class="report-actions">
+                    <a class="report-action" href="${file.url}" target="_blank" rel="noopener">Tải về</a>
+                </div>
             `;
             reportList.appendChild(card);
         });
