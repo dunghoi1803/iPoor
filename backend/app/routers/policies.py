@@ -23,8 +23,12 @@ settings = get_settings()
 
 def extract_draft_file_urls(draft: models.PolicyDraft) -> set[str]:
     urls: set[str] = set()
-    if draft.attachment_url and draft.attachment_url.startswith("/files/drafts/"):
-        urls.add(draft.attachment_url)
+    for item in draft.attachment_files or []:
+        if not isinstance(item, dict):
+            continue
+        url = item.get("url")
+        if isinstance(url, str) and url.startswith("/files/drafts/"):
+            urls.add(url)
     blocks = draft.content_blocks or {}
     for block in blocks.get("blocks", []):
         if not isinstance(block, dict):

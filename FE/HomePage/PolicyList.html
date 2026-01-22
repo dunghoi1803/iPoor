@@ -210,7 +210,7 @@
             </a>
             <a class="nav-item" href="./GISMap.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/>`</svg></span>
-                <span class="nav-text">Bản đồ nghèo (GIS)</span>
+                <span class="nav-text">Bản đồ về hộ nghèo (GIS)</span>
             </a>
             <a class="nav-item" href="./ActivityLogs.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`</svg></span>
@@ -255,6 +255,7 @@
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const POLICY_SELECTED_KEY = 'ipoor_policy_selected_id';
     const POLICY_CACHE_KEY = 'ipoor_policy_cache';
+    const PRESIGN_GET_ENDPOINT = `${API_BASE_URL}/files/presign-get-auth`;
     const SUMMARY_MAX_LENGTH = 180;
     const typeLabels = {
         decree: { text: 'Chính sách', cls: 'policy' },
@@ -275,6 +276,7 @@
     const dropdownBtn = document.getElementById('accountDropdown');
     const dropdownMenu = document.getElementById('dropdownMenu');
     let policies = [];
+    const presignCache = new Map();
 
     function render(items) {
         listEl.innerHTML = '';
@@ -379,6 +381,34 @@
         return value;
     }
 
+    function isLikelyS3Url(value) {
+        if (!value) return false;
+        if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
+        if (value.startsWith(API_BASE_URL) || value.startsWith(window.location.origin)) return false;
+        return true;
+    }
+
+    async function presignGetUrl(url) {
+        const normalized = normalizeAttachmentUrl(url);
+        if (!isLikelyS3Url(normalized)) return normalized;
+        if (presignCache.has(normalized)) return presignCache.get(normalized);
+        const token = getToken();
+        if (!token) return normalized;
+        const res = await fetch(PRESIGN_GET_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ url: normalized }),
+        });
+        if (!res.ok) return normalized;
+        const data = await res.json();
+        const signed = data?.url || normalized;
+        presignCache.set(normalized, signed);
+        return signed;
+    }
+
     function formatDate(value) {
         if (!value) return 'Chưa rõ ngày đăng';
         const d = new Date(value);
@@ -397,10 +427,40 @@
         return `${text.slice(0, SUMMARY_MAX_LENGTH)}...`;
     }
 
+    function normalizeAttachmentFiles(items) {
+        if (!Array.isArray(items)) return [];
+        return items
+            .map((item) => {
+                if (!item || typeof item !== 'object') return null;
+                const url = normalizeAttachmentUrl(item.url || '');
+                const name = (item.name || '').trim();
+                if (!url || !name) return null;
+                return { url, name };
+            })
+            .filter(Boolean);
+    }
+
+    async function presignAttachmentFiles(items) {
+        const resolved = await Promise.all(items.map(async (item) => {
+            const signedUrl = await presignGetUrl(item.url);
+            return { ...item, url: signedUrl };
+        }));
+        return resolved;
+    }
+
+    async function presignPolicies(items) {
+        const resolved = await Promise.all(items.map(async (item) => {
+            const attachments = await presignAttachmentFiles(normalizeAttachmentFiles(item.attachment_files || []));
+            return { ...item, attachment_files: attachments };
+        }));
+        return resolved;
+    }
+
     function buildCard(item) {
         const mapped = mapCategory(item.category || 'other');
         const date = formatDate(item.updated_at || item.created_at);
-        const attachmentUrl = normalizeAttachmentUrl(item.attachment_url || '');
+        const attachmentFiles = normalizeAttachmentFiles(item.attachment_files || []);
+        const attachmentUrl = attachmentFiles.length ? attachmentFiles[0].url : '';
         const pdfLink = attachmentUrl ? `<a class="pdf" href="${attachmentUrl}" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2h6l3 3v9H4V2Z" stroke="#ea580c" stroke-width="1.2"/><path d="M10 2v3h3" stroke="#ea580c" stroke-width="1.2"/><path d="M5.5 9.5h1m3 0H11M8 9.5V13" stroke="#ea580c" stroke-width="1.1" stroke-linecap="round"/></svg>PDF</a>` : '';
         return `
         <article class="card">
@@ -441,6 +501,7 @@
             }
             if (!res.ok) throw new Error('Không tải được danh sách chính sách');
             policies = await res.json();
+            policies = await presignPolicies(policies);
             // cache danh sách để detail có thể dùng fallback
             const cache = {};
             policies.forEach((p) => { if (p.id) cache[p.id] = p; });
@@ -495,10 +556,6 @@
 </script>
 </body>
 </html>
-
-
-
-
 
 
 

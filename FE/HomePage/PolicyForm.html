@@ -242,7 +242,7 @@
             </a>
             <a class="nav-item" href="./GISMap.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/>`</svg></span>
-                <span class="nav-text">Bản đồ nghèo (GIS)</span>
+                <span class="nav-text">Bản đồ về hộ nghèo (GIS)</span>
             </a>
             <a class="nav-item" href="./ActivityLogs.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`</svg></span>
@@ -430,6 +430,7 @@
     const DRAFTS_CURRENT_ENDPOINT = `${API_BASE_URL}/policies/drafts/current`;
     const DRAFT_UPLOAD_ENDPOINT = `${API_BASE_URL}/files/upload-draft`;
     const PRESIGN_ENDPOINT = `${API_BASE_URL}/files/presign`;
+    const PRESIGN_GET_ENDPOINT = `${API_BASE_URL}/files/presign-get-auth`;
     const DROPZONE_HOVER_BORDER = 'var(--blue-500)';
     const DROPZONE_DEFAULT_BORDER = 'var(--gray-300)';
     const HTTP_STATUS_UNAUTHORIZED = 401;
@@ -503,8 +504,9 @@
     const tags = [];
     const listStyleByBlockId = new Map();
     const pendingImageFiles = new Map();
+    const presignCache = new Map();
     let editor = null;
-    let existingAttachmentUrl = '';
+    let existingAttachmentFiles = [];
 
     function bytesToSize(bytes) {
         const mb = bytes / (1024 * 1024);
@@ -627,7 +629,7 @@
         const token = getToken();
         if (!token) {
             redirectToLogin();
-            return '';
+            return null;
         }
         if (file && file.size > FILE_LIMIT_BYTES) {
             throw new Error('Tệp vượt quá 20MB');
@@ -654,17 +656,17 @@
                 body: JSON.stringify(payload),
             });
         } catch (_) {
-            return '';
+            return null;
         }
         if (presignRes.status === HTTP_STATUS_UNAUTHORIZED) {
             localStorage.removeItem(TOKEN_STORAGE_KEY);
             sessionStorage.removeItem(TOKEN_STORAGE_KEY);
             redirectToLogin();
-            return '';
+            return null;
         }
-        if (!presignRes.ok) return '';
+        if (!presignRes.ok) return null;
         const data = await presignRes.json();
-        if (!data?.upload_url || !data?.file_url) return '';
+        if (!data?.upload_url || !data?.file_url) return null;
         const putRes = await fetch(data.upload_url, {
             method: 'PUT',
             headers: { 'Content-Type': payload.content_type },
@@ -673,7 +675,7 @@
         if (!putRes.ok) {
             throw new Error('Upload tệp không thành công');
         }
-        return data.file_url;
+        return { url: data.file_url, name: file.name || payload.filename };
     }
 
     async function uploadEditorImage(file) {
@@ -688,6 +690,11 @@
         } catch (_) {
             uploadFile = file;
         }
+        const presigned = await uploadFileViaPresign(uploadFile, {
+            entityType: 'policy',
+            purpose: 'editor_image',
+        });
+        if (presigned?.url) return presigned.url;
         const formData = new FormData();
         formData.append('file', uploadFile);
         const res = await fetch(EDITOR_UPLOAD_ENDPOINT, {
@@ -717,14 +724,6 @@
             return '';
         }
         const normalizedPurpose = (purpose || '').toLowerCase();
-        if (normalizedPurpose === 'attachment') {
-            const presignedUrl = await uploadFileViaPresign(file, {
-                entityType: 'policy',
-                purpose: 'draft_attachment',
-                policyCategory: categoryInput.value || null,
-            });
-            if (presignedUrl) return presignedUrl;
-        }
         let uploadFile = file;
         if (normalizedPurpose === 'image') {
             try {
@@ -755,17 +754,44 @@
         return payload?.url || '';
     }
 
+    async function uploadDraftAttachment(file) {
+        const presigned = await uploadFileViaPresign(file, {
+            entityType: 'policy',
+            purpose: 'draft_attachment',
+            policyCategory: categoryInput.value || null,
+        });
+        if (presigned) return presigned;
+        const url = await uploadDraftFile(file, 'attachment');
+        if (!url) return null;
+        return { url, name: file.name || 'attachment' };
+    }
+
+    async function uploadDraftImage(file) {
+        let uploadFile = file;
+        try {
+            uploadFile = await compressImageToWebp(file);
+        } catch (_) {
+            uploadFile = file;
+        }
+        const presigned = await uploadFileViaPresign(uploadFile, {
+            entityType: 'policy',
+            purpose: 'draft_image',
+        });
+        if (presigned?.url) return presigned.url;
+        return await uploadDraftFile(uploadFile, 'image');
+    }
+
     async function uploadPolicyAttachment(file) {
-        const presignedUrl = await uploadFileViaPresign(file, {
+        const presigned = await uploadFileViaPresign(file, {
             entityType: 'policy',
             purpose: 'attachment',
             policyCategory: categoryInput.value || null,
         });
-        if (presignedUrl) return presignedUrl;
+        if (presigned) return presigned;
         const token = getToken();
         if (!token) {
             redirectToLogin();
-            return '';
+            return null;
         }
         const formData = new FormData();
         formData.append('file', file);
@@ -783,11 +809,11 @@
             localStorage.removeItem(TOKEN_STORAGE_KEY);
             sessionStorage.removeItem(TOKEN_STORAGE_KEY);
             redirectToLogin();
-            return '';
+            return null;
         }
         if (!uploadRes.ok) throw new Error('Upload tệp không thành công');
         const uploadData = await uploadRes.json();
-        return normalizeAttachmentUrl(uploadData.url || '');
+        return { url: normalizeAttachmentUrl(uploadData.url || ''), name: file.name || 'attachment' };
     }
 
     async function replaceImageUrlsForDraft(editorData) {
@@ -802,7 +828,7 @@
                 const name = `draft-image.${(blob.type || 'image/png').split('/').pop()}`;
                 file = new File([blob], name, { type: blob.type || 'image/png' });
             }
-            const draftUrl = await uploadDraftFile(file, 'image');
+            const draftUrl = await uploadDraftImage(file);
             if (!draftUrl) return block;
             if (isBlobUrl(url)) {
                 URL.revokeObjectURL(url);
@@ -1070,6 +1096,74 @@
         return value;
     }
 
+    function isLikelyS3Url(value) {
+        if (!value) return false;
+        if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
+        if (value.startsWith(API_BASE_URL) || value.startsWith(window.location.origin)) return false;
+        return true;
+    }
+
+    async function presignGetUrl(url) {
+        const normalized = normalizeAttachmentUrl(url);
+        if (!isLikelyS3Url(normalized)) return normalized;
+        if (presignCache.has(normalized)) return presignCache.get(normalized);
+        const token = getToken();
+        if (!token) return normalized;
+        const res = await fetch(PRESIGN_GET_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ url: normalized }),
+        });
+        if (!res.ok) return normalized;
+        const data = await res.json();
+        const signed = data?.url || normalized;
+        presignCache.set(normalized, signed);
+        return signed;
+    }
+
+    function normalizeAttachmentFiles(items) {
+        if (!Array.isArray(items)) return [];
+        return items
+            .map((item) => {
+                if (!item || typeof item !== 'object') return null;
+                const url = normalizeAttachmentUrl(item.url || '');
+                const name = (item.name || '').trim();
+                if (!url || !name) return null;
+                return { url, name };
+            })
+            .filter(Boolean);
+    }
+
+    async function presignAttachmentFiles(items) {
+        const resolved = await Promise.all(items.map(async (item) => {
+            const signedUrl = await presignGetUrl(item.url);
+            return { ...item, url: signedUrl };
+        }));
+        return resolved;
+    }
+
+    async function presignContentBlocks(contentBlocks) {
+        if (!contentBlocks || !Array.isArray(contentBlocks.blocks)) return contentBlocks;
+        const blocks = await Promise.all(contentBlocks.blocks.map(async (block) => {
+            if (!block || block.type !== 'image' || !block.data?.file?.url) return block;
+            const signedUrl = await presignGetUrl(block.data.file.url);
+            return {
+                ...block,
+                data: {
+                    ...block.data,
+                    file: {
+                        ...(block.data.file || {}),
+                        url: signedUrl,
+                    },
+                },
+            };
+        }));
+        return { ...contentBlocks, blocks };
+    }
+
     function normalizeFlipbookUrl(value) {
         const trimmed = (value || '').trim();
         if (!trimmed) return '';
@@ -1089,7 +1183,8 @@
         summaryCount.textContent = summaryInput.value.length;
         await editor.isReady;
         if (data.content_blocks && Array.isArray(data.content_blocks.blocks)) {
-            await editor.render(data.content_blocks);
+            const contentBlocks = await presignContentBlocks(data.content_blocks);
+            await editor.render(contentBlocks);
         } else if (data.description) {
             await editor.render({
                 time: Date.now(),
@@ -1102,9 +1197,11 @@
                 version: '2.28.2',
             });
         }
-            applySavedListStyles();
-            syncListStyleControl();
-            existingAttachmentUrl = normalizeAttachmentUrl(data.attachment_url || '');
+        applySavedListStyles();
+        syncListStyleControl();
+        const normalized = normalizeAttachmentFiles(data.attachment_files || []);
+        existingAttachmentFiles = await presignAttachmentFiles(normalized);
+        renderFiles();
         tags.splice(0, tags.length, ...(data.tags || []));
         renderTags();
         isPublicInput.checked = Boolean(data.is_public);
@@ -1182,6 +1279,29 @@
 
     function renderFiles() {
         fileList.innerHTML = '';
+        existingAttachmentFiles.forEach((item) => {
+            const block = document.createElement('div');
+            block.className = 'file-item';
+
+            const meta = document.createElement('div');
+            meta.className = 'file-meta';
+            const icon = document.createElement('div');
+            icon.className = 'icon-file';
+            icon.textContent = FILE_LABELS_BY_EXTENSION['.pdf'] || 'FILE';
+            const name = document.createElement('div');
+            name.innerHTML = `${item.name} <br><small>Đã tải lên</small>`;
+            meta.append(icon, name);
+
+            const link = document.createElement('a');
+            link.href = item.url;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.className = 'icon-trash';
+            link.textContent = 'Mở';
+
+            block.append(meta, link);
+            fileList.appendChild(block);
+        });
         attachments.forEach((file, index) => {
             const item = document.createElement('div');
             item.className = 'file-item';
@@ -1332,9 +1452,15 @@
             const editorData = applyListStylesToSavedData(rawEditorData);
             const draftEditorData = await replaceImageUrlsForDraft(editorData);
             const contentText = blocksToPlainText(draftEditorData.blocks);
-            let draftAttachmentUrl = existingAttachmentUrl || null;
+            let draftAttachmentFiles = existingAttachmentFiles.slice();
             if (attachments.length) {
-                draftAttachmentUrl = await uploadDraftFile(attachments[0], 'attachment');
+                const uploads = await Promise.all(
+                    attachments.map((file) => uploadDraftAttachment(file))
+                );
+                const uploadedFiles = uploads.filter((item) => item && item.url);
+                if (uploadedFiles.length) {
+                    draftAttachmentFiles = draftAttachmentFiles.concat(uploadedFiles);
+                }
             }
             const payload = {
                 policy_id: isEditing ? Number(editingId) : null,
@@ -1343,7 +1469,7 @@
                 summary: summaryInput.value.trim() || null,
                 description: contentText || summaryInput.value.trim() || null,
                 content_blocks: draftEditorData,
-                attachment_url: draftAttachmentUrl,
+                attachment_files: draftAttachmentFiles,
                 flipbook_url: normalizeFlipbookUrl(flipbookInput ? flipbookInput.value : ''),
                 issued_by: publisherInput.value || null,
                 effective_date: null,
@@ -1417,20 +1543,40 @@
         const rawEditorData = await editor.save();
         const editorData = applyListStylesToSavedData(rawEditorData);
         const finalizedEditorData = await replaceImageUrlsForPublish(editorData);
-        let attachmentUrl = existingAttachmentUrl;
+        let attachmentFiles = existingAttachmentFiles.slice();
         if (attachments.length) {
             try {
-                attachmentUrl = await uploadPolicyAttachment(attachments[0]);
+                const uploads = await Promise.all(
+                    attachments.map((file) => uploadPolicyAttachment(file))
+                );
+                const uploadedFiles = uploads.filter((item) => item && item.url);
+                if (uploadedFiles.length) {
+                    attachmentFiles = attachmentFiles.concat(uploadedFiles);
+                }
             } catch (err) {
                 showToast(err.message, true);
                 return;
             }
-        } else if (attachmentUrl && attachmentUrl.includes('/files/drafts/')) {
+        }
+        if (attachmentFiles.length) {
             try {
-                const blob = await urlToBlob(attachmentUrl);
-                const name = `attachment.${(blob.type || 'application/pdf').split('/').pop()}`;
-                const file = new File([blob], name, { type: blob.type || 'application/pdf' });
-                attachmentUrl = await uploadPolicyAttachment(file);
+                const resolved = [];
+                for (const item of attachmentFiles) {
+                    if (!item || !item.url) continue;
+                    if (!item.url.includes('/files/drafts/')) {
+                        resolved.push(item);
+                        continue;
+                    }
+                    const blob = await urlToBlob(item.url);
+                    const ext = (blob.type || 'application/pdf').split('/').pop();
+                    const name = item.name || `attachment.${ext}`;
+                    const file = new File([blob], name, { type: blob.type || 'application/pdf' });
+                    const uploaded = await uploadPolicyAttachment(file);
+                    if (uploaded) {
+                        resolved.push(uploaded);
+                    }
+                }
+                attachmentFiles = resolved;
             } catch (err) {
                 showToast(err.message, true);
                 return;
@@ -1444,7 +1590,7 @@
             summary: summaryInput.value.trim() || null,
             description: contentText || summaryInput.value.trim() || null,
             content_blocks: finalizedEditorData,
-            attachment_url: attachmentUrl,
+            attachment_files: attachmentFiles,
             flipbook_url: normalizeFlipbookUrl(flipbookInput ? flipbookInput.value : ''),
             issued_by: publisherInput.value || 'N/A',
             effective_date: null,
@@ -1692,8 +1838,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-

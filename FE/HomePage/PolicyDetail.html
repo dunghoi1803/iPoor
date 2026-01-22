@@ -215,7 +215,7 @@
             </a>
             <a class="nav-item" href="./GISMap.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/>`</svg></span>
-                <span class="nav-text">Bản đồ nghèo (GIS)</span>
+                <span class="nav-text">Bản đồ về hộ nghèo (GIS)</span>
             </a>
             <a class="nav-item" href="./ActivityLogs.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`</svg></span>
@@ -259,6 +259,7 @@
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const POLICY_SELECTED_KEY = 'ipoor_policy_selected_id';
     const POLICY_CACHE_KEY = 'ipoor_policy_cache';
+    const PRESIGN_GET_ENDPOINT = `${API_BASE_URL}/files/presign-get-auth`;
     const typeLabels = {
         decree: { text: 'Chính sách', cls: 'tag' },
         circular: { text: 'Chính sách', cls: 'tag' },
@@ -285,6 +286,7 @@
     const tagsEl = document.getElementById('tags');
     const PUBLIC_LABEL = 'Có';
     const PRIVATE_LABEL = 'Không';
+    const presignCache = new Map();
 
     function getToken() {
         return localStorage.getItem(TOKEN_STORAGE_KEY) || sessionStorage.getItem(TOKEN_STORAGE_KEY);
@@ -300,6 +302,74 @@
         if (value.startsWith('/api/')) return value;
         if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
         return value;
+    }
+
+    function isLikelyS3Url(value) {
+        if (!value) return false;
+        if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
+        if (value.startsWith(API_BASE_URL) || value.startsWith(window.location.origin)) return false;
+        return true;
+    }
+
+    async function presignGetUrl(url) {
+        const normalized = normalizeAttachmentUrl(url);
+        if (!isLikelyS3Url(normalized)) return normalized;
+        if (presignCache.has(normalized)) return presignCache.get(normalized);
+        const token = getToken();
+        if (!token) return normalized;
+        const res = await fetch(PRESIGN_GET_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ url: normalized }),
+        });
+        if (!res.ok) return normalized;
+        const data = await res.json();
+        const signed = data?.url || normalized;
+        presignCache.set(normalized, signed);
+        return signed;
+    }
+
+    function normalizeAttachmentFiles(items) {
+        if (!Array.isArray(items)) return [];
+        return items
+            .map((item) => {
+                if (!item || typeof item !== 'object') return null;
+                const url = normalizeAttachmentUrl(item.url || '');
+                const name = (item.name || '').trim();
+                if (!url || !name) return null;
+                return { url, name };
+            })
+            .filter(Boolean);
+    }
+
+    async function presignAttachmentFiles(items) {
+        const resolved = await Promise.all(items.map(async (item) => {
+            const signedUrl = await presignGetUrl(item.url);
+            return { ...item, url: signedUrl };
+        }));
+        return resolved;
+    }
+
+    async function presignContentBlocks(contentBlocks) {
+        if (!contentBlocks || !Array.isArray(contentBlocks.blocks)) return contentBlocks;
+        const blocks = await Promise.all(contentBlocks.blocks.map(async (block) => {
+            if (!block || block.type !== 'image' || !block.data?.file?.url) return block;
+            const signedUrl = await presignGetUrl(block.data.file.url);
+            return {
+                ...block,
+                data: {
+                    ...block.data,
+                    file: {
+                        ...(block.data.file || {}),
+                        url: signedUrl,
+                    },
+                },
+            };
+        }));
+        return { ...contentBlocks, blocks };
     }
 
     function normalizeFlipbookUrl(value) {
@@ -470,13 +540,13 @@
             tagsEl.appendChild(chip);
         });
         attachments.innerHTML = '';
-        const attachmentUrl = normalizeAttachmentUrl(policy.attachment_url || '');
-        if (attachmentUrl) {
+        const attachmentFiles = normalizeAttachmentFiles(policy.attachment_files || []);
+        attachmentFiles.forEach((item) => {
             const block = document.createElement('div');
             block.className = 'attachment';
-            block.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2h6l3 3v9H4V2Z" stroke="#ea580c" stroke-width="1.2"/><path d="M10 2v3h3" stroke="#ea580c" stroke-width="1.2"/><path d="M5.5 9.5h1m3 0H11M8 9.5V13" stroke="#ea580c" stroke-width="1.1" stroke-linecap="round"/></svg>\n                <a href="${attachmentUrl}" target="_blank" rel="noopener">Tải tài liệu</a>`;
+            block.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2h6l3 3v9H4V2Z" stroke="#ea580c" stroke-width="1.2"/><path d="M10 2v3h3" stroke="#ea580c" stroke-width="1.2"/><path d="M5.5 9.5h1m3 0H11M8 9.5V13" stroke="#ea580c" stroke-width="1.1" stroke-linecap="round"/></svg>\n                <a href="${item.url}" target="_blank" rel="noopener">${item.name}</a>`;
             attachments.appendChild(block);
-        }
+        });
     }
 
     function getCached(id) {
@@ -531,7 +601,13 @@
             }
             if (!res.ok) throw new Error('Không tải được chính sách');
             const data = await res.json();
-            render(data);
+            const contentBlocks = await presignContentBlocks(data.content_blocks);
+            const attachmentFiles = await presignAttachmentFiles(normalizeAttachmentFiles(data.attachment_files || []));
+            render({
+                ...data,
+                content_blocks: contentBlocks,
+                attachment_files: attachmentFiles,
+            });
             editLink.href = `./PolicyForm.html?mode=edit&id=${id}`;
             deleteBtn.addEventListener('click', () => deletePolicy(id));
         } catch (error) {
@@ -572,9 +648,6 @@
 </script>
 </body>
 </html>
-
-
-
 
 
 

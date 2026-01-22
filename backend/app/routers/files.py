@@ -1,13 +1,13 @@
 import subprocess
 import uuid
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import aiofiles
 import boto3
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import BaseModel
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.concurrency import run_in_threadpool
 
 from ..config import get_settings
@@ -57,8 +57,25 @@ S3_ENTITY_POLICY = "policy"
 S3_ENTITY_HOUSEHOLD = "household"
 S3_PURPOSE_ATTACHMENT = "attachment"
 S3_PURPOSE_DRAFT_ATTACHMENT = "draft_attachment"
+S3_PURPOSE_EDITOR_IMAGE = "editor_image"
+S3_PURPOSE_DRAFT_IMAGE = "draft_image"
 S3_PURPOSE_USER_CCCD = "user_cccd"
-S3_ALLOWED_PURPOSES = {S3_PURPOSE_ATTACHMENT, S3_PURPOSE_DRAFT_ATTACHMENT, S3_PURPOSE_USER_CCCD}
+S3_ALLOWED_PURPOSES = {
+    S3_PURPOSE_ATTACHMENT,
+    S3_PURPOSE_DRAFT_ATTACHMENT,
+    S3_PURPOSE_EDITOR_IMAGE,
+    S3_PURPOSE_DRAFT_IMAGE,
+    S3_PURPOSE_USER_CCCD,
+}
+S3_PUBLIC_PREFIXES = (
+    "policies/attachments/",
+    "policies/content/",
+    "data-collections/",
+)
+S3_PRIVATE_PREFIXES = (
+    "drafts/",
+    "users/",
+)
 
 
 class PresignRequest(BaseModel):
@@ -75,6 +92,11 @@ class PresignRequest(BaseModel):
     user_cccd: str | None = None
 
 
+class PresignGetRequest(BaseModel):
+    url: str | None = None
+    key: str | None = None
+
+
 def get_s3_client():
     if not settings.s3_bucket or not settings.s3_region:
         return None
@@ -88,6 +110,94 @@ def get_s3_client():
         endpoint_url=settings.s3_endpoint_url or None,
     )
 
+def is_s3_enabled() -> bool:
+    return get_s3_client() is not None
+
+
+def extract_s3_key(url_or_key: str) -> str | None:
+    if not url_or_key:
+        return None
+    value = url_or_key.strip()
+    if not value:
+        return None
+    if value.startswith("/files/") or value.startswith("files/"):
+        return None
+    parsed = urlparse(value)
+    if not parsed.scheme:
+        return value.lstrip("/")
+    path = parsed.path.lstrip("/")
+    if not path:
+        return None
+    bucket = settings.s3_bucket or ""
+    if bucket and path.startswith(f"{bucket}/"):
+        return path[len(bucket) + 1 :]
+    return path
+
+
+def is_public_key(key: str) -> bool:
+    return key.startswith(S3_PUBLIC_PREFIXES)
+
+
+def presign_get_url(key: str) -> str:
+    s3_client = get_s3_client()
+    if not s3_client:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="S3 is not configured")
+    try:
+        return s3_client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": settings.s3_bucket,
+                "Key": key,
+            },
+            ExpiresIn=settings.s3_presign_expires,
+            HttpMethod="GET",
+        )
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to presign download")
+
+
+@router.post("/presign-get")
+async def presign_get(payload: PresignGetRequest):
+    key_value = payload.key or payload.url or ""
+    key = extract_s3_key(key_value)
+    if not key:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid S3 key")
+    if not is_public_key(key):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Key is not publicly accessible")
+    return JSONResponse({"url": presign_get_url(key)})
+
+
+@router.post("/presign-get-auth")
+async def presign_get_auth(
+    payload: PresignGetRequest,
+    current_user=Depends(get_current_user),
+):
+    key_value = payload.key or payload.url or ""
+    key = extract_s3_key(key_value)
+    if not key:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid S3 key")
+    return JSONResponse({"url": presign_get_url(key)})
+
+
+@router.get("/proxy")
+async def proxy_file(url: str):
+    key = extract_s3_key(url)
+    if not key:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid S3 key")
+    if not is_public_key(key):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Key is not publicly accessible")
+    return RedirectResponse(presign_get_url(key))
+
+
+@router.get("/proxy-auth")
+async def proxy_file_auth(
+    url: str,
+    current_user=Depends(get_current_user),
+):
+    key = extract_s3_key(url)
+    if not key:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid S3 key")
+    return RedirectResponse(presign_get_url(key))
 
 def build_s3_key(
     filename: str,
@@ -111,6 +221,14 @@ def build_s3_key(
         prefix_parts = [part for part in ["cccd", safe_cccd, safe_name] if part]
         raw_name = f"{FILENAME_SEPARATOR.join(prefix_parts)}{extension or '.png'}"
         subdir = USER_UPLOAD_SUBDIR
+    elif purpose == S3_PURPOSE_EDITOR_IMAGE:
+        raw_name = f"{random_suffix}{extension}"
+        subdir = POLICY_CONTENT_SUBDIR
+    elif purpose == S3_PURPOSE_DRAFT_IMAGE:
+        if user_id is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing draft owner")
+        raw_name = f"{random_suffix}{extension}"
+        subdir = f"{DRAFTS_SUBDIR}/{user_id}/{DRAFTS_POLICY_IMAGES_SUBDIR}"
     elif normalized_entity == ENTITY_HOUSEHOLD:
         if normalized_entity not in ALLOWED_ENTITIES:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid entity type")
@@ -183,6 +301,12 @@ async def presign_upload(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid upload purpose")
     if normalized_purpose == S3_PURPOSE_USER_CCCD and payload.content_type != "image/png":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only PNG files are allowed")
+    if normalized_purpose in {S3_PURPOSE_EDITOR_IMAGE, S3_PURPOSE_DRAFT_IMAGE}:
+        if payload.content_type not in ALLOWED_EDITOR_IMAGE_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only PNG, JPG, or WEBP images are allowed",
+            )
     s3_client = get_s3_client()
     if not s3_client:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="S3 is not configured")
@@ -228,6 +352,11 @@ async def upload_file(
     id_card: str | None = Form(None),
     current_user=Depends(get_current_user),
 ):
+    if is_s3_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="S3 uploads are required",
+        )
     normalized_entity = (entity_type or ENTITY_POLICY).strip().lower()
     if normalized_entity not in ALLOWED_ENTITIES:
         raise HTTPException(
@@ -291,6 +420,11 @@ async def upload_article_image(
     file: UploadFile = File(...),  # noqa: B008
     current_user=Depends(get_current_user),
 ):
+    if is_s3_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="S3 uploads are required",
+        )
     if file.content_type not in ALLOWED_EDITOR_IMAGE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -332,6 +466,11 @@ async def upload_draft_file(
     purpose: str = Form("image"),
     current_user=Depends(get_current_user),
 ):
+    if is_s3_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="S3 uploads are required",
+        )
     normalized = (purpose or "image").strip().lower()
     if normalized == "image":
         if file.content_type not in ALLOWED_EDITOR_IMAGE_TYPES:

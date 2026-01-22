@@ -210,7 +210,7 @@
             </a>
             <a class="nav-item" href="./GISMap.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.7 7.3c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5c-.7 0-1.3-.15-1.9-.44l-2.05.58.55-1.95c-.36-.62-.6-1.34-.6-2.09Z" stroke="white" stroke-width="1.3"/><path d="M6.5 6.8c0-.7.6-1.2 1.2-1.2.7 0 1.2.5 1.2 1.2 0 .6-.5 1.2-1.2 1.2-.7 0-1.2-.6-1.2-1.2Z" fill="white"/>`</svg></span>
-                <span class="nav-text">Bản đồ nghèo (GIS)</span>
+                <span class="nav-text">Bản đồ về hộ nghèo (GIS)</span>
             </a>
             <a class="nav-item" href="./ActivityLogs.html">
                 <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 3.5h7m-7 9h7M8 1.5v2m0 9v2M5.5 6h5L9.8 10H6.2L5.5 6Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`</svg></span>
@@ -315,6 +315,7 @@
     const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/auth/me`;
     const HOUSEHOLD_SELECTED_KEY = 'ipoor_household_selected_id';
     const HOUSEHOLD_CACHE_KEY = 'ipoor_household_cache';
+    const PRESIGN_GET_ENDPOINT = `${API_BASE_URL}/files/presign-get-auth`;
 
     const pageTitle = document.getElementById('pageTitle');
     const editLink = document.getElementById('editLink');
@@ -340,6 +341,7 @@
     const userNameEl = document.getElementById('userName');
     const userRoleEl = document.getElementById('userRole');
     const userAvatarEl = document.getElementById('userAvatar');
+    const presignCache = new Map();
     const roleLabels = {
         admin: 'Quản trị viên',
         province_officer: 'Cán bộ tỉnh',
@@ -393,6 +395,34 @@
         return value;
     }
 
+    function isLikelyS3Url(value) {
+        if (!value) return false;
+        if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
+        if (value.startsWith(API_BASE_URL) || value.startsWith(window.location.origin)) return false;
+        return true;
+    }
+
+    async function presignGetUrl(url) {
+        const normalized = normalizeAttachmentUrl(url);
+        if (!isLikelyS3Url(normalized)) return normalized;
+        if (presignCache.has(normalized)) return presignCache.get(normalized);
+        const token = getToken();
+        if (!token) return normalized;
+        const res = await fetch(PRESIGN_GET_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ url: normalized }),
+        });
+        if (!res.ok) return normalized;
+        const data = await res.json();
+        const signed = data?.url || normalized;
+        presignCache.set(normalized, signed);
+        return signed;
+    }
+
     function formatDate(value) {
         if (!value) return '-';
         const d = new Date(value);
@@ -406,7 +436,7 @@
         return `<span class="badge ${mapped.cls}">${mapped.text}</span>`;
     }
 
-    function renderHousehold(data) {
+    async function renderHousehold(data) {
         pageTitle.textContent = `Hồ sơ hộ nghèo – ${data.head_name || 'Không rõ'}`;
         fullName.textContent = data.head_name || '-';
         dob.textContent = formatDate(data.birth_date);
@@ -426,7 +456,7 @@
         reviewDate.textContent = formatDate(data.last_surveyed_at);
         remark.textContent = data.remark || '-';
 
-        const attachmentUrl = normalizeAttachmentUrl(data.attachment_url || '');
+        const attachmentUrl = await presignGetUrl(data.attachment_url || '');
         if (attachmentUrl) {
             attachmentLink.href = attachmentUrl;
             attachmentLink.style.display = '';
@@ -462,7 +492,7 @@
 
         const cached = getCachedHousehold(id);
         if (cached) {
-            renderHousehold(cached);
+            await renderHousehold(cached);
         }
 
         try {
@@ -481,7 +511,7 @@
             }
             if (!res.ok) throw new Error('Không tải được hồ sơ hộ');
             const data = await res.json();
-            renderHousehold(data);
+            await renderHousehold(data);
         } catch (error) {
             pageTitle.textContent = error.message;
         }
@@ -504,7 +534,6 @@
 </script>
 </body>
 </html>
-
 
 
 

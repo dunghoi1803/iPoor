@@ -6,6 +6,11 @@ from pydantic import BaseModel, Field
 from ..constants import POLICY_SUMMARY_MAX_LENGTH, PolicyCategory
 
 
+class AttachmentFile(BaseModel):
+    url: str
+    name: str
+
+
 class PolicyBase(BaseModel):
     title: str = Field(min_length=3)
     category: PolicyCategory
@@ -14,7 +19,7 @@ class PolicyBase(BaseModel):
     content_blocks: dict[str, Any] | None = None
     effective_date: date | None = None
     issued_by: str | None = None
-    attachment_url: str | None = None
+    attachment_files: list[AttachmentFile] | None = None
     flipbook_url: str | None = None
     tags: list[str] | None = None
     is_public: bool | None = None
@@ -32,7 +37,7 @@ class PolicyUpdate(BaseModel):
     content_blocks: dict[str, Any] | None = None
     effective_date: date | None = None
     issued_by: str | None = None
-    attachment_url: str | None = None
+    attachment_files: list[AttachmentFile] | None = None
     flipbook_url: str | None = None
     tags: list[str] | None = None
     is_public: bool | None = None

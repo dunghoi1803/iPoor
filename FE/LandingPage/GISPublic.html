@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iPOOR | Bản đồ nghèo đa chiều</title>
+    <title>iPOOR | Bản đồ về hộ nghèo đa chiều</title>
     <link rel="icon" type="image/png" href="../Image/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,18 +68,22 @@
         .btn-login:hover { background: linear-gradient(90deg, #1f2f54, #0f172a); }
         .menu-toggle {
             display: none;
+            width: var(--menu-toggle-size);
+            height: var(--menu-toggle-size);
             background: transparent;
             border: 1px solid var(--gray-100);
-            border-radius: 10px;
-            padding: 8px;
+            border-radius: var(--menu-toggle-radius);
+            padding: 0;
             cursor: pointer;
+            align-items: center;
+            justify-content: center;
         }
         .menu-toggle span {
             display: block;
-            width: 22px;
-            height: 2px;
+            width: var(--menu-toggle-bar-width);
+            height: var(--menu-toggle-bar-height);
             background: var(--navy-900);
-            margin: 4px 0;
+            margin: var(--menu-toggle-bar-gap) 0;
         }
 
         .app-shell { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
@@ -196,7 +200,7 @@
             <img src="../Image/icon.png" alt="iPOOR">
             <div>
                 <div>iPOOR</div>
-                <small>Bản đồ nghèo đa chiều</small>
+                <small>Bản đồ về hộ nghèo đa chiều</small>
             </div>
         </a>
         <button class="menu-toggle" id="menuToggle" aria-label="Mở menu điều hướng">
@@ -208,7 +212,7 @@
             <a href="./NewsPublic.html">Tin tức & Chính sách</a>
             <a href="./index.html#reports">Báo cáo</a>
             <a href="./index.html#about">Về iPOOR</a>
-            <a href="./GISPublic.html">Bản đồ nghèo</a>
+            <a href="./GISPublic.html">Bản đồ về hộ nghèo</a>
             <a class="btn-login" href="../Auth/Login.html">Đăng nhập cán bộ</a>
         </div>
     </div>
@@ -219,7 +223,7 @@
         <div class="content-wrap">
             <div class="page-header">
                 <div>
-                    <h1>Bản đồ nghèo đa chiều (GIS)</h1>
+                    <h1>Bản đồ về hộ nghèo đa chiều (GIS)</h1>
                     <p>Hiển thị các chỉ số nghèo đa chiều theo năm và địa giới hành chính.</p>
                 </div>
             </div>
@@ -286,7 +290,7 @@
             <div>Email: vienclcs@mae.gov.vn</div>
             <div>Tel: 04-39722067</div>
             <div>Fax: 84-4-39711062</div>
-            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE)</div>
+            <div>Địa chỉ: Viện chiến lược, chính sách nông nghiệp và môi trường</div>
             <div>Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
         </div>
     </div>

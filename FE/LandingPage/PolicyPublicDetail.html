@@ -60,18 +60,22 @@
         .btn-login:hover { background: linear-gradient(90deg, #1f2f54, #0f172a); }
         .menu-toggle {
             display: none;
+            width: var(--menu-toggle-size);
+            height: var(--menu-toggle-size);
             background: transparent;
             border: 1px solid var(--gray-100);
-            border-radius: 10px;
-            padding: 8px;
+            border-radius: var(--menu-toggle-radius);
+            padding: 0;
             cursor: pointer;
+            align-items: center;
+            justify-content: center;
         }
         .menu-toggle span {
             display: block;
-            width: 22px;
-            height: 2px;
+            width: var(--menu-toggle-bar-width);
+            height: var(--menu-toggle-bar-height);
             background: var(--navy-900);
-            margin: 4px 0;
+            margin: var(--menu-toggle-bar-gap) 0;
         }
 
         .hero { max-width: 1200px; margin: 0 auto; padding: 28px 18px; display: grid; gap: 12px; }
@@ -171,7 +175,7 @@
             <a href="./NewsPublic.html">Tin tức & Chính sách</a>
             <a href="./index.html#reports">Báo cáo</a>
             <a href="./index.html#about">Về iPOOR</a>
-            <a href="./GISPublic.html">Bản đồ nghèo</a>
+            <a href="./GISPublic.html">Bản đồ về hộ nghèo</a>
             <a class="btn-login" href="../Auth/Login.html">Đăng nhập cán bộ</a>
         </div>
     </div>
@@ -213,7 +217,7 @@
             <div>Email: vienclcs@mae.gov.vn</div>
             <div>Tel: 04-39722067</div>
             <div>Fax: 84-4-39711062</div>
-            <div>Địa chỉ: Viện chiến lược chính sách nông nghiệp và môi trường (ISPAE)</div>
+            <div>Địa chỉ: Viện chiến lược, chính sách nông nghiệp và môi trường</div>
             <div>Số 16 Thụy Khuê - Tây Hồ - Hà Nội</div>
         </div>
     </div>
@@ -224,11 +228,13 @@
 <script>
     const API_BASE_URL = window.IPOOR_API_BASE;
     const POLICY_DETAIL_ENDPOINT = `${API_BASE_URL}/policies/public`;
+    const PRESIGN_GET_ENDPOINT = `${API_BASE_URL}/files/presign-get`;
     const heroSection = document.getElementById('heroSection');
     const metaLine = document.getElementById('metaLine');
     const articleBody = document.getElementById('articleBody');
     const flipbookEmbed = document.getElementById('flipbookEmbed');
     const statusBox = document.getElementById('statusBox');
+    const presignCache = new Map();
     const relatedSection = document.getElementById('relatedSection');
     const relatedGrid = document.getElementById('relatedGrid');
 
@@ -260,6 +266,69 @@
         if (value.startsWith('/api/')) return value;
         if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
         return value;
+    }
+
+    function isLikelyS3Url(value) {
+        if (!value) return false;
+        if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
+        if (value.startsWith(API_BASE_URL) || value.startsWith(window.location.origin)) return false;
+        return true;
+    }
+
+    async function presignGetUrl(url) {
+        const normalized = normalizeAttachmentUrl(url);
+        if (!isLikelyS3Url(normalized)) return normalized;
+        if (presignCache.has(normalized)) return presignCache.get(normalized);
+        const res = await fetch(PRESIGN_GET_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: normalized }),
+        });
+        if (!res.ok) return normalized;
+        const data = await res.json();
+        const signed = data?.url || normalized;
+        presignCache.set(normalized, signed);
+        return signed;
+    }
+
+    function normalizeAttachmentFiles(items) {
+        if (!Array.isArray(items)) return [];
+        return items
+            .map((item) => {
+                if (!item || typeof item !== 'object') return null;
+                const url = normalizeAttachmentUrl(item.url || '');
+                const name = (item.name || '').trim();
+                if (!url || !name) return null;
+                return { url, name };
+            })
+            .filter(Boolean);
+    }
+
+    async function presignAttachmentFiles(items) {
+        const resolved = await Promise.all(items.map(async (item) => {
+            const signedUrl = await presignGetUrl(item.url);
+            return { ...item, url: signedUrl };
+        }));
+        return resolved;
+    }
+
+    async function presignContentBlocks(contentBlocks) {
+        if (!contentBlocks || !Array.isArray(contentBlocks.blocks)) return contentBlocks;
+        const blocks = await Promise.all(contentBlocks.blocks.map(async (block) => {
+            if (!block || block.type !== 'image' || !block.data?.file?.url) return block;
+            const signedUrl = await presignGetUrl(block.data.file.url);
+            return {
+                ...block,
+                data: {
+                    ...block.data,
+                    file: {
+                        ...(block.data.file || {}),
+                        url: signedUrl,
+                    },
+                },
+            };
+        }));
+        return { ...contentBlocks, blocks };
     }
 
     function normalizeFlipbookUrl(value) {
@@ -300,21 +369,24 @@
             related = related.slice(0, 6);
             if (!related.length) return;
             relatedGrid.innerHTML = '';
-            related.forEach((item) => {
+            for (const item of related) {
                 const card = document.createElement('a');
-                const imageSource = getFirstBlockImage(item) || normalizeAttachmentUrl(item.attachment_url || '') || '../Image/xoa-doi-giam-ngheo.jpg';
+                const relatedAttachments = normalizeAttachmentFiles(item.attachment_files || []);
+                const relatedCover = relatedAttachments.length ? relatedAttachments[0].url : '';
+                const imageSource = getFirstBlockImage(item) || relatedCover || '../Image/xoa-doi-giam-ngheo.jpg';
+                const resolvedImage = await presignGetUrl(imageSource);
                 const dateLabel = formatDate(item.updated_at || item.created_at);
                 card.className = 'related-card';
                 card.href = `./PolicyPublicDetail.html?id=${item.id}`;
                 card.innerHTML = `
-                    <img src="${imageSource}" alt="${item.title || ''}">
+                    <img src="${resolvedImage}" alt="${item.title || ''}">
                     <div class="related-body">
                         <div class="related-meta">${dateLabel}</div>
                         <div class="related-title-text">${item.title || 'Chưa có tiêu đề'}</div>
                     </div>
                 `;
                 relatedGrid.appendChild(card);
-            });
+            }
             relatedSection.style.display = 'grid';
         } catch (_) {
             relatedSection.style.display = 'none';
@@ -472,17 +544,18 @@
                 <span>${dateLabel}</span>
                 <span>${policy.issued_by || 'iPOOR'}</span>
             `;
-            const attachment = normalizeAttachmentUrl(policy.attachment_url || '');
+            const attachmentFiles = await presignAttachmentFiles(normalizeAttachmentFiles(policy.attachment_files || []));
             const flipbookUrl = normalizeFlipbookUrl(policy.flipbook_url || '');
-            const blocksHtml = renderBlocks(policy.content_blocks);
+            const contentBlocks = await presignContentBlocks(policy.content_blocks);
+            const blocksHtml = renderBlocks(contentBlocks);
             const contentHtml = blocksHtml || `<p>${policy.description || policy.summary || 'Chưa có nội dung chi tiết.'}</p>`;
             articleBody.innerHTML = `
                 ${contentHtml}
-                ${attachment ? `
-                    <div class="attachment">
-                        <a href="${attachment}" target="_blank" rel="noopener">Tải tài liệu đính kèm</a>
-                    </div>
-                ` : ''}
+                ${attachmentFiles.map((item) => (
+                    `<div class="attachment">
+                        <a href="${item.url}" target="_blank" rel="noopener">${item.name}</a>
+                    </div>`
+                )).join('')}
             `;
             if (flipbookEmbed) {
                 if (flipbookUrl) {
