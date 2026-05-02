@@ -14,7 +14,11 @@ def reset_tables() -> None:
         db.query(ActivityLog).delete()
         db.query(PolicyDraft).delete()
         db.query(Policy).delete()
+        from app.models.household_survey import HouseholdSurvey
+        from app.models.poverty_threshold import PovertyThreshold
+        db.query(HouseholdSurvey).delete()
         db.query(Household).delete()
+        db.query(PovertyThreshold).delete()
         db.query(User).delete()
         db.commit()
     finally:

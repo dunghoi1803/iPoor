@@ -293,6 +293,26 @@
                     </div>
                 </div>
             </section>
+            <!-- Lịch sử rà soát -->
+            <section class="card">
+                <div class="card-title">Lịch sử rà soát</div>
+                <div class="table-wrapper" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="text-align: left; background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 12px;">Năm</th>
+                                <th style="padding: 12px;">Trạng thái</th>
+                                <th style="padding: 12px;">B1/B2</th>
+                                <th style="padding: 12px;">Cán bộ</th>
+                                <th style="padding: 12px;">Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="surveyHistoryBody">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
 </div>
@@ -337,6 +357,7 @@
     const reviewDate = document.getElementById('reviewDate');
     const remark = document.getElementById('remark');
     const attachmentLink = document.getElementById('attachmentLink');
+    const surveyHistoryBody = document.getElementById('surveyHistoryBody');
     const attachments = document.getElementById('attachments');
     const userNameEl = document.getElementById('userName');
     const userRoleEl = document.getElementById('userRole');
@@ -353,7 +374,6 @@
         poor: { text: 'Nghèo', cls: 'badge-ngheo' },
         near_poor: { text: 'Cận nghèo', cls: 'badge-can' },
         escaped_poverty: { text: 'Thoát nghèo', cls: 'badge-thoat' },
-        at_risk: { text: 'Nguy cơ tái nghèo', cls: 'badge-nguyco' },
     };
 
     function getToken() {
@@ -437,24 +457,56 @@
     }
 
     async function renderHousehold(data) {
+        const sortedSurveys = (data.surveys && data.surveys.length > 0) 
+            ? [...data.surveys].sort((a, b) => new Date(b.survey_date) - new Date(a.survey_date))
+            : [];
+        const latestSurvey = sortedSurveys[0] || null;
+        
         pageTitle.textContent = `Hồ sơ hộ nghèo – ${data.head_name || 'Không rõ'}`;
         fullName.textContent = data.head_name || '-';
         dob.textContent = formatDate(data.birth_date);
         gender.textContent = data.gender || '-';
         ethnic.textContent = data.ethnicity || '-';
         idCard.textContent = data.id_card || data.household_code || '-';
-        members.textContent = data.members_count ?? '-';
-        statusBadge.innerHTML = renderStatus(data.poverty_status);
-        scoreB1.textContent = data.score_b1 != null ? `${data.score_b1} / 100` : '-';
-        scoreB2.textContent = data.score_b2 != null ? `${data.score_b2} / 100` : '-';
-        note.textContent = data.note || '-';
+        
+        members.textContent = latestSurvey ? (latestSurvey.members_count ?? '-') : '-';
+        statusBadge.innerHTML = renderStatus(latestSurvey ? latestSurvey.poverty_status : null);
+        scoreB1.textContent = (latestSurvey && latestSurvey.score_b1 != null) ? `${latestSurvey.score_b1}` : '-';
+        scoreB2.textContent = (latestSurvey && latestSurvey.score_b2 != null) ? `${latestSurvey.score_b2}` : '-';
+        note.textContent = latestSurvey ? (latestSurvey.note || '-') : '-';
+        
         province.textContent = data.province || '-';
         commune.textContent = data.commune || '-';
-        area.textContent = data.area || data.district || '-';
-        village.textContent = data.village || data.address_line || '-';
-        officer.textContent = data.officer || '-';
-        reviewDate.textContent = formatDate(data.last_surveyed_at);
-        remark.textContent = data.remark || '-';
+        area.textContent = data.area || '-';
+        village.textContent = data.village || '-';
+        
+        officer.textContent = latestSurvey ? (latestSurvey.officer || '-') : '-';
+        reviewDate.textContent = formatDate(latestSurvey ? latestSurvey.survey_date : null);
+        remark.textContent = latestSurvey ? (latestSurvey.remark || '-') : '-';
+
+        // Render History
+        if (surveyHistoryBody) {
+            surveyHistoryBody.innerHTML = '';
+            if (data.surveys && data.surveys.length > 0) {
+                // Sort surveys by date descending
+                const sortedSurveys = [...data.surveys].sort((a, b) => new Date(b.survey_date) - new Date(a.survey_date));
+                sortedSurveys.forEach(s => {
+                    const row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid #e2e8f0';
+                    const year = s.survey_date ? new Date(s.survey_date).getFullYear() : '-';
+                    row.innerHTML = `
+                        <td style="padding: 12px; font-weight: 600;">${year}</td>
+                        <td style="padding: 12px;">${renderStatus(s.poverty_status)}</td>
+                        <td style="padding: 12px;">B1: ${s.score_b1 ?? '-'} / B2: ${s.score_b2 ?? '-'}</td>
+                        <td style="padding: 12px;">${s.officer || '-'}</td>
+                        <td style="padding: 12px; font-size: 13px; color: #64748b;">${s.remark || '-'}</td>
+                    `;
+                    surveyHistoryBody.appendChild(row);
+                });
+            } else {
+                surveyHistoryBody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #64748b;">Chưa có lịch sử rà soát</td></tr>';
+            }
+        }
 
         const attachmentUrl = await presignGetUrl(data.attachment_url || '');
         if (attachmentUrl) {

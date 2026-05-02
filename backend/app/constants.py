@@ -12,7 +12,6 @@ class PovertyStatus(str, Enum):
     POOR = "poor"
     NEAR_POOR = "near_poor"
     ESCAPED = "escaped_poverty"
-    AT_RISK = "at_risk"
 
 
 class CollectionStatus(str, Enum):

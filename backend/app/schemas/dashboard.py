@@ -20,8 +20,6 @@ class DashboardSummary(BaseModel):
     near_poor_total: float
     near_poor_delta_percent: float
     exit_poverty_total: float
-    at_risk_total: float | None = None
-    at_risk_note: str | None = None
     series: DashboardSeries
     top_regions: list[DashboardRegionItem]
 
@@ -38,5 +36,11 @@ class DashboardKpis(BaseModel):
     near_poor_total: float
     near_poor_delta_percent: float
     exit_poverty_total: float
-    at_risk_total: float | None = None
-    at_risk_note: str | None = None
+
+
+class DashboardOverview(BaseModel):
+    latest_year: int
+    filters: DashboardTrendOptions
+    kpis: DashboardKpis
+    trend: DashboardSeries
+    regions: list[DashboardRegionItem]

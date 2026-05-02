@@ -136,7 +136,6 @@
         .badge-ngheo { background: #fee2e2; color: #b91c1c; }
         .badge-can { background: #fff7ed; color: #c2410c; }
         .badge-thoat { background: #ecfdf3; color: #15803d; }
-        .badge-nguyco { background: #fef9c3; color: #b45309; }
 
         .actions { display: inline-flex; gap: 8px; }
         .icon-btn { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--gray-200); background: var(--white); display: grid; place-items: center; cursor: pointer; transition: background 0.15s, border 0.15s; }
@@ -433,17 +432,15 @@
         'Nghèo': 'poor',
         'Cận nghèo': 'near_poor',
         'Thoát nghèo': 'escaped_poverty',
-        'Nguy cơ tái nghèo': 'at_risk',
     };
     const STATUS_BADGE_CLASS = {
         poor: 'badge-ngheo',
         near_poor: 'badge-can',
         escaped_poverty: 'badge-thoat',
-        at_risk: 'badge-nguyco',
     };
     const COMMUNE_LIMIT = 20;
     const PROVINCE_LIMIT = 20;
-    const statuses = ['Tất cả', 'Nghèo', 'Cận nghèo', 'Thoát nghèo', 'Nguy cơ tái nghèo'];
+    const statuses = ['Tất cả', 'Nghèo', 'Cận nghèo', 'Thoát nghèo'];
     let currentPage = 1;
     let totalItems = 0;
 
@@ -894,17 +891,25 @@
         householdBody.innerHTML = items
             .map(
                 (item) => {
-                    const createdAt = item.last_surveyed_at ? new Date(item.last_surveyed_at).toLocaleDateString('vi-VN') : '-';
+                    const sortedSurveys = (item.surveys && item.surveys.length > 0)
+                        ? [...item.surveys].sort((a, b) => new Date(b.survey_date) - new Date(a.survey_date))
+                        : [];
+                    const latestSurvey = sortedSurveys[0] || null;
+                    const createdAt = (latestSurvey && latestSurvey.survey_date) ? new Date(latestSurvey.survey_date).toLocaleDateString('vi-VN') : '-';
                     const idCardValue = item.id_card || item.household_code || '-';
                     const villageValue = item.village || item.commune || '';
-                    const officerValue = item.officer || '';
+                    const officerValue = latestSurvey ? (latestSurvey.officer || '') : '';
+                    const povertyStatus = latestSurvey ? latestSurvey.poverty_status : null;
+                    const scoreB1 = latestSurvey ? latestSurvey.score_b1 : '-';
+                    const scoreB2 = latestSurvey ? latestSurvey.score_b2 : '-';
+
                     return `<tr>
                         <td>${item.household_code || '-'}</td>
                         <td>${item.head_name || '-'}</td>
                         <td>${idCardValue}</td>
-                        <td>${renderStatusBadge(item.poverty_status)}</td>
-                        <td>${item.score_b1 ?? '-'}</td>
-                        <td>${item.score_b2 ?? '-'}</td>
+                        <td>${renderStatusBadge(povertyStatus)}</td>
+                        <td>${scoreB1 ?? '-'}</td>
+                        <td>${scoreB2 ?? '-'}</td>
                         <td>${villageValue}</td>
                         <td>${createdAt}</td>
                         <td>${officerValue}</td>
@@ -930,7 +935,13 @@
         currentPage = Math.min(Math.max(1, currentPage), totalPages);
         const start = totalItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
         const end = totalItems === 0 ? 0 : Math.min(currentPage * PAGE_SIZE, totalItems);
-        paginationInfo.textContent = `Hiển thị ${start}-${end} / ${totalItems} hộ`;
+        
+        // Use toLocaleString for pretty numbers if they are large
+        const startStr = start.toLocaleString('vi-VN');
+        const endStr = end.toLocaleString('vi-VN');
+        const totalStr = totalItems.toLocaleString('vi-VN');
+        paginationInfo.textContent = `Hiển thị ${startStr}-${endStr} / ${totalStr} hộ`;
+        
         pageControls.innerHTML = '';
 
         const buildButton = (label, page, isActive = false) => {
@@ -946,9 +957,27 @@
         prevBtn.disabled = currentPage === 1;
         pageControls.appendChild(prevBtn);
 
-        for (let i = 1; i <= totalPages; i += 1) {
-            pageControls.appendChild(buildButton(String(i), i, i === currentPage));
-        }
+        // Logic for smart pagination: First 5, Current neighbors, Last 5
+        const pages = new Set();
+        // First 5
+        for (let i = 1; i <= Math.min(5, totalPages); i++) pages.add(i);
+        // Current and its neighbors
+        for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) pages.add(i);
+        // Last 5
+        for (let i = Math.max(1, totalPages - 4); i <= totalPages; i++) pages.add(i);
+
+        const sortedPages = Array.from(pages).sort((a, b) => a - b);
+        let lastP = 0;
+        sortedPages.forEach(p => {
+            if (lastP > 0 && p - lastP > 1) {
+                const dots = document.createElement('span');
+                dots.textContent = '...';
+                dots.style.padding = '0 4px';
+                pageControls.appendChild(dots);
+            }
+            pageControls.appendChild(buildButton(String(p), p, p === currentPage));
+            lastP = p;
+        });
 
         const nextBtn = buildButton('»', Math.min(totalPages, currentPage + 1));
         nextBtn.disabled = currentPage === totalPages;

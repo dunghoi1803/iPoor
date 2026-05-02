@@ -1,484 +1,173 @@
-"""Seed sample households into the database."""
+"""Seed sample households and historical surveys with dynamic status calculation."""
 
-from datetime import date
+import random
+from datetime import date, timedelta
 
-from app.constants import PovertyStatus
-from app.database import SessionLocal
-from app.models import Household
+from app.constants import PovertyStatus, Roles, PolicyCategory
+from sqlalchemy import text
+from app.database import SessionLocal, engine, Base
+from app.models import Household, HouseholdSurvey, PovertyThreshold, ActivityLog, DataCollection, User, Policy
+from app.utils.security import get_password_hash
 
 
-SAMPLES = [
-    {
-        "household_code": "HH-0001",
-        "head_name": "Nguyễn Thị Hoa",
-        "birth_date": date(1985, 3, 12),
-        "gender": "Nữ",
-        "id_card": "031234567890",
-        "province": "TP. Hà Nội",
-        "district": "Ba Đình",
-        "commune": "Phường Ngọc Hà",
-        "poverty_status": PovertyStatus.POOR,
-        "ethnicity": "Kinh",
-        "members_count": 4,
-        "income_per_capita": 1200000,
-        "score_b1": 68,
-        "score_b2": 74,
-        "note": "Thiếu điều kiện tiếp cận giáo dục và y tế.",
-        "area": "Thành thị",
-        "village": "Tổ 5",
-        "officer": "Trần Văn Minh",
-        "remark": "Đã khảo sát thực địa.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 12, 1),
-    },
-    {
-        "household_code": "HH-0002",
-        "head_name": "Phạm Văn Long",
-        "birth_date": date(1979, 7, 24),
-        "gender": "Nam",
-        "id_card": "038765432109",
-        "province": "TP. Hải Phòng",
-        "district": "Lê Chân",
-        "commune": "Phường An Biên",
-        "poverty_status": PovertyStatus.NEAR_POOR,
-        "ethnicity": "Kinh",
-        "members_count": 5,
-        "income_per_capita": 1500000,
-        "score_b1": 55,
-        "score_b2": 61,
-        "note": "Thu nhập sát chuẩn, thiếu việc làm ổn định.",
-        "area": "Thành thị",
-        "village": "Tổ 9",
-        "officer": "Nguyễn Thị Ngọc",
-        "remark": "Cần hỗ trợ vay vốn.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 11, 15),
-    },
-    {
-        "household_code": "HH-0003",
-        "head_name": "Lê Văn Nam",
-        "birth_date": date(1990, 5, 2),
-        "gender": "Nam",
-        "id_card": "012345678901",
-        "province": "TP. Đà Nẵng",
-        "district": "Hải Châu",
-        "commune": "Phường Thạch Thang",
-        "poverty_status": PovertyStatus.AT_RISK,
-        "ethnicity": "Kinh",
-        "members_count": 3,
-        "income_per_capita": 1800000,
-        "score_b1": 42,
-        "score_b2": 49,
-        "note": "Nguy cơ tái nghèo do việc làm không ổn định.",
-        "area": "Thành thị",
-        "village": "Khu phố 2",
-        "officer": "Lê Thị Hạnh",
-        "remark": "Theo dõi biến động thu nhập.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 10, 20),
-    },
-    {
-        "household_code": "HH-0004",
-        "head_name": "Hoàng Thị Lan",
-        "birth_date": date(1982, 9, 19),
-        "gender": "Nữ",
-        "id_card": "024681357913",
-        "province": "Nghệ An",
-        "district": "Quỳnh Lưu",
-        "commune": "Xã Quỳnh Hồng",
-        "poverty_status": PovertyStatus.POOR,
-        "ethnicity": "Thái",
-        "members_count": 6,
-        "income_per_capita": 900000,
-        "score_b1": 77,
-        "score_b2": 80,
-        "note": "Thiếu đất sản xuất, nhiều người phụ thuộc.",
-        "area": "Nông thôn",
-        "village": "Xóm 7",
-        "officer": "Phan Văn Dũng",
-        "remark": "Ưu tiên hỗ trợ sinh kế.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 9, 30),
-    },
-    {
-        "household_code": "HH-0005",
-        "head_name": "Trần Văn Minh",
-        "birth_date": date(1975, 1, 8),
-        "gender": "Nam",
-        "id_card": "099887766554",
-        "province": "Lâm Đồng",
-        "district": "Di Linh",
-        "commune": "Xã Đinh Lạc",
-        "poverty_status": PovertyStatus.ESCAPED,
-        "ethnicity": "K'Ho",
-        "members_count": 4,
-        "income_per_capita": 2300000,
-        "score_b1": 35,
-        "score_b2": 40,
-        "note": "Đã thoát nghèo, cần theo dõi ổn định.",
-        "area": "Nông thôn",
-        "village": "Thôn 3",
-        "officer": "Võ Thị Liên",
-        "remark": "Theo dõi định kỳ.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 8, 25),
-    },
-    {
-        "household_code": "HH-0006",
-        "head_name": "Đặng Văn Khánh",
-        "birth_date": date(1988, 2, 14),
-        "gender": "Nam",
-        "id_card": "078901234567",
-        "province": "TP. Hồ Chí Minh",
-        "district": "Bình Thạnh",
-        "commune": "Phường 14",
-        "poverty_status": PovertyStatus.NEAR_POOR,
-        "ethnicity": "Kinh",
-        "members_count": 3,
-        "income_per_capita": 1700000,
-        "score_b1": 50,
-        "score_b2": 58,
-        "note": "Việc làm thời vụ, thu nhập không ổn định.",
-        "area": "Thành thị",
-        "village": "Khu phố 6",
-        "officer": "Phạm Thị Mai",
-        "remark": "Khuyến nghị hỗ trợ nghề.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 12, 12),
-    },
-    {
-        "household_code": "HH-0007",
-        "head_name": "Võ Thị Hạnh",
-        "birth_date": date(1992, 11, 5),
-        "gender": "Nữ",
-        "id_card": "066778899001",
-        "province": "TP. Cần Thơ",
-        "district": "Ninh Kiều",
-        "commune": "Phường An Khánh",
-        "poverty_status": PovertyStatus.POOR,
-        "ethnicity": "Kinh",
-        "members_count": 5,
-        "income_per_capita": 980000,
-        "score_b1": 72,
-        "score_b2": 78,
-        "note": "Thiếu điều kiện học tập cho con.",
-        "area": "Thành thị",
-        "village": "Tổ 12",
-        "officer": "Lê Văn Hòa",
-        "remark": "Cần hỗ trợ học phí.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 11, 3),
-    },
-    {
-        "household_code": "HH-0008",
-        "head_name": "Ngô Văn Tuấn",
-        "birth_date": date(1980, 4, 21),
-        "gender": "Nam",
-        "id_card": "055443322110",
-        "province": "Thanh Hóa",
-        "district": "Triệu Sơn",
-        "commune": "Xã Dân Lý",
-        "poverty_status": PovertyStatus.AT_RISK,
-        "ethnicity": "Kinh",
-        "members_count": 6,
-        "income_per_capita": 1300000,
-        "score_b1": 48,
-        "score_b2": 52,
-        "note": "Nguy cơ tái nghèo do thiên tai.",
-        "area": "Nông thôn",
-        "village": "Thôn 2",
-        "officer": "Đỗ Thị Hằng",
-        "remark": "Theo dõi mùa vụ.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 10, 5),
-    },
-    {
-        "household_code": "HH-0009",
-        "head_name": "Phan Văn Dũng",
-        "birth_date": date(1972, 6, 30),
-        "gender": "Nam",
-        "id_card": "044556677889",
-        "province": "Quảng Nam",
-        "district": "Thăng Bình",
-        "commune": "Xã Bình Dương",
-        "poverty_status": PovertyStatus.POOR,
-        "ethnicity": "Cơ Tu",
-        "members_count": 7,
-        "income_per_capita": 850000,
-        "score_b1": 81,
-        "score_b2": 86,
-        "note": "Thiếu sinh kế ổn định.",
-        "area": "Nông thôn",
-        "village": "Thôn 4",
-        "officer": "Nguyễn Văn Quang",
-        "remark": "Ưu tiên hỗ trợ sinh kế.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 9, 18),
-    },
-    {
-        "household_code": "HH-0010",
-        "head_name": "Bùi Thị Thu",
-        "birth_date": date(1987, 8, 9),
-        "gender": "Nữ",
-        "id_card": "033221100998",
-        "province": "Khánh Hòa",
-        "district": "Nha Trang",
-        "commune": "Phường Vĩnh Hòa",
-        "poverty_status": PovertyStatus.NEAR_POOR,
-        "ethnicity": "Kinh",
-        "members_count": 4,
-        "income_per_capita": 1600000,
-        "score_b1": 53,
-        "score_b2": 57,
-        "note": "Thu nhập thấp, thiếu bảo hiểm y tế.",
-        "area": "Thành thị",
-        "village": "Tổ 3",
-        "officer": "Phạm Văn Đức",
-        "remark": "Hỗ trợ BHYT.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 8, 10),
-    },
-    {
-        "household_code": "HH-0011",
-        "head_name": "Trịnh Văn Hậu",
-        "birth_date": date(1995, 12, 1),
-        "gender": "Nam",
-        "id_card": "022334455667",
-        "province": "Bắc Ninh",
-        "district": "Yên Phong",
-        "commune": "Xã Đông Phong",
-        "poverty_status": PovertyStatus.ESCAPED,
-        "ethnicity": "Kinh",
-        "members_count": 3,
-        "income_per_capita": 2100000,
-        "score_b1": 30,
-        "score_b2": 38,
-        "note": "Đã thoát nghèo nhờ việc làm ổn định.",
-        "area": "Nông thôn",
-        "village": "Thôn Lý",
-        "officer": "Nguyễn Thị Lan",
-        "remark": "Theo dõi 2 năm.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 7, 22),
-    },
-    {
-        "household_code": "HH-0012",
-        "head_name": "Lưu Thị Bình",
-        "birth_date": date(1983, 3, 3),
-        "gender": "Nữ",
-        "id_card": "088776655443",
-        "province": "Đắk Lắk",
-        "district": "Buôn Ma Thuột",
-        "commune": "Phường Tân An",
-        "poverty_status": PovertyStatus.POOR,
-        "ethnicity": "Ê Đê",
-        "members_count": 6,
-        "income_per_capita": 920000,
-        "score_b1": 79,
-        "score_b2": 83,
-        "note": "Thiếu nước sạch và nhà ở kiên cố.",
-        "area": "Nông thôn",
-        "village": "Buôn 1",
-        "officer": "Y Bích",
-        "remark": "Ưu tiên hỗ trợ nước sạch.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 6, 12),
-    },
-    {
-        "household_code": "HH-0013",
-        "head_name": "Hoàng Văn Sơn",
-        "birth_date": date(1978, 1, 17),
-        "gender": "Nam",
-        "id_card": "077665544332",
-        "province": "Lào Cai",
-        "district": "Sa Pa",
-        "commune": "Xã Tả Van",
-        "poverty_status": PovertyStatus.AT_RISK,
-        "ethnicity": "H'Mông",
-        "members_count": 5,
-        "income_per_capita": 1400000,
-        "score_b1": 49,
-        "score_b2": 55,
-        "note": "Thu nhập bấp bênh do du lịch mùa vụ.",
-        "area": "Nông thôn",
-        "village": "Thôn Suối Hồ",
-        "officer": "Sùng A Lử",
-        "remark": "Hỗ trợ đào tạo nghề.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 5, 20),
-    },
-    {
-        "household_code": "HH-0014",
-        "head_name": "Đinh Thị Hường",
-        "birth_date": date(1991, 9, 29),
-        "gender": "Nữ",
-        "id_card": "011223344556",
-        "province": "Quảng Ngãi",
-        "district": "Tư Nghĩa",
-        "commune": "Xã Nghĩa Phương",
-        "poverty_status": PovertyStatus.NEAR_POOR,
-        "ethnicity": "Kinh",
-        "members_count": 4,
-        "income_per_capita": 1650000,
-        "score_b1": 54,
-        "score_b2": 60,
-        "note": "Thiếu việc làm ổn định, cần hỗ trợ vay vốn.",
-        "area": "Nông thôn",
-        "village": "Thôn Trung",
-        "officer": "Trần Văn Khoa",
-        "remark": "Theo dõi sử dụng vốn.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 4, 2),
-    },
-    {
-        "household_code": "HH-0015",
-        "head_name": "Nguyễn Văn Phúc",
-        "birth_date": date(1984, 12, 25),
-        "gender": "Nam",
-        "id_card": "099001122334",
-        "province": "Phú Thọ",
-        "district": "Việt Trì",
-        "commune": "Phường Vân Cơ",
-        "poverty_status": PovertyStatus.ESCAPED,
-        "ethnicity": "Kinh",
-        "members_count": 3,
-        "income_per_capita": 2400000,
-        "score_b1": 28,
-        "score_b2": 35,
-        "note": "Ổn định thu nhập, duy trì thoát nghèo.",
-        "area": "Thành thị",
-        "village": "Tổ 1",
-        "officer": "Phan Thị Dung",
-        "remark": "Theo dõi định kỳ.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 3, 18),
-    },
-    {
-        "household_code": "HH-0016",
-        "head_name": "Lâm Văn Hòa",
-        "birth_date": date(1986, 6, 7),
-        "gender": "Nam",
-        "id_card": "066112233445",
-        "province": "An Giang",
-        "district": "Châu Phú",
-        "commune": "Xã Bình Mỹ",
-        "poverty_status": PovertyStatus.POOR,
-        "ethnicity": "Kinh",
-        "members_count": 6,
-        "income_per_capita": 870000,
-        "score_b1": 82,
-        "score_b2": 88,
-        "note": "Thiếu điều kiện nhà ở.",
-        "area": "Nông thôn",
-        "village": "Ấp 3",
-        "officer": "Huỳnh Thị Hòa",
-        "remark": "Đề xuất hỗ trợ nhà ở.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 2, 11),
-    },
-    {
-        "household_code": "HH-0017",
-        "head_name": "Phạm Thị Ánh",
-        "birth_date": date(1993, 10, 10),
-        "gender": "Nữ",
-        "id_card": "055667788990",
-        "province": "Đồng Nai",
-        "district": "Biên Hòa",
-        "commune": "Phường Tân Biên",
-        "poverty_status": PovertyStatus.NEAR_POOR,
-        "ethnicity": "Kinh",
-        "members_count": 4,
-        "income_per_capita": 1550000,
-        "score_b1": 57,
-        "score_b2": 62,
-        "note": "Thiếu điều kiện y tế.",
-        "area": "Thành thị",
-        "village": "Khu phố 8",
-        "officer": "Trương Văn Tín",
-        "remark": "Hỗ trợ khám chữa bệnh.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2024, 1, 14),
-    },
-    {
-        "household_code": "HH-0018",
-        "head_name": "Dương Văn Thái",
-        "birth_date": date(1970, 4, 4),
-        "gender": "Nam",
-        "id_card": "044332211000",
-        "province": "Ninh Bình",
-        "district": "Hoa Lư",
-        "commune": "Xã Ninh Vân",
-        "poverty_status": PovertyStatus.AT_RISK,
-        "ethnicity": "Kinh",
-        "members_count": 5,
-        "income_per_capita": 1350000,
-        "score_b1": 46,
-        "score_b2": 51,
-        "note": "Nguy cơ tái nghèo do bệnh tật.",
-        "area": "Nông thôn",
-        "village": "Thôn Đồng",
-        "officer": "Nguyễn Văn Huy",
-        "remark": "Theo dõi sức khỏe.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2023, 12, 28),
-    },
-    {
-        "household_code": "HH-0019",
-        "head_name": "Mai Thị Yến",
-        "birth_date": date(1989, 5, 15),
-        "gender": "Nữ",
-        "id_card": "077889900112",
-        "province": "Quảng Trị",
-        "district": "Cam Lộ",
-        "commune": "Xã Cam Tuyền",
-        "poverty_status": PovertyStatus.POOR,
-        "ethnicity": "Vân Kiều",
-        "members_count": 6,
-        "income_per_capita": 910000,
-        "score_b1": 76,
-        "score_b2": 81,
-        "note": "Thiếu điều kiện nước sạch.",
-        "area": "Nông thôn",
-        "village": "Thôn 6",
-        "officer": "Hồ Văn Nam",
-        "remark": "Ưu tiên dự án nước sạch.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2023, 11, 30),
-    },
-    {
-        "household_code": "HH-0020",
-        "head_name": "Trần Văn Hùng",
-        "birth_date": date(1981, 2, 28),
-        "gender": "Nam",
-        "id_card": "066554433221",
-        "province": "Bình Định",
-        "district": "Phù Cát",
-        "commune": "Xã Cát Hanh",
-        "poverty_status": PovertyStatus.ESCAPED,
-        "ethnicity": "Kinh",
-        "members_count": 4,
-        "income_per_capita": 2200000,
-        "score_b1": 32,
-        "score_b2": 39,
-        "note": "Thoát nghèo ổn định, cần theo dõi.",
-        "area": "Nông thôn",
-        "village": "Thôn Đông",
-        "officer": "Đặng Thị Lan",
-        "remark": "Theo dõi 1 năm.",
-        "attachment_url": "",
-        "last_surveyed_at": date(2023, 10, 12),
-    },
+def get_poverty_status(area_type: str, b1: int, b2: int, threshold_b1: int) -> PovertyStatus:
+    """Calculate poverty status based on B1, B2 and area standards."""
+    if b1 <= threshold_b1:
+        if b2 >= 30:
+            return PovertyStatus.POOR
+        else:
+            return PovertyStatus.NEAR_POOR
+    else:
+        # If above income threshold, then escaped
+        return PovertyStatus.ESCAPED
+
+
+LOCATIONS = [
+    ("TP. Hà Nội", "Ba Đình", "Phường Ngọc Hà", "Thành thị"),
+    ("TP. Hải Phòng", "Lê Chân", "Phường An Biên", "Thành thị"),
+    ("TP. Đà Nẵng", "Hải Châu", "Phường Thạch Thang", "Thành thị"),
+    ("Nghệ An", "Quỳnh Lưu", "Xã Quỳnh Hồng", "Nông thôn"),
+    ("Lâm Đồng", "Di Linh", "Xã Đinh Lạc", "Nông thôn"),
+    ("TP. Hồ Chí Minh", "Bình Thạnh", "Phường 14", "Thành thị"),
+    ("TP. Cần Thơ", "Ninh Kiều", "Phường An Khánh", "Thành thị"),
+    ("Thanh Hóa", "Triệu Sơn", "Xã Dân Lý", "Nông thôn"),
+    ("Quảng Nam", "Thăng Bình", "Xã Bình Dương", "Nông thôn"),
+    ("Khánh Hòa", "Nha Trang", "Phường Vĩnh Hòa", "Thành thị"),
+    ("Bắc Ninh", "Yên Phong", "Xã Đông Phong", "Nông thôn"),
+    ("Đắk Lắk", "Buôn Ma Thuột", "Phường Tân An", "Thành thị"),
+    ("Lào Cai", "Sa Pa", "Xã Tả Van", "Nông thôn"),
+    ("Quảng Ngãi", "Tư Nghĩa", "Xã Nghĩa Phương", "Nông thôn"),
+    ("Phú Thọ", "Việt Trì", "Phường Vân Cơ", "Thành thị"),
+    ("An Giang", "Châu Phú", "Xã Bình Mỹ", "Nông thôn"),
+    ("Đồng Nai", "Biên Hòa", "Phường Tân Biên", "Thành thị"),
+    ("Ninh Bình", "Hoa Lư", "Xã Ninh Vân", "Nông thôn"),
+    ("Quảng Trị", "Cam Lộ", "Xã Cam Tuyền", "Nông thôn"),
+    ("Bình Định", "Phù Cát", "Xã Cát Hanh", "Nông thôn"),
 ]
+
+OFFICERS = [
+    "Nguyễn Văn An", "Trần Thị Bình", "Lê Văn Cường", "Phạm Thị Dung", 
+    "Hoàng Văn Em", "Ngô Thị Phương", "Đỗ Văn Giang", "Bùi Thị Hạnh"
+]
+
+SURNAMES = ["Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Phan", "Vũ", "Đặng", "Bùi", "Đỗ"]
+MIDDLE_NAMES = ["Văn", "Thị", "Hữu", "Minh", "Đức", "Ngọc", "Hoàng", "Kim"]
+FIRST_NAMES = ["Hùng", "Lan", "Tuấn", "Mai", "Cường", "Hoa", "Dũng", "Huệ", "Sơn", "Linh"]
+
+
+def generate_name():
+    return f"{random.choice(SURNAMES)} {random.choice(MIDDLE_NAMES)} {random.choice(FIRST_NAMES)}"
 
 
 def seed_households() -> None:
+    # Ensure all tables defined in models exist
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        db.query(Household).delete()
-        for item in SAMPLES:
-            db.add(Household(**item))
+        # 1. Clear existing data with FK checks disabled for a clean sweep
+        db.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
+        db.execute(text("TRUNCATE TABLE activity_logs;"))
+        db.execute(text("TRUNCATE TABLE data_collections;"))
+        db.execute(text("TRUNCATE TABLE household_surveys;"))
+        db.execute(text("TRUNCATE TABLE households;"))
+        db.execute(text("TRUNCATE TABLE poverty_thresholds;"))
+        db.execute(text("TRUNCATE TABLE policies;"))
+        db.execute(text("TRUNCATE TABLE policy_drafts;"))
+        db.execute(text("TRUNCATE TABLE users;"))
+        db.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
         db.commit()
-        print("Inserted sample households.")
+
+        # 2. Seed Users
+        hashed_pwd = get_password_hash("18032002")
+        users_data = [
+            User(email="admin@ipoor.local", full_name="Nguyễn Việt Hùng", hashed_password=hashed_pwd, role=Roles.ADMIN, org_level="tw", org_name="Bộ Lao động - Thương binh và Xã hội", position="Quản trị hệ thống", cccd="011234567890", province="Hà Nội", district="Ba Đình", commune="Phường Ngọc Hà"),
+            User(email="canbo.tinh@ipoor.local", full_name="Trần Thị Thanh", hashed_password=hashed_pwd, role=Roles.PROVINCE_OFFICER, org_level="tinh", org_name="Sở LĐ-TB&XH Quảng Nam", position="Cán bộ tỉnh", cccd="022345678901", province="Quảng Nam", district="Tam Kỳ", commune="Phường An Mỹ"),
+            User(email="canbo.huyen@ipoor.local", full_name="Lê Văn Khôi", hashed_password=hashed_pwd, role=Roles.DISTRICT_OFFICER, org_level="huyen", org_name="UBND huyện Quỳnh Lưu", position="Cán bộ huyện", cccd="033456789012", province="Nghệ An", district="Quỳnh Lưu", commune="Xã Quỳnh Hồng"),
+            User(email="canbo.xa@ipoor.local", full_name="Hoàng Thị Dung", hashed_password=hashed_pwd, role=Roles.COMMUNE_OFFICER, org_level="xa", org_name="UBND xã Nghĩa Phương", position="Cán bộ xã", cccd="044567890123", province="Quảng Ngãi", district="Tư Nghĩa", commune="Xã Nghĩa Phương"),
+        ]
+        for u in users_data:
+            db.add(u)
+        db.flush()
+
+        # 3. Seed Policies
+        policies_data = [
+            Policy(title="Khung chuẩn nghèo đa chiều 2026-2030", category=PolicyCategory.DECREE, summary="Cập nhật chuẩn nghèo đa chiều giai đoạn 2026-2030 và hướng dẫn rà soát dữ liệu.", description="<p>Văn bản quy định khung tiêu chí và mức chuẩn nghèo đa chiều cho giai đoạn 2026-2030.</p><h3>1. Mục tiêu</h3><p>Thống nhất cách xác định chuẩn nghèo đa chiều và làm cơ sở phân bổ nguồn lực.</p><ul><li>Điều chỉnh ngưỡng thu nhập.</li><li>Bổ sung tiêu chí dịch vụ xã hội cơ bản.</li><li>Hướng dẫn quy trình rà soát hằng năm.</li></ul>", effective_date=date(2026, 1, 5), issued_by="Vụ Giảm nghèo", tags=["chuẩn nghèo", "hướng dẫn", "giai đoạn 2026-2030"], is_public=True),
+            Policy(title="Báo cáo rà soát hộ nghèo cấp huyện 2025", category=PolicyCategory.REPORT, summary="Tổng hợp kết quả rà soát và đề xuất hỗ trợ bổ sung cho vùng khó khăn.", description="<p>Báo cáo tổng hợp kết quả rà soát cuối năm và so sánh biến động với năm trước.</p><h3>Nội dung chính</h3><ul><li>Biến động tỷ lệ hộ nghèo theo huyện.</li><li>Nguyên nhân biến động.</li><li>Đề xuất hỗ trợ bổ sung.</li></ul>", effective_date=date(2025, 12, 22), issued_by="Sở LĐ-TB&XH Quảng Nam", tags=["báo cáo", "rà soát", "2025"], is_public=False),
+            Policy(title="Checklist triển khai hỗ trợ sinh kế", category=PolicyCategory.GUIDELINE, summary="Danh sách kiểm tra cho các bước triển khai hỗ trợ sinh kế.", description="<p>Checklist áp dụng cho các đơn vị triển khai hỗ trợ sinh kế hộ nghèo.</p><ul><li>Chuẩn bị dữ liệu hộ.</li><li>Phân nhóm đối tượng.</li><li>Thiết kế can thiệp.</li><li>Giám sát và đánh giá.</li></ul>", effective_date=date(2025, 11, 10), issued_by="Ban QLDA tỉnh Đồng Tháp", tags=["sinh kế", "checklist", "triển khai"], is_public=True),
+        ]
+        for p in policies_data:
+            db.add(p)
+        db.flush()
+
+        # 4. Seed Standards (Poverty Thresholds)
+        thresholds_data = [
+            # Nông thôn: B1 <= 150
+            PovertyThreshold(year=2024, area_type="Nông thôn", b1_threshold=150, b2_deprived_min=30),
+            PovertyThreshold(year=2025, area_type="Nông thôn", b1_threshold=155, b2_deprived_min=30),
+            PovertyThreshold(year=2026, area_type="Nông thôn", b1_threshold=160, b2_deprived_min=30),
+            # Thành thị: B1 <= 175
+            PovertyThreshold(year=2024, area_type="Thành thị", b1_threshold=175, b2_deprived_min=30),
+            PovertyThreshold(year=2025, area_type="Thành thị", b1_threshold=180, b2_deprived_min=30),
+            PovertyThreshold(year=2026, area_type="Thành thị", b1_threshold=185, b2_deprived_min=30),
+        ]
+        for t in thresholds_data:
+            db.add(t)
+        db.flush()
+
+        # Mapping for lookup
+        standards = {}
+        for t in thresholds_data:
+            standards[(t.year, t.area_type)] = t.b1_threshold
+
+        # 3. Generate 50 sample households
+        for i in range(1, 51):
+            province, district, commune, area_type = random.choice(LOCATIONS)
+            
+            household = Household(
+                household_code=f"HH-{i:04d}",
+                head_name=generate_name(),
+                birth_date=date(random.randint(1960, 1995), random.randint(1, 12), random.randint(1, 28)),
+                gender=random.choice(["Nam", "Nữ"]),
+                id_card=f"0{random.randint(10000000000, 99999999999)}",
+                province=province,
+                district=district,
+                commune=commune,
+                ethnicity="Kinh",
+                area=area_type,
+                village=f"Tổ {random.randint(1, 15)}"
+            )
+            db.add(household)
+            db.flush()
+
+            # 4. Generate surveys for 2024, 2025, 2026
+            for year in [2024, 2025, 2026]:
+                # Trend: slightly improving scores/income over years
+                b1 = random.randint(80, 220) + (year - 2024) * 10
+                b2 = random.randint(10, 60) - (year - 2024) * 5
+                
+                threshold_b1 = standards.get((year, area_type), 150)
+                status = get_poverty_status(area_type, b1, b2, threshold_b1)
+                
+                survey = HouseholdSurvey(
+                    household_id=household.id,
+                    survey_year=year,
+                    survey_date=date(year, random.randint(1, 12), random.randint(1, 28)),
+                    poverty_status=status,
+                    members_count=random.randint(2, 7),
+                    income_per_capita=b1 * 10000, # Mock income scale
+                    score_b1=b1,
+                    score_b2=max(0, b2),
+                    note=f"Khảo sát định kỳ năm {year}",
+                    officer=random.choice(OFFICERS),
+                    remark="Dữ liệu đã rà soát" if random.random() > 0.2 else "Cần kiểm tra lại"
+                )
+                db.add(survey)
+
+        db.commit()
+        print("Successfully seeded 50 households with historical surveys (2024-2026).")
+    except Exception as e:
+        print(f"Error seeding: {e}")
+        db.rollback()
     finally:
         db.close()
 

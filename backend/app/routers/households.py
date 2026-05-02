@@ -1,5 +1,7 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, extract, func
+from sqlalchemy.orm import Session, joinedload
 
 from .. import deps, models, schemas
 from ..constants import DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT, PovertyStatus
@@ -20,16 +22,46 @@ def list_households(
     db: Session = Depends(deps.get_db),
 ) -> dict[str, object]:
     query = db.query(models.Household)
+    if status_filter:
+        latest_survey_subquery = (
+            db.query(
+                models.HouseholdSurvey.household_id.label("household_id"),
+                models.HouseholdSurvey.poverty_status.label("poverty_status"),
+                func.row_number()
+                .over(
+                    partition_by=models.HouseholdSurvey.household_id,
+                    order_by=(
+                        models.HouseholdSurvey.survey_year.desc(),
+                        models.HouseholdSurvey.survey_date.desc(),
+                        models.HouseholdSurvey.id.desc(),
+                    ),
+                )
+                .label("rn"),
+            )
+            .subquery()
+        )
+        query = query.join(
+            latest_survey_subquery,
+            and_(
+                models.Household.id == latest_survey_subquery.c.household_id,
+                latest_survey_subquery.c.rn == 1,
+            ),
+        ).filter(latest_survey_subquery.c.poverty_status == status_filter)
     if province:
         query = query.filter(models.Household.province == province)
     if district:
         query = query.filter(models.Household.district == district)
     if commune:
         query = query.filter(models.Household.commune == commune)
-    if status_filter:
-        query = query.filter(models.Household.poverty_status == status_filter)
+    
     total = query.count()
-    households = query.offset(skip).limit(limit).all()
+    households = (
+        query.order_by(models.Household.id.desc())
+        .options(joinedload(models.Household.surveys))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
     return {"items": households, "total": total}
 
 
@@ -51,11 +83,15 @@ def create_household(
         )
         if duplicate:
             household_code = generate_household_code(db)
-    payload_data = payload.model_dump()
+    payload_data = payload.model_dump(exclude={"survey"})
     payload_data["household_code"] = household_code
     household = models.Household(**payload_data)
     db.add(household)
     db.flush()
+    if payload.survey:
+        survey_data = payload.survey.model_dump()
+        survey = models.HouseholdSurvey(household_id=household.id, **survey_data)
+        db.add(survey)
     log_activity(
         db,
         user_id=current_user.id,
@@ -77,7 +113,12 @@ def get_household(
     db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_user),
 ) -> models.Household:
-    household = db.query(models.Household).filter(models.Household.id == household_id).first()
+    household = (
+        db.query(models.Household)
+        .options(joinedload(models.Household.surveys))
+        .filter(models.Household.id == household_id)
+        .first()
+    )
     if not household:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Household not found")
     return household
@@ -94,8 +135,29 @@ def update_household(
     household = db.query(models.Household).filter(models.Household.id == household_id).first()
     if not household:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Household not found")
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    for key, value in payload.model_dump(exclude_unset=True, exclude={"survey"}).items():
         setattr(household, key, value)
+    
+    survey_year = datetime.now().year
+    if payload.survey:
+        survey_data = payload.survey.model_dump(exclude_unset=True)
+        # Derive year from survey_date; auto-set survey_year
+        survey_year = survey_data.get("survey_date").year if survey_data.get("survey_date") else datetime.now().year
+        # Auto-fill survey_year field
+        survey_data["survey_year"] = survey_year
+
+        existing_survey = db.query(models.HouseholdSurvey).filter(
+            models.HouseholdSurvey.household_id == household_id,
+            extract('year', models.HouseholdSurvey.survey_date) == survey_year
+        ).first()
+
+        if existing_survey:
+            for k, v in survey_data.items():
+                setattr(existing_survey, k, v)
+        else:
+            new_survey = models.HouseholdSurvey(household_id=household.id, **survey_data)
+            db.add(new_survey)
+
     log_activity(
         db,
         user_id=current_user.id,
@@ -103,7 +165,7 @@ def update_household(
         entity_type="household",
         entity_id=household.id,
         household_id=household.id,
-        detail="Household updated",
+        detail=f"Household updated (Survey year: {survey_year})",
         ip_address=request.client.host if request else None,
     )
     db.commit()

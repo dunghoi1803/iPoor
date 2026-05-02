@@ -2,6 +2,7 @@ from .activity_log import ActivityLogCreate, ActivityLogRead
 from .auth import Token, TokenData, TokenPayload, UserLogin
 from .dashboard import (
     DashboardKpis,
+    DashboardOverview,
     DashboardRegionItem,
     DashboardSeries,
     DashboardSummary,
@@ -16,6 +17,7 @@ from .data_collection import (
     DataCollectionUpdate,
 )
 from .household import HouseholdCreate, HouseholdListResponse, HouseholdRead, HouseholdUpdate
+from .household_survey import HouseholdSurveyCreate, HouseholdSurveyRead, HouseholdSurveyUpdate
 from .password import ChangePasswordRequest
 from .policy import PolicyBrief, PolicyCreate, PolicyRead, PolicyUpdate
 from .policy_draft import PolicyDraftRead, PolicyDraftUpsert
@@ -29,6 +31,7 @@ __all__ = [
     "DashboardSummary",
     "DashboardTrendOptions",
     "DashboardKpis",
+    "DashboardOverview",
     "DataCollectionCreate",
     "DataCollectionRead",
     "DataCollectionUploadRow",
@@ -39,6 +42,9 @@ __all__ = [
     "HouseholdListResponse",
     "HouseholdRead",
     "HouseholdUpdate",
+    "HouseholdSurveyCreate",
+    "HouseholdSurveyRead",
+    "HouseholdSurveyUpdate",
     "ChangePasswordRequest",
     "PolicyCreate",
     "PolicyBrief",

@@ -16,7 +16,7 @@ class PolicyBase(BaseModel):
     category: PolicyCategory
     summary: str | None = Field(default=None, max_length=POLICY_SUMMARY_MAX_LENGTH)
     description: str | None = None
-    content_blocks: dict[str, Any] | None = None
+    content_blocks: list[dict[str, Any]] | None = None
     effective_date: date | None = None
     issued_by: str | None = None
     attachment_files: list[AttachmentFile] | None = None
@@ -34,7 +34,7 @@ class PolicyUpdate(BaseModel):
     category: PolicyCategory | None = None
     summary: str | None = Field(default=None, max_length=POLICY_SUMMARY_MAX_LENGTH)
     description: str | None = None
-    content_blocks: dict[str, Any] | None = None
+    content_blocks: list[dict[str, Any]] | None = None
     effective_date: date | None = None
     issued_by: str | None = None
     attachment_files: list[AttachmentFile] | None = None

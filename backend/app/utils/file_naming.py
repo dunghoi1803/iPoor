@@ -15,7 +15,6 @@ POVERTY_STATUS_VI = {
     "poor": "nghèo",
     "near_poor": "cận-nghèo",
     "escaped_poverty": "thoát-nghèo",
-    "at_risk": "nguy-cơ-tái-nghèo",
 }
 
 

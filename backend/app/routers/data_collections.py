@@ -60,17 +60,12 @@ POVERTY_STATUS_MAP = {
     "1": PovertyStatus.POOR,
     "2": PovertyStatus.NEAR_POOR,
     "3": PovertyStatus.ESCAPED,
-    "4": PovertyStatus.AT_RISK,
     "hộ nghèo": PovertyStatus.POOR,
     "hộ cận nghèo": PovertyStatus.NEAR_POOR,
     "hộ thoát nghèo": PovertyStatus.ESCAPED,
-    "hộ có khả năng tái nghèo": PovertyStatus.AT_RISK,
     "nghèo": PovertyStatus.POOR,
     "cận nghèo": PovertyStatus.NEAR_POOR,
     "thoát nghèo": PovertyStatus.ESCAPED,
-    "tái nghèo": PovertyStatus.AT_RISK,
-    "nguy cơ tái nghèo": PovertyStatus.AT_RISK,
-    "có khả năng tái nghèo": PovertyStatus.AT_RISK,
 }
 REQUIRED_FIELDS = {
     "name": "Họ và tên",
@@ -431,25 +426,42 @@ def commit_data_collection_row(
         gender=normalize_text(gender) or None,
         ethnicity=normalize_text(ethnic) or None,
         id_card=normalize_text(id_num) or None,
-        members_count=family_mem,
-        income_per_capita=income_per_capita,
-        poverty_status=poverty_status,
-        score_b1=b1_score,
-        score_b2=b2_score,
-        note=normalize_text(description) or None,
-        remark=normalize_text(note) or None,
         area=normalize_text(area) or None,
         village=normalize_text(village) or None,
-        officer=normalize_text(official_check) or None,
         commune=normalize_text(commune) or "Chưa rõ",
         province=normalize_text(province) or "Chưa rõ",
         district=normalize_text(district) or "Chưa rõ",
         address_line=normalize_text(address_line) or None,
         attachment_url=attachment_url,
-        last_surveyed_at=collected_at.date() if collected_at else None,
     )
     db.add(household)
     db.flush()
+
+    survey = models.HouseholdSurvey(
+        household_id=household.id,
+        poverty_status=poverty_status,
+        score_b1=b1_score,
+        score_b2=b2_score,
+        members_count=family_mem,
+        income_per_capita=income_per_capita,
+        survey_date=collected_at.date() if collected_at else datetime.now().date(),
+        survey_year=collected_at.year if collected_at else datetime.now().year,
+        officer=normalize_text(official_check) or "Hệ thống",
+        remark=normalize_text(note) or None,
+        note=normalize_text(description) or None,
+    )
+    db.add(survey)
+    
+    from ..utils.activity_log import log_activity
+    log_activity(
+        db,
+        user_id=current_user.id,
+        action="commit_data_collection",
+        entity_type="household",
+        entity_id=household.id,
+        household_id=household.id,
+        detail=f"Household committed from Excel upload (CCCD: {id_num})",
+    )
 
     notes = f"Before: {normalize_text(classified_before_check)}; After: {normalize_text(classified_after_check)}"
     collection = models.DataCollection(

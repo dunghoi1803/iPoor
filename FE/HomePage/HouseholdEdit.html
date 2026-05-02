@@ -260,7 +260,7 @@
             <section class="card">
                 <div class="card-title">Thông tin nghèo đa chiều</div>
                 <div class="grid-2col">
-                    <div class="field"><label class="label" for="statusField">Trạng thái</label><select class="form-control" id="statusField"><option value="">Chọn trạng thái</option><option value="Nghèo" selected>Nghèo</option><option value="Cận nghèo">Cận nghèo</option><option value="Thoát nghèo">Thoát nghèo</option><option value="Nguy cơ tái nghèo">Nguy cơ tái nghèo</option></select><div class="error" data-error="statusField"></div></div>
+                    <div class="field"><label class="label" for="statusField">Trạng thái</label><select class="form-control" id="statusField"><option value="">Chọn trạng thái</option><option value="Nghèo" selected>Nghèo</option><option value="Cận nghèo">Cận nghèo</option><option value="Thoát nghèo">Thoát nghèo</option></select><div class="error" data-error="statusField"></div></div>
                     <div class="field"><label class="label" for="scoreB1">Điểm B1</label><input class="form-control" id="scoreB1" type="number" min="1" value="68"><div class="error" data-error="scoreB1"></div></div>
                     <div class="field"><label class="label" for="scoreB2">Điểm B2</label><input class="form-control" id="scoreB2" type="number" min="1" value="74"><div class="error" data-error="scoreB2"></div></div>
                     <div class="field"><label class="label" for="note">Mô tả ngắn</label><input class="form-control" id="note" placeholder="Ghi chú về tình trạng đa chiều" value="Thu nhập dưới chuẩn, thiếu điều kiện tiếp cận giáo dục và y tế."><div class="error" data-error="note"></div></div>
@@ -343,7 +343,6 @@
         'Nghèo': 'poor',
         'Cận nghèo': 'near_poor',
         'Thoát nghèo': 'escaped_poverty',
-        'Nguy cơ tái nghèo': 'at_risk',
     };
     const attachmentInput = document.getElementById('attachmentFile');
     const officerInput = document.getElementById('officer');
@@ -585,33 +584,42 @@
         const province = document.getElementById('provinceField').value.trim();
         const commune = document.getElementById('communeField').value.trim();
         const areaValue = document.getElementById('areaField').value.trim();
-        const district = areaValue || 'Chưa rõ';
         const status = mapStatus(document.getElementById('statusField').value.trim());
+        
         return {
             head_name: document.getElementById('fullName').value.trim(),
             birth_date: document.getElementById('dob').value || null,
             gender: document.getElementById('gender').value || null,
             id_card: idCardValue || null,
-            address_line: document.getElementById('village').value.trim() || document.getElementById('remark').value.trim(),
             province,
-            district,
+            district: areaValue || 'Chưa rõ',
             commune,
             area: areaValue || null,
             village: document.getElementById('village').value.trim() || null,
-            poverty_status: status,
             ethnicity: document.getElementById('ethnic').value.trim() || null,
-            members_count: Number(document.getElementById('members').value) || null,
-            income_per_capita: null,
-            score_b1: Number(document.getElementById('scoreB1').value) || null,
-            score_b2: Number(document.getElementById('scoreB2').value) || null,
-            note: document.getElementById('note').value.trim() || null,
-            officer: document.getElementById('officer').value.trim() || null,
-            remark: document.getElementById('remark').value.trim() || null,
-            last_surveyed_at: document.getElementById('reviewDate').value || null,
+            survey: {
+                poverty_status: status,
+                score_b1: Number(document.getElementById('scoreB1').value) || null,
+                score_b2: Number(document.getElementById('scoreB2').value) || null,
+                members_count: Number(document.getElementById('members').value) || null,
+                survey_date: document.getElementById('reviewDate').value || null,
+                survey_year: document.getElementById('reviewDate').value
+                    ? new Date(document.getElementById('reviewDate').value).getFullYear()
+                    : new Date().getFullYear(),
+                officer: document.getElementById('officer').value.trim() || null,
+                remark: document.getElementById('remark').value.trim() || null,
+                note: document.getElementById('note').value.trim() || null
+            }
         };
     }
 
     function populateForm(data) {
+        // Sort surveys descending to get latest first
+        const sortedSurveys = (data.surveys && data.surveys.length > 0)
+            ? [...data.surveys].sort((a, b) => new Date(b.survey_date) - new Date(a.survey_date))
+            : [];
+        const latestSurvey = sortedSurveys[0] || null;
+        
         const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = value || ''; };
         setVal('fullName', data.head_name);
         const titleName = (data.head_name || '').trim();
@@ -622,20 +630,25 @@
         }
         setVal('idCard', data.id_card || data.household_code);
         setVal('ethnic', data.ethnicity);
-        setVal('members', data.members_count);
-        setVal('statusField', reverseStatus(data.poverty_status));
+        
+        if (latestSurvey) {
+            setVal('members', latestSurvey.members_count);
+            setVal('statusField', reverseStatus(latestSurvey.poverty_status));
+            setVal('scoreB1', latestSurvey.score_b1);
+            setVal('scoreB2', latestSurvey.score_b2);
+            setVal('note', latestSurvey.note);
+            setVal('officer', latestSurvey.officer);
+            setVal('remark', latestSurvey.remark);
+            setVal('reviewDate', latestSurvey.survey_date ? latestSurvey.survey_date.split('T')[0] : '');
+        }
+
         setVal('provinceField', data.province);
         setVal('communeField', data.commune);
         setVal('areaField', data.area || data.district);
         setVal('village', data.village || data.address_line);
-        setVal('reviewDate', data.last_surveyed_at ? data.last_surveyed_at.split('T')[0] : '');
         setVal('dob', data.birth_date ? data.birth_date.split('T')[0] : '');
         setVal('gender', data.gender);
-        setVal('scoreB1', data.score_b1);
-        setVal('scoreB2', data.score_b2);
-        setVal('note', data.note);
-        setVal('officer', data.officer);
-        setVal('remark', data.remark);
+        
         existingAttachmentUrl = normalizeAttachmentUrl(data.attachment_url || '');
         originalHouseholdCode = data.household_code || '';
     }

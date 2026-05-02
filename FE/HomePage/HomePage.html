@@ -68,6 +68,10 @@
         .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
         .kpi-filters { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
         .kpi-filters .select { min-width: 180px; }
+        .export-filters { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px; padding: 12px 14px; box-shadow: var(--card-shadow); }
+        .export-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn-export { border: 1px solid var(--blue-500); color: var(--blue-500); background: var(--white); border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
+        .btn-export:disabled { opacity: 0.6; cursor: not-allowed; }
         .stat-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px; padding: 16px; box-shadow: var(--card-shadow); display: grid; gap: 10px; }
         .stat-head { display: flex; align-items: center; gap: 10px; color: var(--gray-500); font-weight: 600; }
         .stat-value { font-size: 28px; font-weight: 800; }
@@ -265,7 +269,25 @@
         <main class="content">
             <div class="page-header">
                 <div class="page-title">Tổng quan tình hình nghèo đa chiều</div>
-                <div class="page-subtitle">Cập nhật nhanh số hộ nghèo, cận nghèo, thoát nghèo và các trường hợp nguy cơ để ưu tiên can thiệp.</div>
+                <div class="page-subtitle">Cập nhật nhanh số hộ nghèo, cận nghèo và thoát nghèo để ưu tiên can thiệp.</div>
+            </div>
+
+            <div class="export-filters">
+                <div class="panel-title">Tải dữ liệu hộ theo tỉnh, năm</div>
+                <div class="export-actions">
+                    <select id="export-status-select" class="select" aria-label="Chọn trạng thái hộ">
+                        <option value="poor">Hộ nghèo</option>
+                        <option value="near_poor">Hộ cận nghèo</option>
+                        <option value="escaped_poverty">Hộ thoát nghèo</option>
+                    </select>
+                    <select id="export-year-select" class="select" aria-label="Chọn năm xuất">
+                        <option value="" disabled selected>Chọn năm</option>
+                    </select>
+                    <select id="export-province-select" class="select" aria-label="Chọn tỉnh xuất">
+                        <option value="all">Toàn quốc</option>
+                    </select>
+                    <button id="export-button" class="btn-export" type="button">Tải CSV</button>
+                </div>
             </div>
 
             <div class="kpi-filters">
@@ -306,14 +328,6 @@
                     </div>
                     <div class="stat-value">38,120</div>
                     <span class="stat-pill pill-positive">+6.3% hoàn thành</span>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-head">
-                        <div class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 6.5C3 4.6 4.6 3 6.5 3h3C11.4 3 13 4.6 13 6.5v3C13 11.4 11.4 13 9.5 13h-3C4.6 13 3 11.4 3 9.5v-3Z" stroke="#f59e0b" stroke-width="1.3"/><path d="M6.2 6.3h3.6L8.8 9.7H7.2l-1-3.4Z" fill="#f59e0b"/></svg></div>
-                        <span>Hộ nguy cơ tái nghèo</span>
-                    </div>
-                    <div class="stat-value">14,502</div>
-                    <span class="stat-pill pill-warning">+0.4% cần giám sát</span>
                 </div>
             </section>
 
@@ -450,10 +464,12 @@
     const API_BASE_URL = window.IPOOR_API_BASE;
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const DASHBOARD_ENDPOINT = `${API_BASE_URL}/dashboard/summary`;
+    const DASHBOARD_OVERVIEW_ENDPOINT = `${API_BASE_URL}/dashboard/overview`;
     const DASHBOARD_FILTERS_ENDPOINT = `${API_BASE_URL}/dashboard/filters`;
     const DASHBOARD_TREND_ENDPOINT = `${API_BASE_URL}/dashboard/trend`;
     const DASHBOARD_KPIS_ENDPOINT = `${API_BASE_URL}/dashboard/kpis`;
     const DASHBOARD_REGIONS_ENDPOINT = `${API_BASE_URL}/dashboard/regions`;
+    const DASHBOARD_EXPORT_ENDPOINT = `${API_BASE_URL}/dashboard/export-households`;
     const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/auth/me`;
     const PERCENT_DIGITS = 1;
     const CHART_TICK_COUNT = 4;
@@ -481,8 +497,13 @@
     const regionMetricSelect = document.getElementById('regionMetricSelect');
     const userNameEl = document.getElementById('userName');
     const userRoleEl = document.getElementById('userRole');
+    const exportStatusSelect = document.getElementById('export-status-select');
+    const exportYearSelect = document.getElementById('export-year-select');
+    const exportProvinceSelect = document.getElementById('export-province-select');
+    const exportButton = document.getElementById('export-button');
     let trendRegions = [];
     let trendProvinces = [];
+    let availableYears = [];
     let activeScope = 'country';
     let activeKpiScope = 'country';
     const roleLabels = {
@@ -780,6 +801,85 @@
         `;
     }
 
+    function populateExportFilters() {
+        if (exportYearSelect) {
+            exportYearSelect.innerHTML = '<option value="" disabled selected>Chọn năm</option>';
+            availableYears.forEach((year) => {
+                const option = document.createElement('option');
+                option.value = String(year);
+                option.textContent = String(year);
+                exportYearSelect.appendChild(option);
+            });
+            if (availableYears.length) {
+                exportYearSelect.value = String(availableYears[availableYears.length - 1]);
+            }
+        }
+
+        if (exportProvinceSelect) {
+            exportProvinceSelect.innerHTML = '<option value="all">Toàn quốc</option>';
+            trendProvinces.forEach((name) => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                exportProvinceSelect.appendChild(option);
+            });
+        }
+    }
+
+    async function downloadHouseholdCsv() {
+        if (!exportButton || !exportYearSelect || !exportProvinceSelect || !exportStatusSelect) {
+            return;
+        }
+        const year = exportYearSelect.value;
+        if (!year) {
+            alert('Vui lòng chọn năm cần xuất');
+            return;
+        }
+
+        const province = exportProvinceSelect.value || 'all';
+        const povertyStatus = exportStatusSelect.value || 'poor';
+        const params = new URLSearchParams({
+            year,
+            province,
+            poverty_status: povertyStatus,
+        });
+
+        const originalText = exportButton.textContent;
+        exportButton.disabled = true;
+        exportButton.textContent = 'Đang tải...';
+        try {
+            const res = await fetch(`${DASHBOARD_EXPORT_ENDPOINT}?${params.toString()}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_STORAGE_KEY);
+                sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+                window.location.href = '../Auth/Login.html';
+                return;
+            }
+            if (!res.ok) {
+                const payload = await res.json().catch(() => null);
+                throw new Error(payload?.detail || 'Không tải được file CSV');
+            }
+
+            const blob = await res.blob();
+            const objectUrl = window.URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            const scopeName = province === 'all' ? 'toan-quoc' : province.toLowerCase().replaceAll(' ', '-');
+            anchor.href = objectUrl;
+            anchor.download = `ho-${povertyStatus}-${scopeName}-${year}.csv`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            window.URL.revokeObjectURL(objectUrl);
+        } catch (error) {
+            alert(error?.message || 'Không tải được file CSV');
+        } finally {
+            exportButton.disabled = false;
+            exportButton.textContent = originalText;
+        }
+    }
+
     async function loadKpis(scope, name) {
         const params = new URLSearchParams({ scope });
         if (name) {
@@ -809,12 +909,6 @@
         if (statCards[2]) {
             statCards[2].querySelector('.stat-value').textContent = formatNumber(summary.exit_poverty_total);
             statCards[2].querySelector('.stat-pill').textContent = '';
-        }
-        if (statCards[3]) {
-            statCards[3].querySelector('.stat-value').textContent = summary.at_risk_total === null
-                ? STATUS_UNKNOWN_LABEL
-                : formatNumber(summary.at_risk_total);
-            statCards[3].querySelector('.stat-pill').textContent = STATUS_UPDATING_LABEL;
         }
     }
 
@@ -909,12 +1003,70 @@
         }
     }
 
+    async function loadOverview(scope, name, metric) {
+        const params = new URLSearchParams({ scope: scope || 'country', metric: metric || 'poor' });
+        if (name) {
+            params.set('name', name);
+        }
+        const res = await fetch(`${DASHBOARD_OVERVIEW_ENDPOINT}?${params.toString()}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 401) {
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            window.location.href = '../Auth/Login.html';
+            return;
+        }
+        if (!res.ok) {
+            throw new Error(DEFAULT_ERROR_MESSAGE);
+        }
+
+        const payload = await res.json();
+        trendRegions = payload.filters?.regions || [];
+        trendProvinces = payload.filters?.provinces || [];
+        availableYears = payload.trend?.years || [];
+        populateExportFilters();
+
+        const summary = payload.kpis || {};
+        if (statCards[0]) {
+            statCards[0].querySelector('.stat-value').textContent = formatNumber(summary.poor_total);
+            statCards[0].querySelector('.stat-pill').textContent = `${formatPercent(summary.poor_delta_percent)} so với năm trước`;
+        }
+        if (statCards[1]) {
+            statCards[1].querySelector('.stat-value').textContent = formatNumber(summary.near_poor_total);
+            statCards[1].querySelector('.stat-pill').textContent = `${formatPercent(summary.near_poor_delta_percent)} so với năm trước`;
+        }
+        if (statCards[2]) {
+            statCards[2].querySelector('.stat-value').textContent = formatNumber(summary.exit_poverty_total);
+            statCards[2].querySelector('.stat-pill').textContent = '';
+        }
+
+        if (trendPanel) {
+            const chartArea = trendPanel.querySelector('.chart-area');
+            const series = payload.trend || {};
+            if (chartArea && series.years && series.years.length) {
+                renderLineChart(chartArea, series.years, [
+                    series.poor || [],
+                    series.near_poor || [],
+                    series.exit_poverty || [],
+                ]);
+            }
+        }
+
+        if (regionPanel) {
+            const chartArea = regionPanel.querySelector('.chart-area');
+            if (chartArea) {
+                renderRegionBars(chartArea, payload.regions || []);
+            }
+        }
+    }
+
     if (trendScopeSelect) {
         trendScopeSelect.addEventListener('change', () => {
             const scope = trendScopeSelect.value || 'country';
             updateScope(scope);
             if (scope === 'country') {
-                loadTrend('country');
+                loadOverview('country', null, regionMetricSelect ? (regionMetricSelect.value || 'poor') : 'poor');
             }
         });
     }
@@ -923,7 +1075,7 @@
         trendNameSelect.addEventListener('change', () => {
             const value = trendNameSelect.value;
             if (!value) return;
-            loadTrend(activeScope, value);
+            loadOverview(activeScope, value, regionMetricSelect ? (regionMetricSelect.value || 'poor') : 'poor');
         });
     }
 
@@ -950,7 +1102,7 @@
                 }
             }
             if (scope === 'country') {
-                loadKpis('country');
+                loadOverview('country', null, regionMetricSelect ? (regionMetricSelect.value || 'poor') : 'poor');
             }
         });
     }
@@ -959,19 +1111,25 @@
         kpiNameSelect.addEventListener('change', () => {
             const value = kpiNameSelect.value;
             if (!value) return;
-            loadKpis(activeKpiScope, value);
+            loadOverview(activeKpiScope, value, regionMetricSelect ? (regionMetricSelect.value || 'poor') : 'poor');
         });
     }
 
     if (regionMetricSelect) {
         regionMetricSelect.addEventListener('change', () => {
             const metric = regionMetricSelect.value || 'poor';
-            loadRegionChart(metric);
+            const selectedScope = kpiScopeSelect ? (kpiScopeSelect.value || 'country') : 'country';
+            const selectedName = kpiNameSelect && !kpiNameSelect.disabled ? kpiNameSelect.value : null;
+            loadOverview(selectedScope, selectedName, metric);
         });
     }
 
+    if (exportButton) {
+        exportButton.addEventListener('click', downloadHouseholdCsv);
+    }
+
     updateScope('country');
-    loadTrendFilters().then(() => {
+    loadOverview('country', null, 'poor').then(() => {
         updateScope(activeScope);
         if (kpiScopeSelect) {
             kpiScopeSelect.value = 'country';
@@ -980,15 +1138,11 @@
             kpiNameSelect.disabled = true;
             kpiNameSelect.innerHTML = '<option value="" disabled selected>Không cần chọn</option>';
         }
-        loadTrend('country');
-        loadKpis('country');
         if (regionMetricSelect) {
             regionMetricSelect.value = 'poor';
         }
-        loadRegionChart('poor');
     });
     loadUserProfile();
-    loadDashboard();
 </script>
 <script>
 (() => {
@@ -1004,9 +1158,6 @@
 </script>
 </body>
 </html>
-
-
-
 
 
 

@@ -15,6 +15,7 @@ app = FastAPI(
     description="Backend services for the iPOOR platform",
     docs_url="/docs",
     redoc_url="/redoc",
+    root_path="/api",
 )
 
 app.add_middleware(

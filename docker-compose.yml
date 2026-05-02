@@ -16,7 +16,6 @@ services:
     ]
     volumes:
       - ipoor_db_data:/var/lib/mysql
-      - ./backend/seed:/docker-entrypoint-initdb.d:ro
     networks:
       - ipoor_net
     healthcheck:
@@ -40,7 +39,11 @@ services:
       db:
         condition: service_healthy
     volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
       - ./backend/uploads:/app/uploads
+      - ./FE/data:/app/FE/data
     networks:
       - ipoor_net
 
@@ -51,6 +54,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:80"
+    volumes:
+      - ./FE:/usr/share/nginx/html
     networks:
       - ipoor_net
 
