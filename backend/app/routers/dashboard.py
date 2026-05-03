@@ -16,7 +16,7 @@ from sqlalchemy import and_, delete, desc, func
 from sqlalchemy.orm import Session
 
 from .. import deps, models, schemas
-from ..constants import PovertyStatus
+from ..constants import PovertyStatus, Roles
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -134,6 +134,28 @@ def resolve_scope(scope: str, name: str | None) -> tuple[str, str]:
     if name:
         return scope, name
     return SCOPE_COUNTRY, SCOPE_ALL
+
+
+def apply_scope_filter(query, scope: str, name: str | None):
+    if scope == SCOPE_COUNTRY:
+        return query
+    if scope == SCOPE_REGION and name:
+        return query.filter(models.HouseholdRiskScore.scope_region == name)
+    if scope == SCOPE_PROVINCE and name:
+        return query.filter(models.HouseholdRiskScore.scope_province == name)
+    return query
+
+
+def enforce_scope_permission(scope: str, name: str | None, current_user: models.User) -> tuple[str, str | None]:
+    if current_user.role == Roles.ADMIN:
+        return scope, name
+    if current_user.role == Roles.PROVINCE_OFFICER:
+        return SCOPE_PROVINCE, current_user.province
+    if current_user.role == Roles.DISTRICT_OFFICER:
+        return SCOPE_PROVINCE, current_user.province
+    if current_user.role == Roles.COMMUNE_OFFICER:
+        return SCOPE_PROVINCE, current_user.province
+    return scope, name
 
 
 def aggregate_rows_for_scope(db: Session, scope: str, name: str | None, years: list[int]):
@@ -459,3 +481,162 @@ def export_dashboard_households(
         )
     }
     return StreamingResponse(iter_csv(), media_type="text/csv; charset=utf-8", headers=headers)
+
+
+@router.get("/risk-summary", response_model=schemas.DashboardRiskSummary)
+def get_dashboard_risk_summary(
+    scope: str = Query(SCOPE_COUNTRY),
+    name: str | None = Query(None),
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_user),
+) -> schemas.DashboardRiskSummary:
+    scope, name = enforce_scope_permission(scope, name, current_user)
+    latest_target_row = db.query(models.HouseholdRiskScore.predicted_for_year).order_by(
+        desc(models.HouseholdRiskScore.predicted_for_year)
+    ).first()
+    if not latest_target_row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chưa có dữ liệu dự báo rủi ro. Vui lòng chạy pipeline train/predict trước.",
+        )
+
+    predicted_for_year = int(latest_target_row[0])
+    scoped = apply_scope_filter(
+        db.query(models.HouseholdRiskScore).filter(models.HouseholdRiskScore.predicted_for_year == predicted_for_year),
+        scope,
+        name,
+    )
+
+    score_rows = scoped.with_entities(
+        models.HouseholdRiskScore.risk_score,
+        models.HouseholdRiskScore.risk_band,
+        models.HouseholdRiskScore.model_name,
+        models.HouseholdRiskScore.model_version,
+    ).all()
+
+    if not score_rows:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không có dữ liệu cho địa bàn đã chọn")
+
+    avg_score = sum(float(row.risk_score) for row in score_rows) / len(score_rows)
+    high_risk_households = sum(1 for row in score_rows if row.risk_band == "high")
+    model_name = score_rows[0].model_name
+    model_version = score_rows[0].model_version
+
+    scope_name = SCOPE_ALL
+    if scope != SCOPE_COUNTRY and name:
+        scope_name = name
+
+    reason_rows = db.query(models.RiskReasonAggregate).filter(
+        and_(
+            models.RiskReasonAggregate.scope_type == scope,
+            models.RiskReasonAggregate.scope_name == scope_name,
+            models.RiskReasonAggregate.predicted_for_year == predicted_for_year,
+        )
+    ).order_by(desc(models.RiskReasonAggregate.importance)).limit(5).all()
+
+    trend_rows = []
+    for year in range(predicted_for_year - 4, predicted_for_year + 1):
+        year_scoped = apply_scope_filter(
+            db.query(models.HouseholdRiskScore).filter(models.HouseholdRiskScore.predicted_for_year == year),
+            scope,
+            name,
+        ).with_entities(models.HouseholdRiskScore.risk_score, models.HouseholdRiskScore.risk_band).all()
+        if not year_scoped:
+            continue
+        trend_rows.append(
+            schemas.RiskYearPoint(
+                year=year,
+                avg_score=round(sum(float(item.risk_score) for item in year_scoped) / len(year_scoped), 4),
+                high_risk_households=sum(1 for item in year_scoped if item.risk_band == "high"),
+            )
+        )
+
+    return schemas.DashboardRiskSummary(
+        predicted_for_year=predicted_for_year,
+        scope=scope,
+        scope_name=scope_name,
+        algo_name=model_name,
+        algo_version=model_version,
+        avg_risk_score=round(avg_score, 4),
+        high_risk_households=high_risk_households,
+        top_reasons=[
+            schemas.RiskReasonItem(
+                key=row.reason_key,
+                label=row.reason_label,
+                importance=float(row.importance),
+                affected_households=int(row.affected_households),
+            )
+            for row in reason_rows
+        ],
+        trend=trend_rows,
+    )
+
+
+@router.get("/risk-households", response_model=schemas.DashboardRiskHouseholdList)
+def get_dashboard_risk_households(
+    scope: str = Query(SCOPE_COUNTRY),
+    name: str | None = Query(None),
+    risk_band: str = Query("high"),
+    predicted_for_year: int | None = Query(None),
+    skip: int = 0,
+    limit: int = Query(20, ge=1, le=200),
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_user),
+) -> schemas.DashboardRiskHouseholdList:
+    scope, name = enforce_scope_permission(scope, name, current_user)
+
+    target_year = predicted_for_year
+    if target_year is None:
+        latest_target_row = db.query(models.HouseholdRiskScore.predicted_for_year).order_by(
+            desc(models.HouseholdRiskScore.predicted_for_year)
+        ).first()
+        if not latest_target_row:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chưa có dữ liệu dự báo")
+        target_year = int(latest_target_row[0])
+
+    query = db.query(
+        models.HouseholdRiskScore,
+        models.Household,
+    ).join(
+        models.Household,
+        models.Household.id == models.HouseholdRiskScore.household_id,
+    ).filter(
+        models.HouseholdRiskScore.predicted_for_year == target_year,
+        models.HouseholdRiskScore.risk_band == risk_band,
+    )
+    query = apply_scope_filter(query, scope, name)
+
+    total = query.count()
+    rows = query.order_by(models.HouseholdRiskScore.risk_score.desc()).offset(skip).limit(limit).all()
+    if rows:
+        algo_name = rows[0][0].model_name
+        algo_version = rows[0][0].model_version
+    else:
+        algo_name = "xgboost"
+        algo_version = "n/a"
+
+    scope_name = SCOPE_ALL
+    if scope != SCOPE_COUNTRY and name:
+        scope_name = name
+
+    return schemas.DashboardRiskHouseholdList(
+        predicted_for_year=target_year,
+        scope=scope,
+        scope_name=scope_name,
+        algo_name=algo_name,
+        algo_version=algo_version,
+        total=total,
+        items=[
+            schemas.RiskHouseholdItem(
+                household_id=household.id,
+                household_code=household.household_code,
+                head_name=household.head_name,
+                province=household.province,
+                district=household.district,
+                commune=household.commune,
+                risk_score=float(score.risk_score),
+                risk_band=score.risk_band,
+            )
+            for score, household in rows
+        ],
+    )

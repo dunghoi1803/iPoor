@@ -403,6 +403,7 @@
     const API_BASE_URL = window.IPOOR_API_BASE;
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/auth/me`;
+    const RISK_HOUSEHOLDS_ENDPOINT = `${API_BASE_URL}/dashboard/risk-households`;
     const PAGE_SIZE = 10;
     const HOUSEHOLD_SELECTED_KEY = 'ipoor_household_selected_id';
     const HOUSEHOLD_CACHE_KEY = 'ipoor_household_cache';
@@ -443,6 +444,11 @@
     const statuses = ['Tất cả', 'Nghèo', 'Cận nghèo', 'Thoát nghèo'];
     let currentPage = 1;
     let totalItems = 0;
+    const pageQuery = new URLSearchParams(window.location.search);
+    const riskMode = pageQuery.get('risk') === 'high';
+    const riskScope = pageQuery.get('scope') || 'country';
+    const riskName = pageQuery.get('name') || '';
+    const riskYear = pageQuery.get('predicted_for_year') || '';
 
     let provinceRequestId = 0;
     async function fetchProvinces(keyword) {
@@ -996,13 +1002,21 @@
         const query = new URLSearchParams();
         query.set('limit', PAGE_SIZE);
         query.set('skip', String((page - 1) * PAGE_SIZE));
-        if (provinceInput.value.trim()) query.set('province', provinceInput.value.trim());
-        if (communeInput.value.trim()) query.set('commune', communeInput.value.trim());
-        const mappedStatus = mapStatusToEnum(statusInput.value.trim());
-        if (mappedStatus) query.set('status_filter', mappedStatus);
+        if (riskMode) {
+            query.set('risk_band', 'high');
+            query.set('scope', riskScope);
+            if (riskName) query.set('name', riskName);
+            if (riskYear) query.set('predicted_for_year', riskYear);
+        } else {
+            if (provinceInput.value.trim()) query.set('province', provinceInput.value.trim());
+            if (communeInput.value.trim()) query.set('commune', communeInput.value.trim());
+            const mappedStatus = mapStatusToEnum(statusInput.value.trim());
+            if (mappedStatus) query.set('status_filter', mappedStatus);
+        }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/households?${query.toString()}`, {
+            const endpoint = riskMode ? RISK_HOUSEHOLDS_ENDPOINT : `${API_BASE_URL}/households`;
+            const res = await fetch(`${endpoint}?${query.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.status === 401) {
@@ -1015,7 +1029,27 @@
                 throw new Error('Không tải được danh sách hộ');
             }
             const data = await res.json();
-            const items = Array.isArray(data.items) ? data.items : [];
+            let items = Array.isArray(data.items) ? data.items : [];
+            if (riskMode) {
+                items = items.map((item) => ({
+                    id: item.household_id,
+                    household_code: item.household_code,
+                    head_name: item.head_name,
+                    id_card: '',
+                    commune: item.commune,
+                    village: item.commune,
+                    created_at: null,
+                    surveys: [
+                        {
+                            poverty_status: 'escaped_poverty',
+                            score_b1: '-',
+                            score_b2: '-',
+                            officer: `Risk ${Number(item.risk_score || 0).toFixed(3)} (${item.risk_band})`,
+                            survey_date: null,
+                        },
+                    ],
+                }));
+            }
             totalItems = Number.isFinite(data.total) ? data.total : items.length;
             const cache = {};
             items.forEach((item) => {
@@ -1067,6 +1101,18 @@
         loadHouseholds(1);
     });
 
+    if (riskMode) {
+        const pageTitle = document.querySelector('.page-title');
+        if (pageTitle) {
+            pageTitle.textContent = 'Danh sách hộ nguy cơ tái nghèo cao';
+        }
+        provinceInput.disabled = true;
+        communeInput.disabled = true;
+        statusInput.disabled = true;
+        searchInput.disabled = true;
+        addHouseholdBtn.style.display = 'none';
+    }
+
     loadUserProfile();
     loadHouseholds(1);
 </script>
@@ -1084,7 +1130,6 @@
 </script>
 </body>
 </html>
-
 
 
 

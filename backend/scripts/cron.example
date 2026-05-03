@@ -1,0 +1,5 @@
+# Monthly training at 02:00 on day 1
+0 2 1 * * /bin/sh /path/to/iPoor/backend/scripts/run_risk_training.sh >> /var/log/ipoor-risk-train.log 2>&1
+
+# Quarterly training at 02:00 on day 1 of Jan/Apr/Jul/Oct
+# 0 2 1 */3 * RISK_TRAIN_SCHEDULE=quarterly /bin/sh /path/to/iPoor/backend/scripts/run_risk_training.sh >> /var/log/ipoor-risk-train.log 2>&1

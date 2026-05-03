@@ -1164,6 +1164,66 @@
         return { ...contentBlocks, blocks };
     }
 
+    function normalizeEditorContentBlocks(contentBlocks, fallbackDescription = '') {
+        if (contentBlocks && typeof contentBlocks === 'object' && Array.isArray(contentBlocks.blocks)) {
+            return contentBlocks;
+        }
+
+        if (Array.isArray(contentBlocks)) {
+            const mappedBlocks = contentBlocks.map((block) => {
+                if (!block || typeof block !== 'object') return null;
+                const type = block.type || 'paragraph';
+                if (type === 'paragraph') {
+                    return {
+                        type: 'paragraph',
+                        data: { text: stripHtml(block.content || block.text || '') },
+                    };
+                }
+                if (type === 'heading' || type === 'header') {
+                    return {
+                        type: 'header',
+                        data: {
+                            text: stripHtml(block.content || block.text || ''),
+                            level: Number(block.level) || 2,
+                        },
+                    };
+                }
+                if (type === 'list') {
+                    const items = Array.isArray(block.items) ? block.items.map((item) => stripHtml(String(item || ''))).filter(Boolean) : [];
+                    return {
+                        type: 'list',
+                        data: {
+                            style: block.style === 'ordered' ? 'ordered' : 'unordered',
+                            items,
+                        },
+                    };
+                }
+                return null;
+            }).filter(Boolean);
+
+            return {
+                time: Date.now(),
+                blocks: mappedBlocks,
+                version: '2.28.2',
+            };
+        }
+
+        if (fallbackDescription) {
+            return {
+                time: Date.now(),
+                blocks: [
+                    {
+                        type: 'paragraph',
+                        data: { text: stripHtml(fallbackDescription) },
+                    },
+                ],
+                version: '2.28.2',
+            };
+        }
+
+        return { time: Date.now(), blocks: [], version: '2.28.2' };
+    }
+
     function normalizeFlipbookUrl(value) {
         const trimmed = (value || '').trim();
         if (!trimmed) return '';
@@ -1182,21 +1242,9 @@
         summaryInput.value = (data.summary || stripHtml(data.description || '')).slice(0, SUMMARY_MAX_LENGTH);
         summaryCount.textContent = summaryInput.value.length;
         await editor.isReady;
-        if (data.content_blocks && Array.isArray(data.content_blocks.blocks)) {
-            const contentBlocks = await presignContentBlocks(data.content_blocks);
-            await editor.render(contentBlocks);
-        } else if (data.description) {
-            await editor.render({
-                time: Date.now(),
-                blocks: [
-                    {
-                        type: 'paragraph',
-                        data: { text: stripHtml(data.description) },
-                    },
-                ],
-                version: '2.28.2',
-            });
-        }
+        const normalizedBlocks = normalizeEditorContentBlocks(data.content_blocks, data.description || '');
+        const contentBlocks = await presignContentBlocks(normalizedBlocks);
+        await editor.render(contentBlocks);
         applySavedListStyles();
         syncListStyleControl();
         const normalized = normalizeAttachmentFiles(data.attachment_files || []);

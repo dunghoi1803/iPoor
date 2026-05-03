@@ -44,3 +44,49 @@ class DashboardOverview(BaseModel):
     kpis: DashboardKpis
     trend: DashboardSeries
     regions: list[DashboardRegionItem]
+
+
+class RiskReasonItem(BaseModel):
+    key: str
+    label: str
+    importance: float
+    affected_households: int
+
+
+class RiskYearPoint(BaseModel):
+    year: int
+    avg_score: float
+    high_risk_households: int
+
+
+class DashboardRiskSummary(BaseModel):
+    predicted_for_year: int
+    scope: str
+    scope_name: str
+    algo_name: str
+    algo_version: str
+    avg_risk_score: float
+    high_risk_households: int
+    top_reasons: list[RiskReasonItem]
+    trend: list[RiskYearPoint]
+
+
+class RiskHouseholdItem(BaseModel):
+    household_id: int
+    household_code: str
+    head_name: str
+    province: str
+    district: str
+    commune: str
+    risk_score: float
+    risk_band: str
+
+
+class DashboardRiskHouseholdList(BaseModel):
+    predicted_for_year: int
+    scope: str
+    scope_name: str
+    algo_name: str
+    algo_version: str
+    total: int
+    items: list[RiskHouseholdItem]

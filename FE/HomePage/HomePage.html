@@ -72,6 +72,17 @@
         .export-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .btn-export { border: 1px solid var(--blue-500); color: var(--blue-500); background: var(--white); border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
         .btn-export:disabled { opacity: 0.6; cursor: not-allowed; }
+        .export-progress { width: 100%; display: none; align-items: center; gap: 10px; }
+        .export-progress.visible { display: flex; }
+        .export-progress-text { color: var(--gray-500); font-size: 13px; font-weight: 600; min-width: 170px; }
+        .export-progress-track { flex: 1; height: 8px; background: var(--gray-100); border-radius: 999px; overflow: hidden; }
+        .export-progress-fill { width: 0; height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 0.18s ease; }
+        .export-progress-fill.indeterminate { width: 35%; animation: indeterminate 1.1s infinite ease-in-out; }
+        @keyframes indeterminate {
+            0% { transform: translateX(-120%); }
+            50% { transform: translateX(10%); }
+            100% { transform: translateX(220%); }
+        }
         .stat-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px; padding: 16px; box-shadow: var(--card-shadow); display: grid; gap: 10px; }
         .stat-head { display: flex; align-items: center; gap: 10px; color: var(--gray-500); font-weight: 600; }
         .stat-value { font-size: 28px; font-weight: 800; }
@@ -82,6 +93,18 @@
         .panel-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
         .panel-column { display: grid; gap: 16px; }
         .panel-placeholder { background: transparent; min-height: 200px; }
+        .risk-meta { color: var(--gray-500); font-size: 13px; margin-bottom: 8px; }
+        .risk-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .risk-kpi { border: 1px solid var(--gray-100); border-radius: 10px; padding: 8px; background: #f8fafc; }
+        .risk-kpi-label { font-size: 12px; color: var(--gray-500); }
+        .risk-kpi-value { font-size: 18px; font-weight: 800; color: #0f172a; }
+        .risk-list { display: grid; gap: 8px; }
+        .risk-link { display: inline-flex; margin-top: 10px; font-weight: 700; color: #1d4ed8; text-decoration: none; }
+        .risk-item { border: 1px solid var(--gray-100); border-radius: 10px; padding: 8px; }
+        .risk-item-head { display: flex; justify-content: space-between; gap: 10px; }
+        .risk-item-title { font-weight: 700; color: #1e293b; font-size: 13px; }
+        .risk-item-score { font-weight: 700; color: #1d4ed8; font-size: 12px; }
+        .risk-item-sub { color: var(--gray-500); font-size: 12px; margin-top: 4px; }
         .panel { background: var(--white); border: 1px solid var(--gray-100); border-radius: 16px; box-shadow: var(--card-shadow); padding: 18px; display: grid; gap: 12px; }
         .panel-title { font-weight: 800; font-size: 17px; }
         .panel-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -288,6 +311,12 @@
                     </select>
                     <button id="export-button" class="btn-export" type="button">Tải CSV</button>
                 </div>
+                <div id="export-progress" class="export-progress" aria-live="polite">
+                    <div id="export-progress-text" class="export-progress-text">Đang chuẩn bị tải...</div>
+                    <div class="export-progress-track">
+                        <div id="export-progress-fill" class="export-progress-fill"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="kpi-filters">
@@ -421,7 +450,24 @@
                     </div>
                     </div>
                 </div>
-                <div class="panel-placeholder"></div>
+                <div class="panel" id="riskPanel">
+                    <div class="panel-toolbar">
+                        <div class="panel-title">Lý do rủi ro tái nghèo (t+1)</div>
+                    </div>
+                    <div class="risk-meta" id="riskMeta">Đang tải mô hình dự báo...</div>
+                    <div class="risk-kpis">
+                        <div class="risk-kpi">
+                            <div class="risk-kpi-label">Điểm rủi ro TB</div>
+                            <div class="risk-kpi-value" id="riskAvgScore">-</div>
+                        </div>
+                        <div class="risk-kpi">
+                            <div class="risk-kpi-label">Số hộ nguy cơ cao</div>
+                            <div class="risk-kpi-value" id="riskHighCount">-</div>
+                        </div>
+                    </div>
+                    <div class="risk-list" id="riskReasonList"></div>
+                    <a id="riskHouseholdLink" class="risk-link" href="./HouseholdList.html">Xem hộ nguy cơ cao</a>
+                </div>
             </section>
 
             <section class="quick-links">
@@ -470,6 +516,7 @@
     const DASHBOARD_KPIS_ENDPOINT = `${API_BASE_URL}/dashboard/kpis`;
     const DASHBOARD_REGIONS_ENDPOINT = `${API_BASE_URL}/dashboard/regions`;
     const DASHBOARD_EXPORT_ENDPOINT = `${API_BASE_URL}/dashboard/export-households`;
+    const DASHBOARD_RISK_SUMMARY_ENDPOINT = `${API_BASE_URL}/dashboard/risk-summary`;
     const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/auth/me`;
     const PERCENT_DIGITS = 1;
     const CHART_TICK_COUNT = 4;
@@ -501,11 +548,22 @@
     const exportYearSelect = document.getElementById('export-year-select');
     const exportProvinceSelect = document.getElementById('export-province-select');
     const exportButton = document.getElementById('export-button');
+    const exportProgress = document.getElementById('export-progress');
+    const exportProgressText = document.getElementById('export-progress-text');
+    const exportProgressFill = document.getElementById('export-progress-fill');
+    const riskPanel = document.getElementById('riskPanel');
+    const riskMeta = document.getElementById('riskMeta');
+    const riskAvgScore = document.getElementById('riskAvgScore');
+    const riskHighCount = document.getElementById('riskHighCount');
+    const riskReasonList = document.getElementById('riskReasonList');
+    const riskHouseholdLink = document.getElementById('riskHouseholdLink');
     let trendRegions = [];
     let trendProvinces = [];
     let availableYears = [];
     let activeScope = 'country';
     let activeKpiScope = 'country';
+    let activeScopeName = null;
+    let currentRiskYear = null;
     const roleLabels = {
         admin: 'Quản trị viên',
         province_officer: 'Cán bộ tỉnh',
@@ -826,6 +884,21 @@
         }
     }
 
+    function setExportProgress(visible, message, percent, indeterminate) {
+        if (!exportProgress || !exportProgressText || !exportProgressFill) {
+            return;
+        }
+        exportProgress.classList.toggle('visible', Boolean(visible));
+        exportProgressText.textContent = message || '';
+        exportProgressFill.classList.toggle('indeterminate', Boolean(indeterminate));
+        if (indeterminate) {
+            exportProgressFill.style.width = '35%';
+            return;
+        }
+        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+        exportProgressFill.style.width = `${safePercent}%`;
+    }
+
     async function downloadHouseholdCsv() {
         if (!exportButton || !exportYearSelect || !exportProvinceSelect || !exportStatusSelect) {
             return;
@@ -847,6 +920,7 @@
         const originalText = exportButton.textContent;
         exportButton.disabled = true;
         exportButton.textContent = 'Đang tải...';
+        setExportProgress(true, 'Đang chuẩn bị dữ liệu...', 0, true);
         try {
             const res = await fetch(`${DASHBOARD_EXPORT_ENDPOINT}?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -862,7 +936,41 @@
                 throw new Error(payload?.detail || 'Không tải được file CSV');
             }
 
-            const blob = await res.blob();
+            const contentLengthHeader = res.headers.get('Content-Length');
+            const totalBytes = contentLengthHeader ? Number(contentLengthHeader) : 0;
+            const reader = res.body?.getReader();
+            let blob;
+
+            if (reader) {
+                const chunks = [];
+                let receivedBytes = 0;
+                setExportProgress(
+                    true,
+                    totalBytes > 0 ? 'Đang tải file... 0%' : 'Đang tải file...',
+                    0,
+                    totalBytes <= 0
+                );
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    if (!value) continue;
+                    chunks.push(value);
+                    receivedBytes += value.length;
+                    if (totalBytes > 0) {
+                        const progressPercent = Math.min(100, Math.round((receivedBytes / totalBytes) * 100));
+                        setExportProgress(true, `Đang tải file... ${progressPercent}%`, progressPercent, false);
+                    } else {
+                        setExportProgress(true, 'Đang tải file...', 0, true);
+                    }
+                }
+                blob = new Blob(chunks, { type: 'text/csv;charset=utf-8' });
+            } else {
+                setExportProgress(true, 'Đang tải file...', 0, true);
+                blob = await res.blob();
+            }
+
+            setExportProgress(true, 'Đang lưu tệp...', 100, false);
             const objectUrl = window.URL.createObjectURL(blob);
             const anchor = document.createElement('a');
             const scopeName = province === 'all' ? 'toan-quoc' : province.toLowerCase().replaceAll(' ', '-');
@@ -872,11 +980,14 @@
             anchor.click();
             anchor.remove();
             window.URL.revokeObjectURL(objectUrl);
+            setExportProgress(true, 'Hoàn tất', 100, false);
         } catch (error) {
+            setExportProgress(true, error?.message || 'Không tải được file CSV', 0, false);
             alert(error?.message || 'Không tải được file CSV');
         } finally {
             exportButton.disabled = false;
             exportButton.textContent = originalText;
+            setTimeout(() => setExportProgress(false, '', 0, false), 1200);
         }
     }
 
@@ -1022,6 +1133,7 @@
         }
 
         const payload = await res.json();
+        activeScopeName = name || null;
         trendRegions = payload.filters?.regions || [];
         trendProvinces = payload.filters?.provinces || [];
         availableYears = payload.trend?.years || [];
@@ -1058,6 +1170,58 @@
             if (chartArea) {
                 renderRegionBars(chartArea, payload.regions || []);
             }
+        }
+        loadRiskSummary(scope || 'country', name || null);
+    }
+
+    async function loadRiskSummary(scope, name) {
+        if (!riskPanel) return;
+        const params = new URLSearchParams({ scope: scope || 'country' });
+        if (name && scope !== 'country') {
+            params.set('name', name);
+        }
+        const res = await fetch(`${DASHBOARD_RISK_SUMMARY_ENDPOINT}?${params.toString()}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 404) {
+            riskMeta.textContent = 'Chưa có dữ liệu dự báo. Vui lòng chạy pipeline train/predict.';
+            riskAvgScore.textContent = '-';
+            riskHighCount.textContent = '-';
+            riskReasonList.innerHTML = '';
+            return;
+        }
+        if (!res.ok) {
+            riskMeta.textContent = 'Không tải được dữ liệu rủi ro.';
+            return;
+        }
+        const payload = await res.json();
+        currentRiskYear = payload.predicted_for_year;
+        riskMeta.textContent = `Năm dự báo ${payload.predicted_for_year} • ${payload.scope === 'country' ? 'Toàn quốc' : payload.scope_name} • ${payload.algo_name} ${payload.algo_version}`;
+        riskAvgScore.textContent = Number(payload.avg_risk_score || 0).toFixed(3);
+        riskHighCount.textContent = formatNumber(payload.high_risk_households || 0);
+        const reasons = payload.top_reasons || [];
+        riskReasonList.innerHTML = reasons.length
+            ? reasons.map((item) => `
+                <div class="risk-item">
+                    <div class="risk-item-head">
+                        <div class="risk-item-title">${item.label}</div>
+                        <div class="risk-item-score">${Number(item.importance || 0).toFixed(3)}</div>
+                    </div>
+                    <div class="risk-item-sub">${formatNumber(item.affected_households || 0)} hộ bị ảnh hưởng</div>
+                </div>
+              `).join('')
+            : '<div class="risk-item"><div class="risk-item-sub">Chưa có lý do rủi ro cho bộ lọc hiện tại.</div></div>';
+
+        if (riskHouseholdLink) {
+            const q = new URLSearchParams({
+                risk: 'high',
+                scope: scope || 'country',
+                predicted_for_year: String(payload.predicted_for_year || ''),
+            });
+            if (scope !== 'country' && name) {
+                q.set('name', name);
+            }
+            riskHouseholdLink.href = `./HouseholdList.html?${q.toString()}`;
         }
     }
 
@@ -1158,11 +1322,6 @@
 </script>
 </body>
 </html>
-
-
-
-
-
 
 
 

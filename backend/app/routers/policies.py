@@ -21,6 +21,23 @@ DRAFT_MAX_LIMIT = 50
 settings = get_settings()
 
 
+def sanitize_attachment_files(items: list[dict] | None) -> list[dict] | None:
+    if not isinstance(items, list):
+        return items
+    cleaned: list[dict] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        raw_url = item.get("url")
+        raw_name = item.get("name")
+        url = raw_url.strip() if isinstance(raw_url, str) else ""
+        name = raw_name.strip() if isinstance(raw_name, str) else ""
+        if not url or not name:
+            continue
+        cleaned.append({"url": url, "name": name})
+    return cleaned
+
+
 def extract_draft_file_urls(draft: models.PolicyDraft) -> set[str]:
     urls: set[str] = set()
     for item in draft.attachment_files or []:
@@ -147,7 +164,9 @@ def create_policy(
     current_user: models.User = Depends(deps.get_current_user),
     request: Request = None,
 ) -> models.Policy:
-    policy = models.Policy(**payload.model_dump())
+    data = payload.model_dump()
+    data["attachment_files"] = sanitize_attachment_files(data.get("attachment_files"))
+    policy = models.Policy(**data)
     db.add(policy)
     db.flush()
     log_activity(
@@ -295,7 +314,10 @@ def update_policy(
     policy = db.query(models.Policy).filter(models.Policy.id == policy_id).first()
     if not policy:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found")
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    if "attachment_files" in update_data:
+        update_data["attachment_files"] = sanitize_attachment_files(update_data.get("attachment_files"))
+    for key, value in update_data.items():
         setattr(policy, key, value)
     log_activity(
         db,

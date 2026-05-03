@@ -1,12 +1,17 @@
 from .activity_log import ActivityLogCreate, ActivityLogRead
 from .auth import Token, TokenData, TokenPayload, UserLogin
 from .dashboard import (
+    DashboardRiskHouseholdList,
     DashboardKpis,
     DashboardOverview,
     DashboardRegionItem,
+    DashboardRiskSummary,
     DashboardSeries,
     DashboardSummary,
     DashboardTrendOptions,
+    RiskReasonItem,
+    RiskHouseholdItem,
+    RiskYearPoint,
 )
 from .data_collection import (
     DataCollectionCreate,
@@ -32,6 +37,11 @@ __all__ = [
     "DashboardTrendOptions",
     "DashboardKpis",
     "DashboardOverview",
+    "DashboardRiskHouseholdList",
+    "DashboardRiskSummary",
+    "RiskReasonItem",
+    "RiskHouseholdItem",
+    "RiskYearPoint",
     "DataCollectionCreate",
     "DataCollectionRead",
     "DataCollectionUploadRow",
