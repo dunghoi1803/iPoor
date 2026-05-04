@@ -26,7 +26,7 @@ from .household_survey import HouseholdSurveyCreate, HouseholdSurveyRead, Househ
 from .password import ChangePasswordRequest
 from .policy import PolicyBrief, PolicyCreate, PolicyRead, PolicyUpdate
 from .policy_draft import PolicyDraftRead, PolicyDraftUpsert
-from .user import UserCreate, UserRead, UserUpdate
+from .user import ForgotPasswordRequest, UserCreate, UserRead, UserUpdate
 
 __all__ = [
     "ActivityLogCreate",
@@ -69,4 +69,5 @@ __all__ = [
     "UserLogin",
     "UserRead",
     "UserUpdate",
+    "ForgotPasswordRequest",
 ]

@@ -373,7 +373,7 @@
     dropdownMenu.addEventListener('click', (e) => {
         e.stopPropagation();
         if (e.target.dataset.action === 'logout') window.location.href = '../Auth/Login.html';
-        if (e.target.dataset.action === 'change-password') window.location.href = '../Auth/ForgotPassword.html';
+        if (e.target.dataset.action === 'change-password') window.location.href = '../Auth/ChangePassword.html';
         closeMenu();
     });
     document.addEventListener('click', closeMenu);

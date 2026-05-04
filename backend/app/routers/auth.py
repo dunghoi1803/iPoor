@@ -184,3 +184,24 @@ def change_password(
     current_user.hashed_password = get_password_hash(payload.new_password)
     db.add(current_user)
     db.commit()
+
+@router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
+def forgot_password(
+    payload: schemas.ForgotPasswordRequest,
+    db: Session = Depends(deps.get_db)
+) -> None:
+    user = db.query(models.User).filter(models.User.email == payload.email).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
+    
+    # Verification: Check if Name, Phone, and CCCD match
+    def clean(s): return s.strip() if s else ""
+    
+    if (clean(user.full_name).lower() != clean(payload.full_name).lower() or
+        clean(user.cccd) != clean(payload.cccd)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification information does not match")
+    
+    # All match, update password
+    user.hashed_password = get_password_hash(payload.new_password)
+    db.add(user)
+    db.commit()

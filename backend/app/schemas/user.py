@@ -42,3 +42,10 @@ class UserRead(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    full_name: str
+    cccd: str
+    new_password: str = Field(min_length=8)

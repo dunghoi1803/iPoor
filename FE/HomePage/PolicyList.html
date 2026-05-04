@@ -521,7 +521,7 @@
                 sessionStorage.removeItem(TOKEN_STORAGE_KEY);
                 window.location.href = '../Auth/Login.html';
             }
-            if (e.target.dataset.action === 'change-password') window.location.href = '../Auth/ForgotPassword.html';
+            if (e.target.dataset.action === 'change-password') window.location.href = '../Auth/ChangePassword.html';
             dropdownMenu.classList.remove('open');
         });
         document.addEventListener('click', () => dropdownMenu.classList.remove('open'));
