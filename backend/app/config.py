@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     s3_endpoint_url: str | None = Field(None, alias="AWS_S3_ENDPOINT_URL")
     s3_public_base_url: str | None = Field(None, alias="AWS_S3_PUBLIC_BASE_URL")
     s3_presign_expires: int = Field(900, alias="AWS_S3_PRESIGN_EXPIRES")
+    
+    gemini_api_key: str | None = Field(None, alias="GEMINI_API_KEY")
+    
+    ollama_host: str = Field("http://host.docker.internal:11434", alias="OLLAMA_HOST")
+    ollama_model: str = Field("gemma:2b", alias="OLLAMA_MODEL")
+
+    redis_host: str | None = Field(None, alias="REDIS_HOST")
+    redis_port: int | None = Field(None, alias="REDIS_PORT")
+    redis_password: str | None = Field(None, alias="REDIS_PASSWORD")
 
     class Config:
         env_file = ".env"

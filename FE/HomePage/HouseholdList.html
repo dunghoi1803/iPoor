@@ -134,6 +134,9 @@
 
         .badge { padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; }
         .badge-ngheo { background: #fee2e2; color: #b91c1c; }
+        .badge-nguyco-cao { background: #fef2f2; color: #dc2626; font-weight: 700; padding: 4px 8px; border-radius: 4px; }
+        .badge-nguyco-trungbinh { background: #fffbeb; color: #d97706; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
+        .badge-nguyco-thap { background: #f0fdf4; color: #16a34a; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
         .badge-can { background: #fff7ed; color: #c2410c; }
         .badge-thoat { background: #ecfdf3; color: #15803d; }
 
@@ -332,6 +335,15 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="riskBand">Mức nguy cơ</label>
+                        <select id="riskBand">
+                            <option value="">Tất cả</option>
+                            <option value="high">Cao</option>
+                            <option value="medium">Trung bình</option>
+                            <option value="low">Thấp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="search">Tìm kiếm nhanh</label>
                         <input type="text" id="search" placeholder="Tên chủ hộ / CCCD / ID hộ">
                     </div>
@@ -354,6 +366,7 @@
                         <th>Họ và tên chủ hộ</th>
                         <th>CCCD</th>
                         <th>Trạng thái</th>
+                        <th>Nguy cơ năm tới</th>
                         <th>Điểm B1</th>
                         <th>Điểm B2</th>
                         <th>Xã/Thôn</th>
@@ -891,7 +904,7 @@
 
     function renderRows(items) {
         if (!items || !items.length) {
-            householdBody.innerHTML = '<tr><td colspan="10">Không có dữ liệu</td></tr>';
+            householdBody.innerHTML = '<tr><td colspan="11">Không có dữ liệu</td></tr>';
             return;
         }
         householdBody.innerHTML = items
@@ -908,12 +921,25 @@
                     const povertyStatus = latestSurvey ? latestSurvey.poverty_status : null;
                     const scoreB1 = latestSurvey ? latestSurvey.score_b1 : '-';
                     const scoreB2 = latestSurvey ? latestSurvey.score_b2 : '-';
+                    
+                    // Risk info
+                    const riskInfo = item.risk_info;
+                    let riskCell = '<span style="color:#94a3b8">Chưa có</span>';
+                    if (riskInfo && riskInfo.risk_score != null) {
+                        const score = Number(riskInfo.risk_score * 100).toFixed(0);
+                        const band = riskInfo.risk_band;
+                        const year = riskInfo.predicted_for_year || '';
+                        const bandClass = band === 'high' ? 'badge-nguyco-cao' : (band === 'medium' ? 'badge-nguyco-trungbinh' : 'badge-nguyco-thap');
+                        const bandLabel = band === 'high' ? 'Cao' : (band === 'medium' ? 'TB' : 'Thấp');
+                        riskCell = `<span class="risk-badge ${bandClass}" title="Dự báo năm ${year}">${score}% ${bandLabel}</span>`;
+                    }
 
                     return `<tr>
                         <td>${item.household_code || '-'}</td>
                         <td>${item.head_name || '-'}</td>
                         <td>${idCardValue}</td>
                         <td>${renderStatusBadge(povertyStatus)}</td>
+                        <td>${riskCell}</td>
                         <td>${scoreB1 ?? '-'}</td>
                         <td>${scoreB2 ?? '-'}</td>
                         <td>${villageValue}</td>
@@ -998,10 +1024,11 @@
 
     async function loadHouseholds(page = 1) {
         const token = ensureAuth();
-        householdBody.innerHTML = '<tr><td colspan="10">Đang tải dữ liệu...</td></tr>';
+        householdBody.innerHTML = '<tr><td colspan="11">Đang tải dữ liệu...</td></tr>';
         const query = new URLSearchParams();
         query.set('limit', PAGE_SIZE);
         query.set('skip', String((page - 1) * PAGE_SIZE));
+        query.set('include_risk', 'true');
         if (riskMode) {
             query.set('risk_band', 'high');
             query.set('scope', riskScope);
@@ -1012,6 +1039,8 @@
             if (communeInput.value.trim()) query.set('commune', communeInput.value.trim());
             const mappedStatus = mapStatusToEnum(statusInput.value.trim());
             if (mappedStatus) query.set('status_filter', mappedStatus);
+            const riskBand = document.getElementById('riskBand')?.value;
+            if (riskBand) query.set('risk_band', riskBand);
         }
 
         try {
@@ -1030,6 +1059,12 @@
             }
             const data = await res.json();
             let items = Array.isArray(data.items) ? data.items : [];
+            const riskData = data.risk_data || {};
+            // Merge risk data into items
+            items = items.map(item => ({
+                ...item,
+                risk_info: riskData[item.id] || null
+            }));
             if (riskMode) {
                 items = items.map((item) => ({
                     id: item.household_id,
@@ -1039,12 +1074,17 @@
                     commune: item.commune,
                     village: item.commune,
                     created_at: null,
+                    risk_info: {
+                        risk_score: item.risk_score,
+                        risk_band: item.risk_band,
+                        predicted_for_year: data.predicted_for_year,
+                    },
                     surveys: [
                         {
                             poverty_status: 'escaped_poverty',
                             score_b1: '-',
                             score_b2: '-',
-                            officer: `Risk ${Number(item.risk_score || 0).toFixed(3)} (${item.risk_band})`,
+                            officer: '',
                             survey_date: null,
                         },
                     ],
@@ -1060,7 +1100,7 @@
             sessionStorage.setItem(HOUSEHOLD_CACHE_KEY, JSON.stringify(cache));
             renderPage(items, page);
         } catch (error) {
-            householdBody.innerHTML = `<tr><td colspan="10" style="color:#dc2626;">${error.message}</td></tr>`;
+            householdBody.innerHTML = `<tr><td colspan="11" style="color:#dc2626;">${error.message}</td></tr>`;
         }
     }
 

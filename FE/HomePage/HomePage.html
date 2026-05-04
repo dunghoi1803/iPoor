@@ -6,8 +6,9 @@
     <title>iPOOR | Dashboard</title>
     <link rel="icon" type="image/png" href="../Image/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../Image/icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../Common/Chatbot/chatbot.css">
     <style>
         :root {
             --navy-900: #0f172a;
@@ -89,6 +90,20 @@
         .stat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
         .pill-positive { background: #ecfdf3; color: #15803d; }
         .pill-warning { background: #fff7ed; color: #c2410c; }
+        .pill-danger { background: #fef2f2; color: #dc2626; }
+        .risk-breakdown { display: flex; gap: 12px; font-size: 12px; color: #6b7280; margin-top: 4px; }
+        .breakdown-item { display: flex; gap: 4px; }
+        .breakdown-high { color: #dc2626; }
+        .breakdown-medium { color: #d97706; }
+        .breakdown-low { color: #16a34a; }
+        .breakdown-total { color: #0f172a; }
+        .stat-card-risk { border-left: 4px solid #dc2626; }
+        
+        /* Risk Breakdown Panel */
+        .risk-breakdown-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 4px; }
+        .breakdown-card { border: 1px solid var(--gray-100); border-radius: 10px; padding: 12px; background: #f8fafc; text-align: center; }
+        .breakdown-card strong { display: block; font-size: 22px; font-weight: 800; }
+        .breakdown-card span { font-size: 12px; color: #6b7280; }
 
         .panel-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
         .panel-column { display: grid; gap: 16px; }
@@ -358,9 +373,17 @@
                     <div class="stat-value">38,120</div>
                     <span class="stat-pill pill-positive">+6.3% hoàn thành</span>
                 </div>
+                <div class="stat-card stat-card-risk">
+                    <div class="stat-head">
+                        <div class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a6.5 6.5 0 0 1 6.5 6.5c0 4-5.5 7.5-6.5 7.5S1.5 12 1.5 8 4.5 1.5 8 1.5Z" stroke="#dc2626" stroke-width="1.3"/><path d="M8 5v3.5M8 11v1" stroke="#dc2626" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+                        <span>Hộ nguy cơ cao tái nghèo</span>
+                    </div>
+                    <div class="stat-value" id="kpiRiskHighCount">-</div>
+                    <span class="stat-pill pill-danger" id="kpiRiskYear">Dự báo năm -</span>
+                </div>
             </section>
 
-            <section class="panel-grid">
+<section class="panel-grid">
                 <div class="panel-column">
                     <div class="panel" id="trendPanel">
                         <div class="panel-toolbar">
@@ -376,97 +399,64 @@
                                 </select>
                             </div>
                         </div>
-                    <div class="chart-area">
-                        <svg viewBox="0 0 600 260" width="100%" height="220" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="lineBlue" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
-                                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
-                                </linearGradient>
-                                <linearGradient id="lineOrange" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.35" />
-                                    <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
-                                </linearGradient>
-                                <linearGradient id="lineTeal" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stop-color="#22c55e" stop-opacity="0.35" />
-                                    <stop offset="100%" stop-color="#22c55e" stop-opacity="0" />
-                                </linearGradient>
-                            </defs>
-                            <g stroke="#e5e7eb" stroke-width="1">
-                                <line x1="50" y1="40" x2="50" y2="210" />
-                                <line x1="50" y1="210" x2="560" y2="210" />
-                                <line x1="50" y1="140" x2="560" y2="140" />
-                                <line x1="50" y1="90" x2="560" y2="90" />
-                            </g>
-                            <polyline points="50,190 150,170 250,155 350,145 450,138 560,130" fill="url(#lineBlue)" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
-                            <polyline points="50,150 150,155 250,145 350,130 450,120 560,110" fill="url(#lineOrange)" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
-                            <polyline points="50,200 150,185 250,175 350,160 450,150 560,140" fill="url(#lineTeal)" stroke="#22c55e" stroke-width="3" stroke-linecap="round" />
-                            <g fill="#94a3b8" font-size="12" font-family="Manrope, sans-serif">
-                                <text x="42" y="95">80%</text>
-                                <text x="42" y="145">60%</text>
-                                <text x="42" y="205">40%</text>
-                                <text x="100" y="230">2019</text>
-                                <text x="200" y="230">2020</text>
-                                <text x="300" y="230">2021</text>
-                                <text x="400" y="230">2022</text>
-                                <text x="500" y="230">2023</text>
-                            </g>
-                        </svg>
+                        <div class="chart-area">
+                            <!-- SVG chart -->
+                        </div>
                     </div>
-                    <div class="legend">
-                        <span><i style="background:#3b82f6"></i>Hộ nghèo</span>
-                        <span><i style="background:#f59e0b"></i>Hộ cận nghèo</span>
-                        <span><i style="background:#22c55e"></i>Thoát nghèo</span>
+                    
+                    <div class="panel" id="riskPanel">
+                        <div class="panel-toolbar">
+                            <div class="panel-title" id="riskPanelTitle">Lý do rủi ro tái nghèo</div>
+                        </div>
+                        <div class="risk-meta" id="riskMeta">Đang tải mô hình dự báo...</div>
+                        <div class="risk-kpis">
+                            <div class="risk-kpi">
+                                <div class="risk-kpi-label">Điểm rủi ro TB</div>
+                                <div class="risk-kpi-value" id="riskAvgScore">-</div>
+                            </div>
+                            <div class="risk-kpi">
+                                <div class="risk-kpi-label">Số hộ nguy cơ cao</div>
+                                <div class="risk-kpi-value" id="riskHighCount">-</div>
+                            </div>
+                        </div>
+                        <div class="risk-list" id="riskReasonList"></div>
+                        <a id="riskHouseholdLink" class="risk-link" href="./HouseholdList.html">Xem hộ nguy cơ cao</a>
                     </div>
                 </div>
-
+                
+                <div class="panel-column">
                     <div class="panel" id="regionPanel">
-                    <div class="panel-toolbar">
-                        <div class="panel-title">So sánh giữa các vùng</div>
-                        <select id="regionMetricSelect" class="select" aria-label="Chọn loại chỉ số vùng">
-                            <option value="poor">Số hộ nghèo</option>
-                            <option value="near_poor">Số hộ cận nghèo</option>
-                        </select>
-                    </div>
-                    <div class="chart-area">
-                        <svg viewBox="0 0 320 240" width="100%" height="200" xmlns="http://www.w3.org/2000/svg">
-                            <g fill="#e5e7eb">
-                                <rect x="30" y="30" width="1" height="180" />
-                                <rect x="30" y="210" width="260" height="1" />
-                            </g>
-                            <g fill="#3b82f6">
-                                <rect x="55" y="140" width="32" height="70" rx="6" />
-                                <rect x="115" y="120" width="32" height="90" rx="6" />
-                                <rect x="175" y="90" width="32" height="120" rx="6" />
-                                <rect x="235" y="160" width="32" height="50" rx="6" />
-                            </g>
-                            <g fill="#94a3b8" font-size="12" font-family="Manrope, sans-serif">
-                                <text x="58" y="225">Miền Bắc</text>
-                                <text x="118" y="225">Miền Trung</text>
-                                <text x="178" y="225">Miền Nam</text>
-                                <text x="238" y="225">Tây Nguyên</text>
-                            </g>
-                        </svg>
-                    </div>
-                    </div>
-                </div>
-                <div class="panel" id="riskPanel">
-                    <div class="panel-toolbar">
-                        <div class="panel-title">Lý do rủi ro tái nghèo (t+1)</div>
-                    </div>
-                    <div class="risk-meta" id="riskMeta">Đang tải mô hình dự báo...</div>
-                    <div class="risk-kpis">
-                        <div class="risk-kpi">
-                            <div class="risk-kpi-label">Điểm rủi ro TB</div>
-                            <div class="risk-kpi-value" id="riskAvgScore">-</div>
+                        <div class="panel-toolbar">
+                            <div class="panel-title">So sánh giữa các vùng</div>
                         </div>
-                        <div class="risk-kpi">
-                            <div class="risk-kpi-label">Số hộ nguy cơ cao</div>
-                            <div class="risk-kpi-value" id="riskHighCount">-</div>
+                        <div class="chart-area">
+                            <!-- SVG chart -->
                         </div>
                     </div>
-                    <div class="risk-list" id="riskReasonList"></div>
-                    <a id="riskHouseholdLink" class="risk-link" href="./HouseholdList.html">Xem hộ nguy cơ cao</a>
+                    
+                    <div class="panel" id="riskBreakdownPanel">
+                        <div class="panel-toolbar">
+                            <div class="panel-title" id="riskBreakdownTitle">Phân bổ nguy cơ tái nghèo</div>
+                        </div>
+                        <div class="risk-breakdown-grid" id="riskBreakdown">
+                            <div class="breakdown-card">
+                                <strong class="breakdown-high" id="bdHigh">-</strong>
+                                <span>Cao</span>
+                            </div>
+                            <div class="breakdown-card">
+                                <strong class="breakdown-medium" id="bdMedium">-</strong>
+                                <span>TB</span>
+                            </div>
+                            <div class="breakdown-card">
+                                <strong class="breakdown-low" id="bdLow">-</strong>
+                                <span>Thấp</span>
+                            </div>
+                            <div class="breakdown-card">
+                                <strong class="breakdown-total" id="bdTotal">-</strong>
+                                <span>Tổng</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -557,6 +547,10 @@
     const riskHighCount = document.getElementById('riskHighCount');
     const riskReasonList = document.getElementById('riskReasonList');
     const riskHouseholdLink = document.getElementById('riskHouseholdLink');
+    const riskBreakdownEl = document.getElementById('riskBreakdown');
+    const riskPanelTitle = document.getElementById('riskPanelTitle');
+    const kpiRiskHighCount = document.getElementById('kpiRiskHighCount');
+    const kpiRiskYear = document.getElementById('kpiRiskYear');
     let trendRegions = [];
     let trendProvinces = [];
     let availableYears = [];
@@ -1184,21 +1178,66 @@
             headers: { Authorization: `Bearer ${token}` },
         });
         if (res.status === 404) {
-            riskMeta.textContent = 'Chưa có dữ liệu dự báo. Vui lòng chạy pipeline train/predict.';
+            const errorData = await res.json().catch(() => ({}));
+            const errorMsg = errorData.detail || 'Chưa có dữ liệu dự báo.';
+            console.warn('risk-summary 404:', errorMsg);
+            riskMeta.textContent = errorMsg;
             riskAvgScore.textContent = '-';
             riskHighCount.textContent = '-';
-            riskReasonList.innerHTML = '';
+            if (document.getElementById('bdHigh')) {
+                document.getElementById('bdHigh').textContent = '-';
+                document.getElementById('bdMedium').textContent = '-';
+                document.getElementById('bdLow').textContent = '-';
+                document.getElementById('bdTotal').textContent = '-';
+            }
+            riskReasonList.innerHTML = `<div class="risk-item"><div class="risk-item-sub">${errorMsg}</div></div>`;
             return;
         }
         if (!res.ok) {
+            console.error('risk-summary error:', res.status);
             riskMeta.textContent = 'Không tải được dữ liệu rủi ro.';
             return;
         }
         const payload = await res.json();
+        console.log('risk-summary payload:', payload);
+        
+        // Debug: verify elements exist
+        console.log('riskBreakdown:', document.getElementById('riskBreakdown'));
+        
         currentRiskYear = payload.predicted_for_year;
         riskMeta.textContent = `Năm dự báo ${payload.predicted_for_year} • ${payload.scope === 'country' ? 'Toàn quốc' : payload.scope_name} • ${payload.algo_name} ${payload.algo_version}`;
         riskAvgScore.textContent = Number(payload.avg_risk_score || 0).toFixed(3);
         riskHighCount.textContent = formatNumber(payload.high_risk_households || 0);
+        
+        // Update KPI card in stat-grid
+        if (kpiRiskHighCount) {
+            kpiRiskHighCount.textContent = formatNumber(payload.high_risk_households || 0);
+        }
+        if (kpiRiskYear) {
+            kpiRiskYear.textContent = `Dự báo năm ${payload.predicted_for_year}`;
+        }
+        
+        // Update title
+        if (riskPanelTitle) {
+            riskPanelTitle.textContent = `Lý do rủi ro tái nghèo năm ${payload.predicted_for_year}`;
+        }
+        
+        const bdTitle = document.getElementById('riskBreakdownTitle');
+        if (bdTitle) {
+            bdTitle.textContent = `Phân bổ nguy cơ tái nghèo năm ${payload.predicted_for_year}`;
+        }
+        
+        // Update breakdown panel cards
+        const bdHigh = document.getElementById('bdHigh');
+        const bdMedium = document.getElementById('bdMedium');
+        const bdLow = document.getElementById('bdLow');
+        const bdTotal = document.getElementById('bdTotal');
+        
+        if (bdHigh) bdHigh.textContent = formatNumber(payload.high_risk_households || 0);
+        if (bdMedium) bdMedium.textContent = formatNumber(payload.medium_risk_households || 0);
+        if (bdLow) bdLow.textContent = formatNumber(payload.low_risk_households || 0);
+        if (bdTotal) bdTotal.textContent = formatNumber(payload.total_households || 0);
+        
         const reasons = payload.top_reasons || [];
         riskReasonList.innerHTML = reasons.length
             ? reasons.map((item) => `
@@ -1320,6 +1359,7 @@
   });
 })();
 </script>
+<script src="../Common/Chatbot/chatbot.js"></script>
 </body>
 </html>
 

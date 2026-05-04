@@ -17,6 +17,9 @@ def list_households(
     district: str | None = None,
     commune: str | None = None,
     status_filter: PovertyStatus | None = None,
+    include_risk: bool = Query(False),
+    risk_year: int | None = None,
+    risk_band: str | None = None,
     skip: int = 0,
     limit: int = Query(DEFAULT_PAGE_LIMIT, le=MAX_PAGE_LIMIT),
     db: Session = Depends(deps.get_db),
@@ -54,6 +57,34 @@ def list_households(
     if commune:
         query = query.filter(models.Household.commune == commune)
     
+    # Handle risk filtering
+    risk_subquery = None
+    if include_risk or risk_band:
+        # Get latest predicted year if not specified
+        if risk_year is None:
+            latest_risk_year = db.query(func.max(models.HouseholdRiskScore.predicted_for_year)).scalar()
+            if latest_risk_year:
+                risk_year = int(latest_risk_year)
+        
+        if risk_year:
+            risk_subquery = (
+                db.query(
+                    models.HouseholdRiskScore.household_id,
+                    models.HouseholdRiskScore.risk_score,
+                    models.HouseholdRiskScore.risk_band,
+                    models.HouseholdRiskScore.predicted_for_year,
+                    models.HouseholdRiskScore.model_version,
+                )
+                .filter(models.HouseholdRiskScore.predicted_for_year == risk_year)
+                .subquery()
+            )
+            
+            if risk_band:
+                query = query.join(
+                    risk_subquery,
+                    models.Household.id == risk_subquery.c.household_id,
+                ).filter(risk_subquery.c.risk_band == risk_band)
+    
     total = query.count()
     households = (
         query.order_by(models.Household.id.desc())
@@ -62,7 +93,34 @@ def list_households(
         .limit(limit)
         .all()
     )
-    return {"items": households, "total": total}
+    
+    # Attach risk data if requested
+    risk_data = {}
+    if include_risk and risk_year and households:
+        household_ids = [h.id for h in households]
+        risk_records = db.query(
+            models.HouseholdRiskScore.household_id,
+            models.HouseholdRiskScore.risk_score,
+            models.HouseholdRiskScore.risk_band,
+            models.HouseholdRiskScore.predicted_for_year,
+            models.HouseholdRiskScore.model_version,
+        ).filter(
+            models.HouseholdRiskScore.household_id.in_(household_ids),
+            models.HouseholdRiskScore.predicted_for_year == risk_year,
+        )
+        for r in risk_records:
+            risk_data[r.household_id] = {
+                "risk_score": float(r.risk_score),
+                "risk_band": r.risk_band,
+                "predicted_for_year": r.predicted_for_year,
+                "model_version": r.model_version,
+            }
+    
+    return {
+        "items": households, 
+        "total": total,
+        "risk_data": risk_data if include_risk else None,
+    }
 
 
 @router.post("", response_model=schemas.HouseholdRead, status_code=status.HTTP_201_CREATED)

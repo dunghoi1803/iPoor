@@ -53,7 +53,7 @@ def calculate_percent_change(current: float, previous: float) -> float:
     return ((current - previous) / previous) * 100
 
 
-def ensure_dashboard_aggregates(db: Session) -> int:
+def ensure_dashboard_aggregates(db: Session, force: bool = False) -> int:
     latest_year_row = db.query(models.HouseholdSurvey.survey_year).order_by(desc(models.HouseholdSurvey.survey_year)).first()
     latest_year = latest_year_row[0] if latest_year_row else datetime.now().year
     years = sorted([latest_year - i for i in range(5)])
@@ -61,7 +61,7 @@ def ensure_dashboard_aggregates(db: Session) -> int:
     existing_count = db.query(func.count(models.DashboardAggregate.id)).filter(
         models.DashboardAggregate.survey_year.in_(years)
     ).scalar() or 0
-    if existing_count > 0:
+    if existing_count > 0 and not force:
         return latest_year
 
     region_map = get_region_map()
@@ -507,25 +507,38 @@ def get_dashboard_risk_summary(
         name,
     )
 
-    score_rows = scoped.with_entities(
-        models.HouseholdRiskScore.risk_score,
-        models.HouseholdRiskScore.risk_band,
+    # Get all aggregates in single query
+    agg = scoped.with_entities(
+        func.avg(models.HouseholdRiskScore.risk_score).label("avg_score"),
+        func.count(models.HouseholdRiskScore.id).label("total"),
+    ).first()
+
+    high_risk_count = scoped.filter(models.HouseholdRiskScore.risk_band == "high").count()
+    medium_risk_count = scoped.filter(models.HouseholdRiskScore.risk_band == "medium").count()
+    low_risk_count = scoped.filter(models.HouseholdRiskScore.risk_band == "low").count()
+
+    # Check if no data for this scope
+    total_count = int(agg.total) if agg else 0
+    if total_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không có dữ liệu dự báo cho địa bàn {name or 'toàn quốc'}. Kiểm tra quyền truy cập hoặc liên hệ quản trị viên.",
+        )
+
+    model_info = scoped.with_entities(
         models.HouseholdRiskScore.model_name,
         models.HouseholdRiskScore.model_version,
-    ).all()
+    ).first()
 
-    if not score_rows:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không có dữ liệu cho địa bàn đã chọn")
-
-    avg_score = sum(float(row.risk_score) for row in score_rows) / len(score_rows)
-    high_risk_households = sum(1 for row in score_rows if row.risk_band == "high")
-    model_name = score_rows[0].model_name
-    model_version = score_rows[0].model_version
+    avg_score = float(agg.avg_score) if agg and agg.avg_score else 0.0
+    model_name = model_info.model_name if model_info else None
+    model_version = model_info.model_version if model_info else None
 
     scope_name = SCOPE_ALL
     if scope != SCOPE_COUNTRY and name:
         scope_name = name
 
+    # Query reasons, with fallback to country if scope has no reasons
     reason_rows = db.query(models.RiskReasonAggregate).filter(
         and_(
             models.RiskReasonAggregate.scope_type == scope,
@@ -534,20 +547,35 @@ def get_dashboard_risk_summary(
         )
     ).order_by(desc(models.RiskReasonAggregate.importance)).limit(5).all()
 
+    # If no reasons for this scope, fallback to country
+    if not reason_rows and scope != SCOPE_COUNTRY:
+        reason_rows = db.query(models.RiskReasonAggregate).filter(
+            and_(
+                models.RiskReasonAggregate.scope_type == SCOPE_COUNTRY,
+                models.RiskReasonAggregate.scope_name == SCOPE_ALL,
+                models.RiskReasonAggregate.predicted_for_year == predicted_for_year,
+            )
+        ).order_by(desc(models.RiskReasonAggregate.importance)).limit(5).all()
+
     trend_rows = []
     for year in range(predicted_for_year - 4, predicted_for_year + 1):
         year_scoped = apply_scope_filter(
             db.query(models.HouseholdRiskScore).filter(models.HouseholdRiskScore.predicted_for_year == year),
             scope,
             name,
-        ).with_entities(models.HouseholdRiskScore.risk_score, models.HouseholdRiskScore.risk_band).all()
-        if not year_scoped:
+        )
+        agg = year_scoped.with_entities(
+            func.avg(models.HouseholdRiskScore.risk_score).label("avg"),
+            func.count(models.HouseholdRiskScore.id).label("total"),
+        ).first()
+        high_count = year_scoped.filter(models.HouseholdRiskScore.risk_band == "high").count()
+        if not agg or agg.total == 0:
             continue
         trend_rows.append(
             schemas.RiskYearPoint(
                 year=year,
-                avg_score=round(sum(float(item.risk_score) for item in year_scoped) / len(year_scoped), 4),
-                high_risk_households=sum(1 for item in year_scoped if item.risk_band == "high"),
+                avg_score=round(float(agg.avg) if agg.avg else 0.0, 4),
+                high_risk_households=high_count,
             )
         )
 
@@ -555,10 +583,13 @@ def get_dashboard_risk_summary(
         predicted_for_year=predicted_for_year,
         scope=scope,
         scope_name=scope_name,
-        algo_name=model_name,
-        algo_version=model_version,
+        algo_name=model_name or "xgboost",
+        algo_version=model_version or "unknown",
         avg_risk_score=round(avg_score, 4),
-        high_risk_households=high_risk_households,
+        high_risk_households=high_risk_count,
+        medium_risk_households=medium_risk_count,
+        low_risk_households=low_risk_count,
+        total_households=total_count,
         top_reasons=[
             schemas.RiskReasonItem(
                 key=row.reason_key,

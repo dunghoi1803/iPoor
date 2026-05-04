@@ -67,6 +67,9 @@ class DashboardRiskSummary(BaseModel):
     algo_version: str
     avg_risk_score: float
     high_risk_households: int
+    medium_risk_households: int
+    low_risk_households: int
+    total_households: int
     top_reasons: list[RiskReasonItem]
     trend: list[RiskYearPoint]
 

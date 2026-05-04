@@ -54,3 +54,11 @@ class HouseholdRead(HouseholdBase):
 class HouseholdListResponse(BaseModel):
     items: list[HouseholdRead]
     total: int
+    risk_data: dict[int, dict] | None = None
+
+
+class HouseholdRiskInfo(BaseModel):
+    risk_score: float | None = None
+    risk_band: str | None = None
+    predicted_for_year: int | None = None
+    model_version: str | None = None

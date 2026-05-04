@@ -25,6 +25,38 @@ ARTIFACT_DIR = Path("/app/uploads/ml")
 ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
 LOCK_FILE = Path("/tmp/ipoor_risk_train.lock")
 SCHEDULE_TYPE = os.getenv("RISK_TRAIN_SCHEDULE", "manual")
+STALE_HOURS = 6
+
+
+def check_and_mark_stale_runs(session) -> None:
+    if session is None:
+        session = SessionLocal()
+        should_close = True
+    else:
+        should_close = False
+    
+    try:
+        from datetime import timedelta
+        stale_threshold = datetime.utcnow() - timedelta(hours=STALE_HOURS)
+        stale_runs = (
+            session.query(MlTrainingRun)
+            .filter(
+                MlTrainingRun.status == "running",
+                MlTrainingRun.started_at < stale_threshold,
+            )
+            .all()
+        )
+        for run in stale_runs:
+            run.status = "failed"
+            run.finished_at = datetime.utcnow()
+            run.error_message = "stale training run - exceeded 6 hours without completion"
+            session.add(run)
+        if stale_runs:
+            session.commit()
+            print(f"marked {len(stale_runs)} stale runs as failed")
+    finally:
+        if should_close:
+            session.close()
 
 
 def load_dataset() -> pd.DataFrame:
@@ -52,28 +84,28 @@ def load_dataset() -> pd.DataFrame:
     return pd.read_sql(sql, engine)
 
 
-def build_training_frame(df: pd.DataFrame) -> pd.DataFrame:
+def build_training_frame(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Build training frame and return latest survey year separately"""
     df = df.copy()
-    df["is_escaped"] = (df["poverty_status"] == "escaped_poverty").astype(int)
-    df["is_poor_or_near"] = df["poverty_status"].isin(["poor", "near_poor"]).astype(int)
+    df["is_escaped"] = df["poverty_status"].str.lower().isin(["escaped_poverty", "escaped"]).astype(int)
+    df["is_poor_or_near"] = df["poverty_status"].str.lower().isin(["poor", "near_poor"]).astype(int)
     df["age"] = pd.to_datetime(df["birth_date"], errors="coerce")
     current_year = datetime.utcnow().year
     df["age"] = current_year - df["age"].dt.year
 
-    grouped = []
-    for _, g in df.groupby("household_id", sort=False):
-        g = g.sort_values("survey_year").copy()
-        g["income_delta"] = g["income_per_capita"].diff().fillna(0)
-        g["b1_delta"] = g["score_b1"].diff().fillna(0)
-        g["b2_delta"] = g["score_b2"].diff().fillna(0)
-        g["next_status"] = g["poverty_status"].shift(-1)
-        g["label"] = ((g["poverty_status"] == "escaped_poverty") & g["next_status"].isin(["poor", "near_poor"])).astype(int)
-        grouped.append(g)
+    df = df.sort_values(["household_id", "survey_year"])
+    df["income_delta"] = df.groupby("household_id")["income_per_capita"].diff().fillna(0)
+    df["b1_delta"] = df.groupby("household_id")["score_b1"].diff().fillna(0)
+    df["b2_delta"] = df.groupby("household_id")["score_b2"].diff().fillna(0)
+    df["next_status"] = df.groupby("household_id")["poverty_status"].shift(-1)
+    df["label"] = df["next_status"].str.lower().isin(["poor", "near_poor"]).astype(int)
 
-    train = pd.concat(grouped, ignore_index=True)
-    train = train[train["next_status"].notna()].copy()
+    # Get latest survey year BEFORE filtering
+    latest_survey_year = int(df["survey_year"].max())
+    
+    train = df[df["next_status"].notna()].copy()
     train["predicted_for_year"] = train["survey_year"] + 1
-    return train
+    return train, latest_survey_year
 
 
 def train_model(train: pd.DataFrame):
@@ -166,65 +198,105 @@ def build_reason_rows(scored: pd.DataFrame) -> list[dict]:
     return rows
 
 
-def save_predictions(train: pd.DataFrame, model: Pipeline) -> tuple[int, int]:
-    latest_year = int(train["survey_year"].max())
-    prediction_input = train[train["survey_year"] == latest_year].copy()
-    if prediction_input.empty:
+def save_predictions(train: pd.DataFrame, model: Pipeline, latest_survey_year: int) -> tuple[int, int]:
+    """Save predictions for latest survey year + 1"""
+    target_year = latest_survey_year + 1
+    
+    # Query latest year data directly
+    pred_df = pd.read_sql(text("""
+        SELECT
+            hs.household_id,
+            hs.survey_year,
+            hs.income_per_capita,
+            hs.members_count,
+            hs.score_b1,
+            hs.score_b2,
+            h.province,
+            h.district,
+            h.commune,
+            h.ethnicity,
+            h.gender,
+            h.birth_date,
+            hs.poverty_status
+        FROM household_surveys hs
+        JOIN households h ON h.id = hs.household_id
+        WHERE hs.survey_year = :year
+    """).bindparams(year=latest_survey_year), engine)
+    
+    if pred_df.empty:
         raise RuntimeError("Khong co du lieu nam moi nhat de du bao")
-
+    
+    # Calculate deltas from previous year
+    prev_df = pd.read_sql(text("""
+        SELECT household_id, income_per_capita, score_b1, score_b2
+        FROM household_surveys
+        WHERE survey_year = :year
+    """).bindparams(year=latest_survey_year-1), engine)
+    
+    if not prev_df.empty:
+        prev_df = prev_df.add_suffix("_prev").rename(columns={"household_id_prev": "household_id"})
+        pred_df = pred_df.merge(prev_df, on="household_id", how="left")
+        pred_df["income_delta"] = pred_df["income_per_capita"] - pred_df["income_per_capita_prev"].fillna(pred_df["income_per_capita"])
+        pred_df["b1_delta"] = pred_df["score_b1"] - pred_df["score_b1_prev"].fillna(pred_df["score_b1"])
+        pred_df["b2_delta"] = pred_df["score_b2"] - pred_df["score_b2_prev"].fillna(pred_df["score_b2"])
+        pred_df = pred_df[[c for c in pred_df.columns if not c.endswith("_prev")]]
+    else:
+        pred_df["income_delta"] = 0
+        pred_df["b1_delta"] = 0
+        pred_df["b2_delta"] = 0
+    
+    # Calculate age
+    pred_df["age"] = datetime.utcnow().year - pd.to_datetime(pred_df["birth_date"], errors="coerce").dt.year.fillna(0)
+    
+    # Predict
     features = ["income_per_capita", "members_count", "score_b1", "score_b2", "income_delta", "b1_delta", "b2_delta", "age", "province", "district", "commune", "ethnicity", "gender", "poverty_status"]
-    prediction_input["risk_score"] = model.predict_proba(prediction_input[features])[:, 1]
-    prediction_input["predicted_for_year"] = latest_year + 1
-    prediction_input["risk_band"] = np.where(
-        prediction_input["risk_score"] >= 0.65,
-        "high",
-        np.where(prediction_input["risk_score"] >= 0.35, "medium", "low"),
+    pred_df["risk_score"] = model.predict_proba(pred_df[features])[:, 1]
+    pred_df["predicted_for_year"] = target_year
+    pred_df["risk_band"] = np.where(
+        pred_df["risk_score"] >= 0.65, "high",
+        np.where(pred_df["risk_score"] >= 0.35, "medium", "low")
     )
+    
     region_map = get_region_map()
-    prediction_input["region"] = prediction_input["province"].map(region_map).fillna("Khac")
+    pred_df["region"] = pred_df["province"].map(region_map).fillna("Khac")
 
+    # Save to database
     session = SessionLocal()
     try:
-        target_year = latest_year + 1
         session.query(HouseholdRiskScore).filter(HouseholdRiskScore.predicted_for_year == target_year).delete()
         session.query(RiskReasonAggregate).filter(RiskReasonAggregate.predicted_for_year == target_year).delete()
 
-        objects = [
-            HouseholdRiskScore(
-                household_id=int(row.household_id),
-                survey_year=int(row.survey_year),
-                predicted_for_year=int(row.predicted_for_year),
-                scope_region=str(row.region),
-                scope_province=str(row.province),
-                risk_score=float(row.risk_score),
-                risk_band=str(row.risk_band),
-                model_name=MODEL_NAME,
-                model_version=MODEL_VERSION,
-            )
-            for row in prediction_input.itertuples(index=False)
+        risk_rows = [
+            {
+                "household_id": int(row.household_id),
+                "survey_year": int(row.survey_year),
+                "predicted_for_year": int(row.predicted_for_year),
+                "scope_region": str(row.region),
+                "scope_province": str(row.province),
+                "risk_score": float(row.risk_score),
+                "risk_band": str(row.risk_band),
+                "model_name": MODEL_NAME,
+                "model_version": MODEL_VERSION,
+}
+            for row in pred_df.itertuples(index=False)
         ]
-        if objects:
-            session.bulk_save_objects(objects)
+        if risk_rows:
+            session.execute(
+                HouseholdRiskScore.__table__.insert(),
+                risk_rows
+            )
 
-        reason_objects = [
-            RiskReasonAggregate(
-                scope_type=item["scope_type"],
-                scope_name=item["scope_name"],
-                predicted_for_year=item["predicted_for_year"],
-                reason_key=item["reason_key"],
-                reason_label=item["reason_label"],
-                importance=item["importance"],
-                affected_households=item["affected_households"],
+        reason_data = build_reason_rows(pred_df)
+        if reason_data:
+            session.execute(
+                RiskReasonAggregate.__table__.insert(),
+                reason_data
             )
-            for item in build_reason_rows(prediction_input)
-        ]
-        if reason_objects:
-            session.bulk_save_objects(reason_objects)
 
         session.commit()
-        print(f"saved_household_risk_scores={len(objects)}")
-        print(f"saved_risk_reason_aggregates={len(reason_objects)}")
-        return target_year, len(objects)
+        print(f"saved_household_risk_scores={len(risk_rows)}")
+        print(f"saved_risk_reason_aggregates={len(reason_data)}")
+        return target_year, len(risk_rows)
     except Exception:
         session.rollback()
         raise
@@ -233,6 +305,7 @@ def save_predictions(train: pd.DataFrame, model: Pipeline) -> tuple[int, int]:
 
 
 def main() -> None:
+    check_and_mark_stale_runs(None)
     if LOCK_FILE.exists():
         raise RuntimeError("Training job dang chay, bo qua lan goi nay")
     LOCK_FILE.write_text(datetime.utcnow().isoformat())
@@ -249,9 +322,9 @@ def main() -> None:
     session.refresh(run)
     try:
         raw = load_dataset()
-        train = build_training_frame(raw)
+        train, latest_survey_year = build_training_frame(raw)
         model, pr_auc, train_rows = train_model(train)
-        predicted_for_year, prediction_rows = save_predictions(train, model)
+        predicted_for_year, prediction_rows = save_predictions(train, model, latest_survey_year)
         run.status = "success"
         run.finished_at = datetime.utcnow()
         run.predicted_for_year = predicted_for_year
