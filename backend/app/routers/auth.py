@@ -82,6 +82,18 @@ async def register_user(
     existing = db.query(models.User).filter(models.User.email == email).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    
+    # Validation based on org_level
+    if org_level == "tinh":
+        if not province:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Province is required for province-level officers")
+    elif org_level == "huyen":
+        if not province or not district:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Province and District are required for district-level officers")
+    elif org_level == "xa":
+        if not province or not district or not commune:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Province, District and Commune are required for commune-level officers")
+
     if cccd_image_url and cccd_image_url.strip():
         image_url = cccd_image_url.strip()
     else:

@@ -252,7 +252,6 @@
                         <option value="huyen">Phòng/Ban cấp Huyện</option>
                         <option value="tinh">Sở/Ban/Ngành cấp Tỉnh</option>
                         <option value="tw">Cơ quan/Bộ ngành Trung ương</option>
-                        <option value="khac">Chi cục/Cục/Đơn vị khác</option>
                     </select>
                 </div>
 
@@ -260,6 +259,24 @@
                     <label for="org-name">Tên đơn vị cụ thể <span class="required">*</span></label>
                     <input type="text" id="org-name" name="org_name"
                            placeholder="Ví dụ: UBND xã X, Phòng LĐTBXH huyện Y..." required>
+                </div>
+
+                <!-- Địa danh hành chính (Hiển thị động) -->
+                <div class="form-group" id="province-group" style="display: none;">
+                    <label for="province">Tỉnh / Thành phố <span class="required">*</span></label>
+                    <select id="province" name="province">
+                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="district-group" style="display: none;">
+                    <label for="district">Quận / Huyện <span class="required">*</span></label>
+                    <input type="text" id="district" name="district" placeholder="Nhập tên Quận/Huyện">
+                </div>
+
+                <div class="form-group" id="commune-group" style="display: none;">
+                    <label for="commune">Xã / Phường <span class="required">*</span></label>
+                    <input type="text" id="commune" name="commune" placeholder="Nhập tên Xã/Phường">
                 </div>
 
                 <div class="form-group full-width">
@@ -335,8 +352,64 @@
     const TOKEN_STORAGE_KEY = 'ipoor_access_token';
     const signupForm = document.getElementById('signup-form');
     const statusEl = document.getElementById('signup-status');
+    const orgLevelSelect = document.getElementById('org-level');
+    const provinceSelect = document.getElementById('province');
+    const districtGroup = document.getElementById('district-group');
+    const communeGroup = document.getElementById('commune-group');
+    const provinceGroup = document.getElementById('province-group');
+    
     const MAX_CCCD_BYTES = 5 * 1024 * 1024;
     const IMAGE_MAX_DIM = 1920;
+
+    // Hiển thị/Ẩn các trường địa danh dựa trên cấp bậc
+    orgLevelSelect.addEventListener('change', function() {
+        const level = this.value;
+        provinceGroup.style.display = 'none';
+        districtGroup.style.display = 'none';
+        communeGroup.style.display = 'none';
+        
+        document.getElementById('province').required = false;
+        document.getElementById('district').required = false;
+        document.getElementById('commune').required = false;
+
+        if (level === 'xa') {
+            provinceGroup.style.display = 'block';
+            districtGroup.style.display = 'block';
+            communeGroup.style.display = 'block';
+            document.getElementById('province').required = true;
+            document.getElementById('district').required = true;
+            document.getElementById('commune').required = true;
+        } else if (level === 'huyen') {
+            provinceGroup.style.display = 'block';
+            districtGroup.style.display = 'block';
+            document.getElementById('province').required = true;
+            document.getElementById('district').required = true;
+        } else if (level === 'tinh') {
+            provinceGroup.style.display = 'block';
+            document.getElementById('province').required = true;
+        }
+        
+        if (provinceGroup.style.display === 'block' && provinceSelect.options.length <= 1) {
+            fetchProvinces();
+        }
+    });
+
+    async function fetchProvinces() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/locations/provinces?limit=100`);
+            const data = await res.json();
+            if (data.items) {
+                data.items.sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.textContent = p.name;
+                    provinceSelect.appendChild(opt);
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching provinces:', error);
+        }
+    }
 
     const ROLE_BY_LEVEL = {
         tinh: 'province_officer',
@@ -411,6 +484,9 @@
         const orgLevel = document.getElementById('org-level').value;
         const orgName = document.getElementById('org-name').value.trim();
         const position = document.getElementById('position').value.trim();
+        const province = document.getElementById('province').value;
+        const district = document.getElementById('district').value.trim();
+        const commune = document.getElementById('commune').value.trim();
         const cccdInput = document.getElementById('cccd');
         const cccdRaw = cccdInput.value.trim();
         const cccd = normalizeCccd(cccdRaw);
@@ -485,9 +561,9 @@
             formData.append('position', position);
         }
         formData.append('cccd', cccd);
-        formData.append('province', '');
-        formData.append('district', '');
-        formData.append('commune', '');
+        formData.append('province', province || '');
+        formData.append('district', district || '');
+        formData.append('commune', commune || '');
         formData.append('is_active', 'true');
         formData.append('cccd_image', uploadFile, uploadFile.name);
 
