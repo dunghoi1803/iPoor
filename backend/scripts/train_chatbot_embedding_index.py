@@ -36,6 +36,7 @@ CANONICAL_MAPPINGS = [
     
     # Policy topic aliases
     {"text": "chính sách hỗ trợ giảm nghèo", "intent": "policy", "topic": "support_reduction"},
+    {"text": "các chính sách giảm nghèo", "intent": "policy", "topic": "support_reduction"},
     {"text": "hỗ trợ hộ nghèo", "intent": "policy", "topic": "support_poor"},
     {"text": "hỗ trợ sau thoát nghèo", "intent": "policy", "topic": "post_escaped"},
     {"text": "tín dụng ưu đãi", "intent": "policy", "topic": "credit"},
@@ -44,6 +45,11 @@ CANONICAL_MAPPINGS = [
     {"text": "hỗ trợ giáo dục", "intent": "policy", "topic": "education"},
     {"text": "hỗ trợ nhà ở", "intent": "policy", "topic": "housing"},
     {"text": "giải quyết việc làm", "intent": "policy", "topic": "employment"},
+    {"text": "chương trình mục tiêu quốc gia", "intent": "policy", "topic": "national_program"},
+    {"text": "hỗ trợ tiền mặt", "intent": "policy", "topic": "cash_support"},
+    {"text": "vay vốn giảm nghèo", "intent": "policy", "topic": "loan"},
+    {"text": "chính sách cho hộ nghèo", "intent": "policy", "topic": "poor_household"},
+    {"text": "điều kiện nhận hỗ trợ", "intent": "policy", "topic": "eligibility"},
     
     # FAQ topics
     {"text": "tiêu chí nghèo đa chiều", "intent": "faq", "topic": "mpi_criteria"},

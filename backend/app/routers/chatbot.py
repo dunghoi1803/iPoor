@@ -1157,9 +1157,50 @@ async def ask_chatbot(
     
     # Extract keywords for policy search
     msg_lower = payload.message.lower()
+    
+    # Detect policy intent first
+    policy_keywords = ["chính sách", "hỗ trợ", "giảm nghèo", "thụ hưởng", "điều kiện", "quy định", "hướng dẫn"]
+    is_policy_query = any(kw in msg_lower for kw in policy_keywords)
+    
     raw_keywords = msg_lower.replace("?", "").replace(".", "").replace(",", "").split()
     stop_words = ["là", "có", "của", "cho", "tại", "về", "trong", "cần", "muốn", "hỏi", "biết", "bao", "nhiêu", "như", "thế", "nào", "cho", "tôi", "biết"]
     keywords = [k for k in raw_keywords if len(k) > 1 and k not in stop_words]
+    
+    # B. For policy queries, return results directly
+    if is_policy_query and keywords:
+        try:
+            # Use simpler matching with key policy terms
+            search_terms = ["giảm nghèo", "hỗ trợ", "chính sách", "hướng dẫn"]
+            filters = []
+            for term in search_terms:
+                if term in msg_lower:
+                    filters.append(models.Policy.title.ilike(f"%{term}%"))
+                    filters.append(models.Policy.summary.ilike(f"%{term}%"))
+            
+            if filters:
+                policies_list = policy_query.filter(or_(*filters)).limit(5).all()
+            else:
+                policies_list = policy_query.limit(5).all()
+            
+            if policies_list:
+                policy_results = []
+                for p in policies_list:
+                    policy_results.append(f"**{p.title}**: {p.summary or 'No summary'}")
+                
+                reply = "Tìm thấy các chính sách liên quan:\n\n" + "\n\n".join(policy_results)
+                source = "policies"
+                confidence = 0.95
+                suggestion_list = ["Xem chi tiết", "Điều kiện nhận hỗ trợ", "Liên hệ cơ quan quản lý"]
+                
+                return {
+                    "reply": reply,
+                    "source": source,
+                    "conversation_id": conversation_id,
+                    "confidence": confidence,
+                    "suggestions": suggestion_list,
+                }
+        except Exception as e:
+            print(f"Policy search error: {e}")
     
     if keywords:
         try:
