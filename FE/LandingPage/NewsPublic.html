@@ -10,9 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --navy-900: #0f172a;
-            --navy-800: #162544;
-            --blue-500: #2563eb;
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --secondary-blue: #3b82f6;
+            --secondary-cyan: #22d3ee;
             --blue-100: #e1ecff;
             --gray-50: #f8fafc;
             --gray-100: #e5e7eb;
@@ -21,7 +22,7 @@
             --card-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; color: var(--navy-900); background: #f5f7fb; }
+        body { font-family: 'Inter', sans-serif; color: var(--primary-navy); background: #f5f7fb; }
         a { color: inherit; text-decoration: none; }
 
         header {
@@ -34,7 +35,7 @@
         .brand img { width: 32px; height: 32px; object-fit: contain; }
         .brand small { display: none; }
         .menu { display: flex; align-items: center; gap: 18px; font-weight: 700; }
-        .menu a { color: var(--navy-900); position: relative; }
+        .menu a { color: var(--primary-navy); position: relative; }
         .menu a::after {
             content: '';
             position: absolute;
@@ -43,10 +44,10 @@
             width: 0;
             height: 3px;
             border-radius: 999px;
-            background: linear-gradient(90deg, #2563eb, #22c55e);
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
             transition: width 0.2s ease;
         }
-        .menu a:hover { color: var(--blue-500); }
+        .menu a:hover { color: var(--secondary-blue); }
         .menu a:hover::after { width: 100%; }
         .btn-login {
             background: linear-gradient(90deg, #0f172a, #1f2f54);
@@ -74,7 +75,7 @@
             display: block;
             width: var(--menu-toggle-bar-width);
             height: var(--menu-toggle-bar-height);
-            background: var(--navy-900);
+            background: var(--primary-navy);
             margin: var(--menu-toggle-bar-gap) 0;
         }
 
@@ -99,7 +100,7 @@
 
         .filters { max-width: 1200px; margin: 0 auto; padding: 0 18px 18px; display: flex; gap: 12px; flex-wrap: wrap; }
         .filters select, .filters input { padding: 10px 12px; border: 1px solid var(--gray-100); border-radius: 10px; font-weight: 600; background: var(--white); }
-        .filters button { padding: 10px 14px; border-radius: 10px; border: none; background: var(--navy-900); color: var(--white); font-weight: 700; cursor: pointer; }
+        .filters button { padding: 10px 14px; border-radius: 10px; border: none; background: var(--primary-navy); color: var(--white); font-weight: 700; cursor: pointer; }
         .filters button:hover { background: var(--navy-800); }
 
         .layout { max-width: 1200px; margin: 0 auto; padding: 0 18px 36px; display: grid; gap: 18px; grid-template-columns: 2fr 1fr; }
@@ -110,7 +111,7 @@
         .feature-title { font-size: 24px; }
         .feature-desc { color: var(--gray-500); }
 
-        .tag { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #e2e8f0; color: var(--navy-900); }
+        .tag { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #e2e8f0; color: var(--primary-navy); }
         .tag.policy { background: #eef2ff; color: #4338ca; }
         .tag.report { background: #ecfeff; color: #0ea5e9; }
         .tag.guide { background: #fef9c3; color: #a16207; }
@@ -163,9 +164,9 @@
             overflow: hidden;
         }
         .report-actions { margin-left: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-        .report-action { color: var(--blue-500); font-weight: 800; text-align: right; }
+        .report-action { color: var(--secondary-blue); font-weight: 800; text-align: right; }
 
-        footer { background: var(--navy-900); color: var(--white); padding: 28px 18px; margin-top: 36px; }
+        footer { background: var(--primary-navy); color: var(--white); padding: 28px 18px; margin-top: 36px; }
         .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: start; }
         .footer-title { font-weight: 800; margin-bottom: 10px; }
         .footer-brand { margin-top: 5px; }

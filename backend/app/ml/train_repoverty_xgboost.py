@@ -165,10 +165,36 @@ def train_model(train: pd.DataFrame):
 
 def build_reason_rows(scored: pd.DataFrame) -> list[dict]:
     rules = [
-        ("income_drop", "Thu nhap binh quan giam", scored["income_delta"] < 0),
-        ("high_b2", "Diem B2 cao", scored["score_b2"].fillna(0) >= 60),
-        ("large_household", "So nhan khau lon", scored["members_count"].fillna(0) >= 6),
-        ("near_poor_base", "Trang thai can ngheo hien tai", scored["poverty_status"] == "near_poor"),
+    # ===== 1. INCOME / TREND =====
+    ("income_drop", "Thu nhập bình quân giảm", scored["income_delta"] < 0),
+    ("sharp_income_drop", "Thu nhập giảm mạnh", scored["income_delta"] < -500000),
+    
+    # ===== 2. MPI / SCORE =====
+    ("high_b2", "Điểm B2 cao (thiếu hụt dịch vụ)", scored["score_b2"].fillna(0) >= 60),
+    ("b2_increasing", "Thiếu hụt dịch vụ gia tăng", scored["b2_delta"] > 0),
+    ("b1_increasing", "Điểm thu nhập xấu đi", scored["b1_delta"] > 0),
+
+    # ===== 3. HOUSEHOLD CHARACTERISTICS =====
+    ("large_household", "Số nhân khẩu lớn", scored["members_count"].fillna(0) >= 6),
+    ("very_large_household", "Hộ rất đông người", scored["members_count"].fillna(0) >= 8),
+
+    ("elderly_risk", "Chủ hộ cao tuổi", scored["age"].fillna(0) >= 65),
+    ("young_dependency", "Hộ có nhiều người phụ thuộc trẻ", scored["age"].fillna(0) < 25),
+
+    # ===== 4. POVERTY STATUS =====
+    ("near_poor_base", "Trạng thái cận nghèo hiện tại", scored["poverty_status"] == "near_poor"),
+    ("recently_escaped", "Mới thoát nghèo (rủi ro tái nghèo)", scored["poverty_status"] == "escaped"),
+
+    # ===== 5. COMBINED RISK =====
+    ("income_and_b2_risk", "Thu nhập giảm + thiếu hụt dịch vụ cao",
+        (scored["income_delta"] < 0) & (scored["score_b2"].fillna(0) >= 50)
+    ),
+
+    ("multi_dimensional_risk", "Nhiều yếu tố rủi ro đồng thời",
+        (scored["income_delta"] < 0) &
+        (scored["members_count"].fillna(0) >= 5) &
+        (scored["score_b2"].fillna(0) >= 40)
+    ),
     ]
     rows: list[dict] = []
     latest_target = int(scored["predicted_for_year"].max())

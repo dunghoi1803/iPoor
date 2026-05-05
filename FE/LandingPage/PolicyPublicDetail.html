@@ -10,9 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --navy-900: #0f172a;
-            --navy-800: #162544;
-            --blue-500: #2563eb;
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --secondary-blue: #3b82f6;
+            --secondary-cyan: #22d3ee;
             --blue-100: #e1ecff;
             --gray-50: #f8fafc;
             --gray-100: #e5e7eb;
@@ -21,7 +22,7 @@
             --card-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: var(--navy-900); }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: var(--primary-navy); }
         a { color: inherit; text-decoration: none; }
 
         header {
@@ -34,7 +35,7 @@
         .brand img { width: 32px; height: 32px; object-fit: contain; }
         .brand small { display: none; }
         .menu { display: flex; align-items: center; gap: 18px; font-weight: 700; }
-        .menu a { color: var(--navy-900); position: relative; }
+        .menu a { color: var(--primary-navy); position: relative; }
         .menu a::after {
             content: '';
             position: absolute;
@@ -43,10 +44,10 @@
             width: 0;
             height: 3px;
             border-radius: 999px;
-            background: linear-gradient(90deg, #2563eb, #22c55e);
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
             transition: width 0.2s ease;
         }
-        .menu a:hover { color: var(--blue-500); }
+        .menu a:hover { color: var(--secondary-blue); }
         .menu a:hover::after { width: 100%; }
         .btn-login {
             background: linear-gradient(90deg, #0f172a, #1f2f54);
@@ -74,14 +75,14 @@
             display: block;
             width: var(--menu-toggle-bar-width);
             height: var(--menu-toggle-bar-height);
-            background: var(--navy-900);
+            background: var(--primary-navy);
             margin: var(--menu-toggle-bar-gap) 0;
         }
 
         .hero { max-width: 1200px; margin: 0 auto; padding: 28px 18px; display: grid; gap: 12px; }
         .hero h1 { font-size: 32px; }
         .meta { color: var(--gray-500); font-size: 14px; display: flex; gap: 12px; flex-wrap: wrap; }
-        .tag { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #e2e8f0; color: var(--navy-900); }
+        .tag { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #e2e8f0; color: var(--primary-navy); }
         .tag.policy { background: #eef2ff; color: #4338ca; }
         .tag.report { background: #ecfeff; color: #0ea5e9; }
         .tag.guide { background: #fef9c3; color: #a16207; }
@@ -95,8 +96,8 @@
         .article h2, .article h3 { font-size: 20px; margin-top: 6px; }
         .article ul, .article ol { margin-left: 18px; color: var(--gray-500); line-height: 1.6; display: grid; gap: 6px; }
         .article .list-dash, .article .list-plus { list-style: none; padding-left: 0; }
-        .article .list-dash li::before { content: "– "; color: var(--navy-900); font-weight: 700; }
-        .article .list-plus li::before { content: "+ "; color: var(--navy-900); font-weight: 700; }
+        .article .list-dash li::before { content: "– "; color: var(--primary-navy); font-weight: 700; }
+        .article .list-plus li::before { content: "+ "; color: var(--primary-navy); font-weight: 700; }
         .article .list-circle { list-style-type: circle; }
         .article .list-alpha { list-style-type: lower-alpha; }
         .article .list-roman { list-style-type: lower-roman; }
@@ -104,7 +105,7 @@
         .article figure img { width: 100%; border-radius: 12px; }
         .article figcaption { color: var(--gray-500); font-size: 13px; }
         .article blockquote { border-left: 3px solid #93c5fd; padding-left: 12px; color: var(--gray-500); font-style: italic; display: grid; gap: 6px; }
-        .article blockquote cite { font-style: normal; font-weight: 700; color: var(--navy-900); }
+        .article blockquote cite { font-style: normal; font-weight: 700; color: var(--primary-navy); }
         .article table { width: 100%; border-collapse: collapse; }
         .article th, .article td { border: 1px solid var(--gray-100); padding: 8px 10px; text-align: left; }
         .article th { background: #f8fafc; }
@@ -121,7 +122,7 @@
         .related-body { padding: 12px; display: grid; gap: 6px; }
         .related-meta { color: var(--gray-500); font-size: 12px; }
         .related-title-text { font-weight: 800; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        footer { background: var(--navy-900); color: var(--white); padding: 28px 18px; margin-top: 36px; }
+        footer { background: var(--primary-navy); color: var(--white); padding: 28px 18px; margin-top: 36px; }
         .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: start; }
         .footer-title { font-weight: 800; margin-bottom: 10px; }
         .footer-brand { margin-top: 5px; }

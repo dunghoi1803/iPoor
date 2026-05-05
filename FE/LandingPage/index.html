@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -7,12 +7,14 @@
     <link rel="icon" type="image/png" href="../Image/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../Common/Chatbot/chatbot.css">
     <style>
         :root {
-            --navy-900: #0f172a;
-            --navy-800: #162544;
-            --blue-500: #2563eb;
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --secondary-blue: #3b82f6;
+            --secondary-cyan: #22d3ee;
             --blue-100: #e1ecff;
             --gray-50: #f8fafc;
             --gray-100: #e5e7eb;
@@ -48,10 +50,10 @@
             width: 0;
             height: 3px;
             border-radius: 999px;
-            background: linear-gradient(90deg, #2563eb, #22c55e);
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
             transition: width 0.2s ease;
         }
-        .menu a:hover { color: var(--blue-500); }
+        .menu a:hover { color: var(--secondary-blue); }
         .menu a:hover::after { width: 100%; }
         .btn-login {
             background: linear-gradient(90deg, #0f172a, #1f2f54);
@@ -198,7 +200,7 @@
         .report-body { flex: 1; }
         .report-meta { color: var(--gray-500); font-size: 13px; }
         .report-actions { margin-left: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-        .report-action { color: var(--blue-500); font-weight: 800; text-align: right; }
+        .report-action { color: var(--secondary-blue); font-weight: 800; text-align: right; }
 
         .about-card { border: 1px solid var(--gray-100); border-radius: 14px; padding: 16px; background: #f8fafc; box-shadow: var(--card-shadow); display: grid; gap: 12px; }
         .about-list { display: grid; gap: 6px; }
@@ -949,5 +951,6 @@
     loadHouseholdStats();
     loadQuickBrief();
 </script>
+<script src="../Common/Chatbot/chatbot.js"></script>
 </body>
 </html>

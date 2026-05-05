@@ -1,4 +1,4 @@
-from . import activity_logs, auth, data_collections, dashboard, health, households, policies, files, gis, locations
+from . import activity_logs, auth, data_collections, dashboard, health, households, policies, files, gis, locations, chatbot
 
 __all__ = [
     "activity_logs",
@@ -11,4 +11,5 @@ __all__ = [
     "files",
     "gis",
     "locations",
+    "chatbot",
 ]

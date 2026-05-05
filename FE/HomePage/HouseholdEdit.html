@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --navy-900: #0f172a;
-            --navy-800: #162544;
-            --navy-700: #1f2f54;
-            --blue-500: #3b82f6;
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --secondary-blue: #3b82f6;
+            --secondary-cyan: #22d3ee;
             --blue-100: #e1ecff;
             --gray-50: #f5f7fa;
             --gray-100: #e5e7eb;
@@ -26,10 +26,10 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Manrope', system-ui, -apple-system, sans-serif; background: var(--gray-50); color: var(--navy-900); }
+        body { font-family: 'Manrope', system-ui, -apple-system, sans-serif; background: var(--gray-50); color: var(--primary-navy); }
 
         .app-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-        .sidebar { background: var(--navy-900); color: var(--white); display: flex; flex-direction: column; padding: 20px 18px; }
+        .sidebar { background: var(--primary-navy); color: var(--white); display: flex; flex-direction: column; padding: 20px 18px; }
         .brand { display: flex; align-items: center; gap: 12px; padding: 10px 12px 20px; }
         .brand-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--white); display: grid; place-items: center; }
         .brand-logo { width: 30px; height: 30px; object-fit: contain; }
@@ -37,15 +37,15 @@
         nav { margin-top: 8px; display: grid; gap: 6px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: var(--white); text-decoration: none; transition: background 0.2s, transform 0.1s; }
         .nav-item:hover { background: var(--navy-800); transform: translateX(2px); }
-        .nav-item.active { background: var(--navy-700); border-left: 3px solid var(--blue-500); }
+        .nav-item.active { background: var(--navy-700); border-left: 3px solid var(--secondary-blue); }
         .nav-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
 
         .main-area { display: flex; flex-direction: column; min-height: 100vh; }
         .topbar { background: var(--white); height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-shadow: 0 1px 0 rgba(148, 163, 184, 0.35); position: relative; }
         .breadcrumb { color: var(--gray-500); font-weight: 600; letter-spacing: 0.2px; }
-        .breadcrumb strong { color: var(--navy-900); }
+        .breadcrumb strong { color: var(--primary-navy); }
         .user-meta { display: flex; align-items: center; gap: 12px; position: relative; }
-        .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--blue-500); color: var(--white); display: grid; place-items: center; font-weight: 700; }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--secondary-blue); color: var(--white); display: grid; place-items: center; font-weight: 700; }
         .user-info { display: flex; flex-direction: column; align-items: flex-end; }
         .user-name { font-weight: 700; }
         .user-role { color: var(--gray-500); font-size: 13px; }
@@ -53,7 +53,7 @@
         .dropdown:hover { box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12); }
         .dropdown-menu { position: absolute; right: 0; top: 60px; background: var(--white); border: 1px solid var(--gray-100); border-radius: 12px; box-shadow: 0 14px 28px rgba(15,23,42,0.15); display: none; min-width: 180px; overflow: hidden; }
         .dropdown-menu.open { display: block; }
-        .dropdown-item { width: 100%; text-align: left; padding: 10px 14px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: var(--navy-900); transition: background 0.15s; }
+        .dropdown-item { width: 100%; text-align: left; padding: 10px 14px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: var(--primary-navy); transition: background 0.15s; }
         .dropdown-item:hover { background: #f8fafc; }
 
         .content { flex: 1; padding: 24px; background: var(--gray-50); display: grid; gap: 16px; }
@@ -66,13 +66,13 @@
         .field { display: grid; gap: 4px; }
         .label { color: var(--gray-500); font-weight: 700; font-size: 13px; }
 
-        .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: 10px; font-weight: 600; color: var(--navy-900); background: var(--white); }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: 10px; font-weight: 600; color: var(--primary-navy); background: var(--white); }
         .form-control:focus { outline: 2px solid var(--blue-100); }
         .error { color: var(--red-500); font-size: 12px; font-weight: 700; }
         .action-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
-        .btn-primary { background: var(--navy-900); color: var(--white); border: none; border-radius: 10px; padding: 12px 16px; font-weight: 800; cursor: pointer; }
+        .btn-primary { background: var(--primary-navy); color: var(--white); border: none; border-radius: 10px; padding: 12px 16px; font-weight: 800; cursor: pointer; }
         .btn-primary:hover { background: var(--navy-800); }
-        .btn-secondary { background: var(--white); color: var(--navy-900); border: 1px solid var(--gray-200); border-radius: 10px; padding: 12px 16px; font-weight: 700; cursor: pointer; }
+        .btn-secondary { background: var(--white); color: var(--primary-navy); border: 1px solid var(--gray-200); border-radius: 10px; padding: 12px 16px; font-weight: 700; cursor: pointer; }
         .btn-secondary:hover { background: #f8fafc; }
 
         .autocomplete { position: relative; }
@@ -83,7 +83,7 @@
             max-height: 220px; overflow-y: auto; display: none; z-index: 10;
         }
         .suggestions.open { display: block; }
-        .suggestion-item { padding: 10px 12px; cursor: pointer; font-weight: 600; color: var(--navy-900); }
+        .suggestion-item { padding: 10px 12px; cursor: pointer; font-weight: 600; color: var(--primary-navy); }
         .suggestion-item:hover { background: #f8fafc; }
         .suggestion-empty { padding: 10px 12px; color: var(--gray-500); font-weight: 700; }
         .suggestion-meta { padding: 8px 12px; color: var(--gray-500); font-size: 12px; font-weight: 700; border-top: 1px solid var(--gray-100); background: #f8fafc; }

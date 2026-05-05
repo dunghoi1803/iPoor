@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --navy-900: #0f172a;
-            --navy-800: #162544;
-            --navy-700: #1f2f54;
-            --blue-500: #3b82f6;
+            --primary-navy: #0F172A;
+            --primary-hover: #1E293B;
+            --secondary-blue: #3b82f6;
+            --secondary-cyan: #22d3ee;
             --blue-100: #e1ecff;
             --orange-400: #f59e0b;
             --gray-50: #f5f7fa;
@@ -32,11 +32,11 @@
         body {
             font-family: 'Manrope', system-ui, -apple-system, sans-serif;
             background: var(--gray-50);
-            color: var(--navy-900);
+            color: var(--primary-navy);
         }
 
         .app-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-        .sidebar { background: var(--navy-900); color: var(--white); display: flex; flex-direction: column; padding: 20px 18px; }
+        .sidebar { background: var(--primary-navy); color: var(--white); display: flex; flex-direction: column; padding: 20px 18px; }
         .brand { display: flex; align-items: center; gap: 12px; padding: 10px 12px 20px; }
         .brand-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--white); display: grid; place-items: center; }
         .brand-logo { width: 30px; height: 30px; object-fit: contain; }
@@ -44,15 +44,15 @@
         nav { margin-top: 8px; display: grid; gap: 6px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: var(--white); text-decoration: none; transition: background 0.2s, transform 0.1s; }
         .nav-item:hover { background: var(--navy-800); transform: translateX(2px); }
-        .nav-item.active { background: var(--navy-700); border-left: 3px solid var(--blue-500); }
+        .nav-item.active { background: var(--navy-700); border-left: 3px solid var(--secondary-blue); }
         .nav-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
 
         .main-area { display: flex; flex-direction: column; min-height: 100vh; }
         .topbar { background: var(--white); height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-shadow: 0 1px 0 rgba(148, 163, 184, 0.35); position: relative; }
         .breadcrumb { color: var(--gray-500); font-weight: 600; letter-spacing: 0.2px; }
-        .breadcrumb strong { color: var(--navy-900); }
+        .breadcrumb strong { color: var(--primary-navy); }
         .user-meta { display: flex; align-items: center; gap: 12px; position: relative; }
-        .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--blue-500); color: var(--white); display: grid; place-items: center; font-weight: 700; }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--secondary-blue); color: var(--white); display: grid; place-items: center; font-weight: 700; }
         .user-info { display: flex; flex-direction: column; align-items: flex-end; }
         .user-name { font-weight: 700; }
         .user-role { color: var(--gray-500); font-size: 13px; }
@@ -60,7 +60,7 @@
         .dropdown:hover { box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12); }
         .dropdown-menu { position: absolute; right: 0; top: 60px; background: var(--white); border: 1px solid var(--gray-100); border-radius: 12px; box-shadow: 0 14px 28px rgba(15,23,42,0.15); display: none; min-width: 180px; overflow: hidden; }
         .dropdown-menu.open { display: block; }
-        .dropdown-item { width: 100%; text-align: left; padding: 10px 14px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: var(--navy-900); transition: background 0.15s; }
+        .dropdown-item { width: 100%; text-align: left; padding: 10px 14px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: var(--primary-navy); transition: background 0.15s; }
         .dropdown-item:hover { background: #f8fafc; }
 
         .content { flex: 1; padding: 24px; background: var(--gray-50); display: grid; gap: 16px; }
@@ -70,8 +70,8 @@
         .filter-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px; box-shadow: var(--card-shadow); padding: 16px; display: grid; gap: 12px; }
         .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: end; }
         .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-weight: 700; color: var(--navy-900); font-size: 14px; }
-        select, input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-100); border-radius: 10px; background: var(--white); font-weight: 600; color: var(--navy-900); }
+        .form-group label { font-weight: 700; color: var(--primary-navy); font-size: 14px; }
+        select, input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-100); border-radius: 10px; background: var(--white); font-weight: 600; color: var(--primary-navy); }
         select:focus, input[type="text"]:focus, input[list]:focus { outline: 2px solid var(--blue-100); }
 
         .autocomplete {
@@ -96,7 +96,7 @@
             padding: 10px 12px;
             cursor: pointer;
             font-weight: 600;
-            color: var(--navy-900);
+            color: var(--primary-navy);
         }
         .suggestion-item:hover { background: #f8fafc; }
         .suggestion-empty {
@@ -115,16 +115,16 @@
 
         .filter-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { border: none; cursor: pointer; border-radius: 10px; font-weight: 700; padding: 10px 14px; }
-        .btn-primary { background: var(--navy-900); color: var(--white); }
-        .btn-secondary { background: var(--white); color: var(--navy-900); border: 1px solid var(--gray-200); }
+        .btn-primary { background: var(--primary-navy); color: var(--white); }
+        .btn-secondary { background: var(--white); color: var(--primary-navy); border: 1px solid var(--gray-200); }
         .btn-primary:hover { background: var(--navy-800); }
         .btn-secondary:hover { background: #f8fafc; }
 
         .table-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px; box-shadow: var(--card-shadow); }
         .table-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--gray-100); }
         .table-title { font-weight: 800; font-size: 16px; }
-        .btn-add { background: var(--blue-500); color: var(--white); padding: 10px 14px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-add:hover { background: #2563eb; }
+        .btn-add { background: var(--secondary-blue); color: var(--white); padding: 10px 14px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-add:hover { background: #3b82f6; }
 
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px 12px; text-align: left; font-size: 14px; }
@@ -148,7 +148,7 @@
         .pagination { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-top: 1px solid var(--gray-100); color: var(--gray-500); font-weight: 600; }
         .page-controls { display: flex; gap: 8px; align-items: center; }
         .page-btn { min-width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--gray-200); background: var(--white); cursor: pointer; font-weight: 700; }
-        .page-btn.active { background: var(--blue-500); color: var(--white); border-color: var(--blue-500); }
+        .page-btn.active { background: var(--secondary-blue); color: var(--white); border-color: var(--secondary-blue); }
         .page-btn:hover { background: #f8fafc; }
 
         @media (max-width: 960px) {
@@ -319,6 +319,15 @@
                         <label for="province">Tỉnh/Thành Phố</label>
                         <input type="text" id="province" placeholder="Nhập tên tỉnh" autocomplete="off">
                         <div class="suggestions" id="provinceSuggestions"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Năm dự báo</label>
+                        <select id="year">
+                            <option value="">Tất cả</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="commune">Phường/Xã</label>
@@ -1041,6 +1050,8 @@
             if (mappedStatus) query.set('status_filter', mappedStatus);
             const riskBand = document.getElementById('riskBand')?.value;
             if (riskBand) query.set('risk_band', riskBand);
+            const yearSelect = document.getElementById('year')?.value;
+            if (yearSelect) query.set('predicted_for_year', yearSelect);
         }
 
         try {

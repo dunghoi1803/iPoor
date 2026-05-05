@@ -10,7 +10,7 @@ from .config import get_settings
 from .database import SessionLocal
 from .utils.security import verify_password
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -29,7 +29,7 @@ def authenticate_user(db: Session, email: str, password: str) -> models.User | N
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+    token: str | None = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> models.User:
     settings = get_settings()
     credentials_exception = HTTPException(
@@ -37,6 +37,8 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not token:
+        raise credentials_exception
     try:
         payload = jwt.decode(
             token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
@@ -51,3 +53,21 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+def get_current_user_optional(
+    token: str | None = Depends(oauth2_scheme), db: Session = Depends(get_db)
+) -> models.User | None:
+    if not token:
+        return None
+    try:
+        settings = get_settings()
+        payload = jwt.decode(
+            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+        )
+        email: str | None = payload.get("sub")
+        if email is None:
+            return None
+        return db.query(models.User).filter(models.User.email == email).first()
+    except JWTError:
+        return None
