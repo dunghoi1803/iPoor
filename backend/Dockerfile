@@ -1,20 +1,26 @@
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
-RUN apt-get update && apt-get install -y build-essential default-libmysqlclient-dev
+RUN apt-get update && \
+    sed -i 's|http://deb.debian.org|http://ftp.jp.debian.org|g' /etc/apt/sources.list 2>/dev/null || true && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    default-libmysqlclient-dev
 
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --target=/app/deps -r requirements.txt
 
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/deps
 
 WORKDIR /app
 
 RUN apt-get update && \
+    sed -i 's|http://deb.debian.org|http://ftp.jp.debian.org|g' /etc/apt/sources.list 2>/dev/null || true && \
     apt-get install -y --no-install-recommends default-libmysqlclient-dev curl ghostscript && \
     rm -rf /var/lib/apt/lists/* && \
     useradd --create-home --shell /bin/bash appuser
@@ -23,6 +29,7 @@ COPY --from=builder /app/deps /app/deps
 COPY backend/app ./app
 COPY backend/alembic ./alembic
 COPY backend/alembic.ini ./alembic.ini
+COPY backend/scripts ./scripts
 
 # Copy GIS data files for the /gis endpoints
 COPY FE/data ./FE/data
